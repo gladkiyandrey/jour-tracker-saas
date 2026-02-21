@@ -115,9 +115,8 @@ export default function TrackerClient({ userKey }: Props) {
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalError, setModalError] = useState("");
   const [syncError, setSyncError] = useState("");
-  const [shareLink, setShareLink] = useState("");
-  const [shareError, setShareError] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
+  const [shareStatus, setShareStatus] = useState("");
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -343,7 +342,7 @@ export default function TrackerClient({ userKey }: Props) {
   }, [viewMonth, viewYear, dayData, selectedDateKey]);
 
   const createShare = async () => {
-    setShareError("");
+    setShareStatus("");
     setShareLoading(true);
     try {
       const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -370,12 +369,12 @@ export default function TrackerClient({ userKey }: Props) {
       if (!res.ok) throw new Error("Failed to create share link");
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error("Invalid share response");
-      setShareLink(payload.url);
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(payload.url);
       }
+      setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
     } catch {
-      setShareError("Failed to generate share link. Try again.");
+      setShareStatus("Ошибка: не удалось создать ссылку, попробуйте еще раз.");
     } finally {
       setShareLoading(false);
     }
@@ -438,13 +437,6 @@ export default function TrackerClient({ userKey }: Props) {
             </div>
           </div>
 
-          <div className={styles.shareRow}>
-            <button className="btn primary" type="button" onClick={createShare} disabled={shareLoading}>
-              {shareLoading ? "Creating..." : "Share your discipline sequence"}
-            </button>
-            {shareLink ? <p className={styles.shareInfo}>Link copied: {shareLink}</p> : null}
-            {shareError ? <p className={styles.shareError}>{shareError}</p> : null}
-          </div>
         </div>
 
         <div className={styles.side}>
@@ -522,6 +514,13 @@ export default function TrackerClient({ userKey }: Props) {
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
             </h4>
             <p>{stats.advice}</p>
+
+            <div className={styles.shareInline}>
+              <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
+                {shareLoading ? "Creating..." : "Share sequence"}
+              </button>
+              <span className={styles.shareStatus}>{shareStatus}</span>
+            </div>
           </div>
         </div>
       </div>

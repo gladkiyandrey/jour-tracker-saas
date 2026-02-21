@@ -138,6 +138,26 @@
   font-size: 12px;
 }
 
+.shareInline {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.shareBtn {
+  padding: 8px 14px;
+  min-height: 36px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.shareStatus {
+  font-size: 12px;
+  color: #b9c9f8;
+  min-height: 18px;
+}
+
 .score {
   min-height: 56px;
   display: flex;
