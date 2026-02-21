@@ -1,11 +1,11 @@
-# Jour SaaS (Next.js)
+# Jour Tracker SaaS (Next.js)
 
 This is a starter SaaS structure for a subscription-based trading journal.
 
 ## What is included
 - Next.js App Router project (`src/`)
 - Basic pages: `/`, `/login`, `/pricing`, `/app`
-- Route protection via `src/middleware.ts`
+- Route protection via `src/proxy.ts`
 - Cookie-based mock auth/subscription flow
 - Webhook placeholder: `POST /api/webhooks/crypto`
 
