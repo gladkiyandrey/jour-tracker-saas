@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
   const expiresAt = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
-  const res = NextResponse.redirect(new URL("/app", req.url));
+  const res = NextResponse.redirect(new URL("/app", req.url), 303);
   res.cookies.set(SUB_STATUS_COOKIE, "active", {
     httpOnly: true,
     sameSite: "lax",
