@@ -19,6 +19,12 @@ export default async function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span className={`badge ${sub.active ? "active" : ""}`}>Subscription: {sub.active ? "Active" : "Inactive"}</span>
           </div>
+          <Link className="btn" href="/">
+            Home
+          </Link>
+          <Link className="btn" href="/pricing">
+            Pricing
+          </Link>
           <form action="/api/auth/logout" method="post">
             <button className="btn" type="submit">
               Logout
@@ -26,20 +32,9 @@ export default async function DashboardPage() {
           </form>
         </nav>
       </header>
-
-      <section className="card">
-        <h1>Dashboard</h1>
-        <p className="note">Signed in as: {email}</p>
-        <p className="note" style={{ marginTop: "16px" }}>
-          Here your personal calendar data will be loaded from the database (per user).
-        </p>
-        {!sub.active ? (
-          <p className="note">
-            You need an active subscription. Go to <Link href="/pricing">Pricing</Link>.
-          </p>
-        ) : null}
-      </section>
-
+      <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>
+        Signed in as: {email}
+      </p>
       <TrackerClient userKey={userKey} />
     </main>
   );
