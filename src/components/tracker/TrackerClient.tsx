@@ -360,10 +360,10 @@ export default function TrackerClient({ userKey }: Props) {
 
           <div className={styles.legend}>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Yellow: consistency
+              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Consistency
             </span>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Blue: deposit size
+              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
             </span>
           </div>
 
