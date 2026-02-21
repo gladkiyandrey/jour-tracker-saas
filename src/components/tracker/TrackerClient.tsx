@@ -542,26 +542,26 @@ export default function TrackerClient({ userKey }: Props) {
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
             </h4>
             <p>{stats.advice}</p>
-
-            <div className={styles.shareBar}>
-              <div className={styles.shareInline}>
-                <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-                  {shareLoading ? "Creating..." : "Share sequence"}
-                </button>
-                <span className={styles.shareStatus}>{shareStatus}</span>
-              </div>
-              {shareLink ? (
-                <div className={styles.shareManualRow}>
-                  <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
-                  <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
-                    Copy
-                  </button>
-                </div>
-              ) : null}
-            </div>
           </div>
 
         </div>
+      </div>
+
+      <div className={styles.shareBar}>
+        <div className={styles.shareInline}>
+          <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
+            {shareLoading ? "Creating..." : "Share sequence"}
+          </button>
+          <span className={styles.shareStatus}>{shareStatus}</span>
+        </div>
+        {shareLink ? (
+          <div className={styles.shareManualRow}>
+            <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
+            <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
+              Copy
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {modalOpen ? (
