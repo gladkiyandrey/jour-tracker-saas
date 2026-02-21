@@ -366,15 +366,19 @@ export default function TrackerClient({ userKey }: Props) {
           days,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create share link");
+      if (!res.ok) {
+        const errPayload = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errPayload?.error || "Failed to create share link");
+      }
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error("Invalid share response");
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(payload.url);
       }
       setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
-    } catch {
-      setShareStatus("Ошибка: не удалось создать ссылку, попробуйте еще раз.");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Неизвестная ошибка";
+      setShareStatus(`Ошибка: ${message}`);
     } finally {
       setShareLoading(false);
     }
