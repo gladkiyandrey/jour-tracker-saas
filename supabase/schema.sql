@@ -1,0 +1,26 @@
+create table if not exists public.tracker_entries (
+  user_email text not null,
+  date_key date not null,
+  result smallint not null check (result in (-1, 1)),
+  variant text not null check (variant in ('neg', 'pos', 'pos-outline')),
+  deposit numeric(14, 2) not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (user_email, date_key)
+);
+
+create table if not exists public.user_subscriptions (
+  user_email text primary key,
+  status text not null check (status in ('active', 'inactive', 'past_due', 'canceled')),
+  expires_at timestamptz,
+  plan_code text,
+  provider text default 'mock',
+  provider_customer_id text,
+  provider_subscription_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_tracker_entries_user on public.tracker_entries (user_email);
+create index if not exists idx_subscriptions_status on public.user_subscriptions (status);
+

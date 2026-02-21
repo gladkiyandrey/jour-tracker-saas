@@ -113,8 +113,39 @@ export default function TrackerClient({ userKey }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalVariant, setModalVariant] = useState<Variant>("pos");
   const [modalDeposit, setModalDeposit] = useState("");
+  const [syncError, setSyncError] = useState("");
 
   const storageKey = `jour-tracker-${userKey}`;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadFromServer = async () => {
+      try {
+        const res = await fetch("/api/tracker/entries", { cache: "no-store" });
+        if (!res.ok) {
+          if (res.status === 401) return;
+          throw new Error(`Failed to load (${res.status})`);
+        }
+        const payload = (await res.json()) as { data?: Record<string, Entry> };
+        if (!cancelled && payload.data) {
+          setDayData(payload.data);
+          try {
+            localStorage.setItem(storageKey, JSON.stringify(payload.data));
+          } catch {
+            // ignore storage errors
+          }
+        }
+      } catch {
+        if (!cancelled) setSyncError("Cloud sync is temporarily unavailable.");
+      }
+    };
+
+    loadFromServer();
+    return () => {
+      cancelled = true;
+    };
+  }, [storageKey, userKey]);
 
   useEffect(() => {
     try {
@@ -208,19 +239,39 @@ export default function TrackerClient({ userKey }: Props) {
 
   const closeModal = () => setModalOpen(false);
 
-  const saveDay = () => {
+  const saveDay = async () => {
     if (!selectedDateKey) return;
     const deposit = Number(modalDeposit);
+    const nextEntry: Entry = {
+      result: modalVariant === "neg" ? -1 : 1,
+      variant: modalVariant,
+      deposit: Number.isFinite(deposit) && deposit >= 0 ? deposit : 0,
+    };
 
     setDayData((prev) => ({
       ...prev,
-      [selectedDateKey]: {
-        result: modalVariant === "neg" ? -1 : 1,
-        variant: modalVariant,
-        deposit: Number.isFinite(deposit) && deposit >= 0 ? deposit : 0,
-      },
+      [selectedDateKey]: nextEntry,
     }));
     setModalOpen(false);
+
+    try {
+      const res = await fetch("/api/tracker/entries", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dateKey: selectedDateKey,
+          result: nextEntry.result,
+          variant: nextEntry.variant,
+          deposit: nextEntry.deposit,
+        }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to save (${res.status})`);
+      }
+      setSyncError("");
+    } catch {
+      setSyncError("Saved locally, but cloud sync failed. Try again.");
+    }
   };
 
   const renderDayClass = (entry: Entry | undefined, isSelected: boolean) => {
@@ -284,6 +335,7 @@ export default function TrackerClient({ userKey }: Props) {
           <div className={styles.head}>
             <h2>Day Tracker</h2>
             <p>Yellow: consistency, Blue: deposit size</p>
+            {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
           </div>
 
           <div className={styles.legend}>

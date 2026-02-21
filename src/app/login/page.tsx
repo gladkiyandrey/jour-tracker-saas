@@ -17,7 +17,7 @@ export default function LoginPage() {
 
       <section className="card form-wrap">
         <h1>Login</h1>
-        <p className="note">Temporary auth flow. Replace with Supabase/Auth.js in production.</p>
+        <p className="note">Sign in or create account with Supabase Auth.</p>
 
         <form action="/api/auth/login" method="post">
           <label className="label" htmlFor="email">
@@ -30,9 +30,14 @@ export default function LoginPage() {
           </label>
           <input className="input" id="password" name="password" type="password" placeholder="••••••••" required />
 
-          <button className="btn primary" type="submit" style={{ marginTop: "18px", width: "100%" }}>
-            Login
-          </button>
+          <div style={{ marginTop: "18px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <button className="btn primary" type="submit">
+              Sign in
+            </button>
+            <button className="btn" type="submit" formAction="/api/auth/register">
+              Create account
+            </button>
+          </div>
         </form>
       </section>
     </main>

@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { getSessionEmail, getSubscriptionState } from "@/lib/auth";
+import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import TrackerClient from "@/components/tracker/TrackerClient";
 
 export default async function DashboardPage() {
-  const email = await getSessionEmail();
-  const sub = await getSubscriptionState();
+  const cookieEmail = await getSessionEmail();
+  const email = cookieEmail;
+  let sub = await getSubscriptionState();
+  if (email && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      const dbSub = await getSubscriptionStateFromDb(email);
+      sub = { active: dbSub.active, expiresAt: dbSub.expiresAt };
+    } catch {
+      // fallback to cookie state
+    }
+  }
   const userKey = email ?? "guest";
 
   return (

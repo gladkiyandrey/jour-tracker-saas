@@ -35,6 +35,10 @@
   font-size: 11px;
 }
 
+.syncError {
+  color: #ff9ab0 !important;
+}
+
 .legend {
   margin-top: 8px;
   display: flex;

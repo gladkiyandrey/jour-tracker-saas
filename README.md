@@ -6,7 +6,9 @@ This is a starter SaaS structure for a subscription-based trading journal.
 - Next.js App Router project (`src/`)
 - Basic pages: `/`, `/login`, `/pricing`, `/app`
 - Route protection via `src/proxy.ts`
-- Cookie-based mock auth/subscription flow
+- Supabase Auth (email + password)
+- Supabase-backed tracker storage (`tracker_entries`)
+- Supabase-backed subscription state (`user_subscriptions`)
 - Webhook placeholder: `POST /api/webhooks/crypto`
 
 ## Run
@@ -16,8 +18,9 @@ npm run dev
 ```
 
 ## Production steps
-1. Replace mock auth with Supabase/Auth.js.
-2. Add database (users, calendar entries, subscriptions).
-3. Connect crypto checkout provider.
-4. Verify webhook signatures and activate subscriptions in DB.
-5. Deploy to Vercel.
+1. Create Supabase project and run SQL from `supabase/schema.sql`.
+2. Add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` to Vercel env vars.
+3. Use `/login` to create accounts and sign in with Supabase Auth.
+4. Connect crypto checkout provider (or Stripe) and in webhook update `user_subscriptions`.
+5. Verify webhook signatures and activate subscriptions in DB.
+6. Deploy to Vercel.

@@ -7,15 +7,15 @@ export async function POST(req: Request) {
   const email = String(form.get("email") || "").trim().toLowerCase();
   const password = String(form.get("password") || "");
 
-  if (!email || !email.includes("@") || !password) {
-    return NextResponse.redirect(new URL("/login?error=invalid_credentials", req.url), 303);
+  if (!email || !email.includes("@") || password.length < 6) {
+    return NextResponse.redirect(new URL("/login?error=invalid_signup", req.url), 303);
   }
 
   try {
     const supabase = getSupabasePublic();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error || !data.user?.email) {
-      return NextResponse.redirect(new URL("/login?error=invalid_credentials", req.url), 303);
+      return NextResponse.redirect(new URL("/login?error=signup_failed", req.url), 303);
     }
   } catch {
     return NextResponse.redirect(new URL("/login?error=auth_unavailable", req.url), 303);
@@ -29,6 +29,6 @@ export async function POST(req: Request) {
     path: "/",
     maxAge: 60 * 60 * 24 * 30,
   });
-
   return res;
 }
+
