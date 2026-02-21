@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { setAuthCookies } from "@/lib/auth-cookies";
+import { syncSubscriptionCookies } from "@/lib/subscription-cookies";
 import { getSupabasePublic } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
@@ -22,5 +23,7 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ ok: true });
   setAuthCookies(res, { userId, email, accessToken, refreshToken });
+  const sub = await syncSubscriptionCookies(res, userId);
+  res.headers.set("x-sub-active", sub.active ? "1" : "0");
   return res;
 }

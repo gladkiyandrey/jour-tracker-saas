@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { setAuthCookies } from "@/lib/auth-cookies";
+import { syncSubscriptionCookies } from "@/lib/subscription-cookies";
 import { getSupabasePublic } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
@@ -24,7 +25,13 @@ export async function POST(req: Request) {
 
     const res = NextResponse.redirect(new URL("/pricing", req.url), 303);
     setAuthCookies(res, { userId, email: userEmail, accessToken, refreshToken });
-    return res;
+    const sub = await syncSubscriptionCookies(res, userId);
+    if (!sub.active) return res;
+
+    const activeRes = NextResponse.redirect(new URL("/app", req.url), 303);
+    setAuthCookies(activeRes, { userId, email: userEmail, accessToken, refreshToken });
+    await syncSubscriptionCookies(activeRes, userId);
+    return activeRes;
   } catch {
     return NextResponse.redirect(new URL("/login?error=auth_unavailable", req.url), 303);
   }

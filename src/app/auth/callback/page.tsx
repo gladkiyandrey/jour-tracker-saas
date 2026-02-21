@@ -37,7 +37,8 @@ export default function AuthCallbackPage() {
           return;
         }
 
-        window.location.replace("/pricing");
+        const active = syncRes.headers.get("x-sub-active") === "1";
+        window.location.replace(active ? "/app" : "/pricing");
       } catch {
         setMessage("Sign in failed. Return to login and try again.");
       }
