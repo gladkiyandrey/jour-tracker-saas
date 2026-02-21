@@ -194,3 +194,46 @@ a {
     grid-template-columns: 1fr;
   }
 }
+
+@media (pointer: fine) {
+  html,
+  body,
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label {
+    cursor: none !important;
+  }
+}
+
+.custom-cursor-dot,
+.custom-cursor-tail {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate3d(-100px, -100px, 0);
+}
+
+.custom-cursor-dot {
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #ffd24a;
+  box-shadow: 0 0 12px rgba(255, 210, 74, 0.55);
+}
+
+.custom-cursor-tail {
+  width: 22px;
+  height: 22px;
+  margin-left: -11px;
+  margin-top: -11px;
+  border-radius: 50%;
+  background: rgba(255, 210, 74, 0.24);
+  filter: blur(2px);
+}
