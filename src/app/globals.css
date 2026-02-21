@@ -260,6 +260,55 @@ a {
   color: #b0ffd8;
 }
 
+.warning-box {
+  margin-top: 10px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(255, 151, 117, 0.5);
+  background: rgba(255, 126, 87, 0.12);
+  color: #ffd9cc;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-table th {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.status-chip {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  text-transform: capitalize;
+}
+
+.status-chip.active {
+  border-color: rgba(63, 217, 138, 0.55);
+  color: #b0ffd8;
+}
+
+.status-chip.expired {
+  border-color: rgba(255, 140, 140, 0.55);
+  color: #ffd0d0;
+}
+
 .footer-note {
   margin-top: 24px;
   font-size: 12px;

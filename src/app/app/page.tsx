@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSubscriptionState } from "@/lib/auth";
 import { getCurrentUser } from "@/lib/current-user";
+import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import TrackerClient from "@/components/tracker/TrackerClient";
 
@@ -11,6 +12,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
   const email = user.email;
+  const admin = isAdminEmail(email);
   let sub = await getSubscriptionState();
   if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
@@ -40,6 +42,11 @@ export default async function DashboardPage() {
           <Link className="btn" href="/pricing">
             Pricing
           </Link>
+          {admin ? (
+            <Link className="btn" href="/admin/subscriptions">
+              Admin
+            </Link>
+          ) : null}
           <form action="/api/auth/logout" method="post">
             <button className="btn" type="submit">
               Logout

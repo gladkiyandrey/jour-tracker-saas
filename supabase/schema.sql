@@ -17,6 +17,7 @@ create table if not exists public.user_subscriptions (
   provider text default 'mock',
   provider_customer_id text,
   provider_subscription_id text,
+  last_payment_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

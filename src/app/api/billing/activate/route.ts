@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const user = await getCurrentUser();
 
     const expiresAt = user
-      ? (await activateSubscription(user.id, days)).expiresAt
+      ? (await activateSubscription(user.id, days, plan)).expiresAt
       : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
     const res = NextResponse.redirect(new URL("/app", req.url), 303);

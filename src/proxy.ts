@@ -23,7 +23,7 @@ export function proxy(req: NextRequest) {
     Date.parse(expiresAt) > Date.now();
 
   if (!active) {
-    return NextResponse.redirect(new URL("/pricing", req.url));
+    return NextResponse.redirect(new URL("/pricing?expired=1", req.url));
   }
 
   return NextResponse.next();
