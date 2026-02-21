@@ -2,7 +2,9 @@ import Link from "next/link";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type LoginPageProps = {
-  searchParams?: Promise<{ error?: string; success?: string; email?: string }> | { error?: string; success?: string; email?: string };
+  searchParams?:
+    | Promise<{ error?: string; success?: string; email?: string; reason?: string }>
+    | { error?: string; success?: string; email?: string; reason?: string };
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
@@ -10,17 +12,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const error = params?.error;
   const success = params?.success;
   const email = params?.email ?? "";
+  const reason = params?.reason ?? "";
   const errorMessage =
     error === "invalid_credentials"
       ? "Account not found or wrong password. Click Create account if you are new."
       : error === "invalid_signup"
         ? "Invalid signup data. Use a valid email and password (min 6 chars)."
         : error === "signup_failed"
-          ? "Signup failed. Try another email or sign in if account already exists."
+          ? reason === "email_exists"
+            ? "This email is already registered. Use Sign in."
+            : reason === "signup_disabled"
+              ? "Signup is disabled in Supabase Email provider settings."
+              : reason === "rate_limited"
+                ? "Too many attempts. Please wait a minute and try again."
+                : reason === "bad_supabase_key"
+                  ? "Supabase key mismatch. Check ANON/PUBLISHABLE keys in Vercel."
+                  : "Signup failed. Try again."
           : error === "oauth_sync_failed" || error === "oauth_no_session"
             ? "Google sign in failed. Please try again."
             : error === "auth_unavailable"
-              ? "Authentication service is temporarily unavailable."
+              ? reason === "bad_env"
+                ? "Auth env vars are missing or invalid in Vercel."
+                : "Authentication service is temporarily unavailable."
               : "";
   const successMessage =
     success === "check_email"
