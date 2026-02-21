@@ -7,7 +7,7 @@
   display: grid;
   grid-template-columns: 1.2fr 0.9fr;
   gap: 16px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .panel {
@@ -142,6 +142,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  min-height: 36px;
 }
 
 .shareBtn {
@@ -155,6 +156,9 @@
   font-size: 12px;
   color: #b9c9f8;
   min-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .shareBar {
@@ -176,6 +180,9 @@
   color: #f5f7ff;
   padding: 0 10px;
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .copyOk {

@@ -121,3 +121,60 @@ export async function getShareSnapshot(id: string): Promise<ShareSnapshot | null
     createdAt: data.created_at,
   };
 }
+
+export type ShareAdminRow = {
+  id: string;
+  userId: string;
+  email: string;
+  score: number;
+  month: number;
+  year: number;
+  createdAt: string;
+  publicUrlPath: string;
+  approxBytes: number;
+};
+
+export async function listSharesForAdmin(limit = 200): Promise<ShareAdminRow[]> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("share_snapshots")
+    .select("id,user_id,score,month,year,created_at,chart_yellow,chart_blue,days")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(`Failed to list shares: ${error.message}`);
+  }
+
+  const usersById = new Map<string, string>();
+  let page = 1;
+  while (true) {
+    const { data: usersData, error: usersError } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    if (usersError) {
+      throw new Error(`Failed to list users: ${usersError.message}`);
+    }
+    for (const user of usersData.users) {
+      if (user.email) usersById.set(user.id, user.email.toLowerCase());
+    }
+    if (usersData.users.length < 1000) break;
+    page += 1;
+  }
+
+  return (data ?? []).map((row) => {
+    const chartYellow = row.chart_yellow ?? "";
+    const chartBlue = row.chart_blue ?? "";
+    const daysJson = JSON.stringify(row.days ?? []);
+    const approxBytes = new TextEncoder().encode(`${chartYellow}${chartBlue}${daysJson}`).length;
+    return {
+      id: row.id,
+      userId: row.user_id,
+      email: usersById.get(row.user_id) ?? "unknown",
+      score: row.score,
+      month: row.month,
+      year: row.year,
+      createdAt: row.created_at,
+      publicUrlPath: `/s/${row.id}`,
+      approxBytes,
+    };
+  });
+}
