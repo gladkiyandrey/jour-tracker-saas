@@ -40,12 +40,24 @@ export default async function AdminSubscriptionsPage() {
         <table className="admin-table">
           <thead>
             <tr>
-              <th>User</th>
-              <th>Status</th>
-              <th>Plan</th>
-              <th>Payment date</th>
-              <th>Expires at</th>
-              <th>Started at</th>
+              <th>
+                <span title="Email пользователя, у которого оформлена подписка.">Пользователь</span>
+              </th>
+              <th>
+                <span title="Текущий статус подписки: active, inactive, past_due, canceled или expired.">Статус</span>
+              </th>
+              <th>
+                <span title="Код тарифа подписки (например monthly, quarterly).">Тариф</span>
+              </th>
+              <th>
+                <span title="Дата последней успешной оплаты или активации подписки.">Дата оплаты</span>
+              </th>
+              <th>
+                <span title="Дата и время, до которых подписка активна.">Действует до</span>
+              </th>
+              <th>
+                <span title="Дата первой активации/создания подписки пользователя.">Начало подписки</span>
+              </th>
             </tr>
           </thead>
           <tbody>
