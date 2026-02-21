@@ -33,12 +33,12 @@ export default function LoginPage() {
 
           <div className="auth-actions">
             <div className="auth-row">
-            <button className="btn primary" type="submit">
-              Sign in
-            </button>
-            <button className="btn" type="submit" formAction="/api/auth/register">
-              Create account
-            </button>
+              <button className="btn auth-btn primary" type="submit">
+                Sign in
+              </button>
+              <button className="btn auth-btn" type="submit" formAction="/api/auth/register">
+                Create account
+              </button>
             </div>
             <div className="auth-google">
               <GoogleSignInButton />
