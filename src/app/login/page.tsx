@@ -2,11 +2,14 @@ import Link from "next/link";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 type LoginPageProps = {
-  searchParams?: { error?: string };
+  searchParams?: Promise<{ error?: string; success?: string; email?: string }> | { error?: string; success?: string; email?: string };
 };
 
-export default function LoginPage({ searchParams }: LoginPageProps) {
-  const error = searchParams?.error;
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = searchParams ? await searchParams : {};
+  const error = params?.error;
+  const success = params?.success;
+  const email = params?.email ?? "";
   const errorMessage =
     error === "invalid_credentials"
       ? "Account not found or wrong password. Click Create account if you are new."
@@ -19,6 +22,10 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
             : error === "auth_unavailable"
               ? "Authentication service is temporarily unavailable."
               : "";
+  const successMessage =
+    success === "check_email"
+      ? "Account created. Confirm your email in inbox, then sign in."
+      : "";
 
   return (
     <main className="site">
@@ -38,12 +45,21 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
         <h1>Login</h1>
         <p className="note">Sign in with Google or use email/password with Supabase Auth.</p>
         {errorMessage ? <p className="note auth-error">{errorMessage}</p> : null}
+        {successMessage ? <p className="note auth-success">{successMessage}</p> : null}
 
         <form action="/api/auth/login" method="post">
           <label className="label" htmlFor="email">
             Email
           </label>
-          <input className="input" id="email" name="email" type="email" placeholder="you@example.com" required />
+          <input
+            className="input"
+            id="email"
+            name="email"
+            type="email"
+            placeholder="you@example.com"
+            defaultValue={email}
+            required
+          />
 
           <label className="label" htmlFor="password">
             Password

@@ -175,6 +175,11 @@ a {
   margin-top: 10px;
 }
 
+.auth-success {
+  color: #95e9bf;
+  margin-top: 10px;
+}
+
 .auth-actions {
   margin-top: 16px;
   display: flex;

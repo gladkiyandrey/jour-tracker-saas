@@ -19,8 +19,16 @@ export async function POST(req: Request) {
     const userEmail = data.user?.email?.toLowerCase();
     const accessToken = data.session?.access_token;
     const refreshToken = data.session?.refresh_token;
-    if (error || !userId || !userEmail || !accessToken || !refreshToken) {
+    if (error || !userId || !userEmail) {
       return NextResponse.redirect(new URL("/login?error=signup_failed", req.url), 303);
+    }
+
+    // Email confirmation mode: signup succeeds but no session is issued yet.
+    if (!accessToken || !refreshToken) {
+      return NextResponse.redirect(
+        new URL(`/login?success=check_email&email=${encodeURIComponent(userEmail)}`, req.url),
+        303,
+      );
     }
 
     const res = NextResponse.redirect(new URL("/pricing", req.url), 303);
