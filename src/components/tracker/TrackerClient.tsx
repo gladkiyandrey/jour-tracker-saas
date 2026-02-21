@@ -117,6 +117,7 @@ export default function TrackerClient({ userKey }: Props) {
   const [syncError, setSyncError] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
+  const [shareLink, setShareLink] = useState("");
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -343,6 +344,7 @@ export default function TrackerClient({ userKey }: Props) {
 
   const createShare = async () => {
     setShareStatus("");
+    setShareLink("");
     setShareLoading(true);
     try {
       const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -372,15 +374,34 @@ export default function TrackerClient({ userKey }: Props) {
       }
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error("Invalid share response");
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(payload.url);
+      setShareLink(payload.url);
+      try {
+        if (typeof navigator !== "undefined" && navigator.clipboard) {
+          await navigator.clipboard.writeText(payload.url);
+          setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
+        } else {
+          setShareStatus("Ссылка создана. Скопируйте вручную из поля ниже.");
+        }
+      } catch {
+        setShareStatus("Ссылка создана. Скопируйте вручную из поля ниже.");
       }
-      setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Неизвестная ошибка";
       setShareStatus(`Ошибка: ${message}`);
     } finally {
       setShareLoading(false);
+    }
+  };
+
+  const copyShareLink = async () => {
+    if (!shareLink) return;
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(shareLink);
+        setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
+      }
+    } catch {
+      setShareStatus("Не удалось скопировать автоматически. Скопируйте ссылку вручную.");
     }
   };
 
@@ -525,6 +546,14 @@ export default function TrackerClient({ userKey }: Props) {
               </button>
               <span className={styles.shareStatus}>{shareStatus}</span>
             </div>
+            {shareLink ? (
+              <div className={styles.shareManualRow}>
+                <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
+                <button className="btn" type="button" onClick={copyShareLink}>
+                  Copy
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
