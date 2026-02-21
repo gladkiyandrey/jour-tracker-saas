@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  const res = NextResponse.redirect(new URL("/app", req.url));
+  const res = NextResponse.redirect(new URL("/pricing", req.url));
   res.cookies.set(AUTH_COOKIE, email, {
     httpOnly: true,
     sameSite: "lax",

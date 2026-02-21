@@ -9,9 +9,16 @@ export default async function DashboardPage() {
 
   return (
     <main className="site dashboard">
-      <header className="topbar">
+      <div className="top-logo-bar">
+        <div className="logo-mark" />
         <div className="logo">Jour</div>
+      </div>
+      <header className="topbar">
+        <div className="logo logo-light">Trading Calendar</div>
         <nav className="nav">
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <span className={`badge ${sub.active ? "active" : ""}`}>Subscription: {sub.active ? "Active" : "Inactive"}</span>
+          </div>
           <form action="/api/auth/logout" method="post">
             <button className="btn" type="submit">
               Logout
@@ -21,13 +28,8 @@ export default async function DashboardPage() {
       </header>
 
       <section className="card">
-        <h1>Your Dashboard</h1>
+        <h1>Dashboard</h1>
         <p className="note">Signed in as: {email}</p>
-        <div style={{ marginTop: "14px" }}>
-          <span className={`badge ${sub.active ? "active" : ""}`}>
-            Subscription: {sub.active ? "Active" : "Inactive"}
-          </span>
-        </div>
         <p className="note" style={{ marginTop: "16px" }}>
           Here your personal calendar data will be loaded from the database (per user).
         </p>

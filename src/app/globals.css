@@ -33,16 +33,35 @@ a {
   margin: 0 auto;
 }
 
+.top-logo-bar {
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.logo-mark {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: conic-gradient(from 90deg, #6dc0ff 0 40%, #3f74ff 40% 75%, #41de9c 75% 100%);
+}
+
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
+  padding: 12px 0 18px;
 }
 
 .logo {
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.logo-light {
+  color: #cfd7f4;
 }
 
 .nav {
@@ -165,6 +184,12 @@ a {
 }
 
 @media (max-width: 800px) {
+  .topbar {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
