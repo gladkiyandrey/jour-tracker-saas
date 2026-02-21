@@ -19,7 +19,6 @@ export default function LoginPage() {
       <section className="card form-wrap">
         <h1>Login</h1>
         <p className="note">Sign in with Google or use email/password with Supabase Auth.</p>
-        <GoogleSignInButton />
 
         <form action="/api/auth/login" method="post">
           <label className="label" htmlFor="email">
@@ -32,7 +31,8 @@ export default function LoginPage() {
           </label>
           <input className="input" id="password" name="password" type="password" placeholder="••••••••" required />
 
-          <div style={{ marginTop: "18px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+          <div className="auth-actions">
+            <GoogleSignInButton />
             <button className="btn primary" type="submit">
               Sign in
             </button>

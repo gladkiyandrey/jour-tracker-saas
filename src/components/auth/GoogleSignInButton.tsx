@@ -14,14 +14,11 @@ export default function GoogleSignInButton() {
   };
 
   return (
-    <button
-      className="btn"
-      type="button"
-      style={{ marginTop: "12px", width: "100%", display: "inline-flex", justifyContent: "center" }}
-      onClick={onClick}
-    >
-      Continue with Google
+    <button className="google-btn" type="button" onClick={onClick}>
+      <span className="google-mark" aria-hidden>
+        G
+      </span>
+      <span>Sign in with Google</span>
     </button>
   );
 }
-
