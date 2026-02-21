@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { listSubscriptionsForAdmin } from "@/lib/subscription-store";
@@ -25,6 +26,11 @@ export default async function AdminSubscriptionsPage() {
     <main className="site dashboard">
       <header className="topbar">
         <div className="logo">Subscriptions Admin</div>
+        <nav className="nav">
+          <Link className="btn" href="/admin">
+            Back to Admin
+          </Link>
+        </nav>
       </header>
 
       <section className="card" style={{ overflowX: "auto" }}>

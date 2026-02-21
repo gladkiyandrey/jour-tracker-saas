@@ -43,14 +43,9 @@ export default async function DashboardPage() {
             Pricing
           </Link>
           {admin ? (
-            <>
-              <Link className="btn" href="/admin/subscriptions">
-                Admin Subs
-              </Link>
-              <Link className="btn" href="/admin/shares">
-                Admin Shares
-              </Link>
-            </>
+            <Link className="btn" href="/admin">
+              Admin
+            </Link>
           ) : null}
           <form action="/api/auth/logout" method="post">
             <button className="btn" type="submit">

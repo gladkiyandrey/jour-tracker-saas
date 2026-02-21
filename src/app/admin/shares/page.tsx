@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { listSharesForAdmin } from "@/lib/share-store";
@@ -36,6 +37,11 @@ export default async function AdminSharesPage() {
     <main className="site dashboard">
       <header className="topbar">
         <div className="logo">Shares Admin</div>
+        <nav className="nav">
+          <Link className="btn" href="/admin">
+            Back to Admin
+          </Link>
+        </nav>
       </header>
 
       <section className="card" style={{ overflowX: "auto" }}>
