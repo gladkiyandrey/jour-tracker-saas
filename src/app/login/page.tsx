@@ -1,4 +1,5 @@
 import Link from "next/link";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 export default function LoginPage() {
   return (
@@ -17,7 +18,8 @@ export default function LoginPage() {
 
       <section className="card form-wrap">
         <h1>Login</h1>
-        <p className="note">Sign in or create account with Supabase Auth.</p>
+        <p className="note">Sign in with Google or use email/password with Supabase Auth.</p>
+        <GoogleSignInButton />
 
         <form action="/api/auth/login" method="post">
           <label className="label" htmlFor="email">
