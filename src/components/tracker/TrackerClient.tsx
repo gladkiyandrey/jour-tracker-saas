@@ -355,16 +355,15 @@ export default function TrackerClient({ userKey }: Props) {
         <div className={styles.panel}>
           <div className={styles.head}>
             <h2>Day Tracker</h2>
-            <p>Yellow: consistency, Blue: deposit size</p>
             {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
           </div>
 
           <div className={styles.legend}>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Yellow
+              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Yellow: consistency
             </span>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Blue
+              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Blue: deposit size
             </span>
           </div>
 
