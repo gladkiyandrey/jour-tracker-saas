@@ -170,17 +170,20 @@ export default function TrackerClient({ userKey }: Props) {
   }, [sortedEntries]);
 
   const chartPaths = useMemo(() => {
-    if (!sortedEntries.length) {
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
+
+    if (!monthEntries.length) {
       return { yellow: "", blue: "" };
     }
 
     let cumulative = 0;
-    const visible = sortedEntries
+    const visible = monthEntries
       .map(([, entry]) => {
         cumulative += Number(entry.result) || 0;
         return { cumulative, deposit: Number(entry.deposit) || 0 };
       })
-      .slice(-14);
+      .slice(-31);
 
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
@@ -193,7 +196,7 @@ export default function TrackerClient({ userKey }: Props) {
       yellow: buildPath(resultValues, minResult, maxResult),
       blue: buildPath(depositValues, 0, maxDeposit),
     };
-  }, [sortedEntries]);
+  }, [sortedEntries, viewMonth, viewYear]);
 
   const openModal = (dateKey: string) => {
     setSelectedDateKey(dateKey);
@@ -409,22 +412,49 @@ export default function TrackerClient({ userKey }: Props) {
 
             <label className={styles.field}>
               <span>Result</span>
-              <select value={modalVariant} onChange={(e) => setModalVariant(e.target.value as Variant)}>
-                <option value="neg">-1 (red)</option>
-                <option value="pos">+1 (green)</option>
-                <option value="pos-outline">+1 (green + white outline)</option>
-              </select>
+              <div className={styles.colorOptions}>
+                <label className={styles.colorOption}>
+                  <input
+                    type="radio"
+                    name="resultVariant"
+                    value="neg"
+                    checked={modalVariant === "neg"}
+                    onChange={() => setModalVariant("neg")}
+                  />
+                  <span className={`${styles.colorSwatch} ${styles.swatchRed}`} />
+                </label>
+                <label className={styles.colorOption}>
+                  <input
+                    type="radio"
+                    name="resultVariant"
+                    value="pos"
+                    checked={modalVariant === "pos"}
+                    onChange={() => setModalVariant("pos")}
+                  />
+                  <span className={`${styles.colorSwatch} ${styles.swatchGreen}`} />
+                </label>
+                <label className={styles.colorOption}>
+                  <input
+                    type="radio"
+                    name="resultVariant"
+                    value="pos-outline"
+                    checked={modalVariant === "pos-outline"}
+                    onChange={() => setModalVariant("pos-outline")}
+                  />
+                  <span className={`${styles.colorSwatch} ${styles.swatchGreenOutline}`} />
+                </label>
+              </div>
             </label>
 
             <label className={styles.field}>
               <span>Deposit size</span>
               <input
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Enter deposit amount"
                 value={modalDeposit}
-                onChange={(e) => setModalDeposit(e.target.value)}
+                onChange={(e) => setModalDeposit(e.target.value.replace(/\D/g, ""))}
               />
             </label>
 
