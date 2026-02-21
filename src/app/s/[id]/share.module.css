@@ -1,0 +1,128 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 14px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(34, 92, 255, 0.32) 0, rgba(34, 92, 255, 0) 42%),
+    radial-gradient(circle at 78% 88%, rgba(255, 201, 71, 0.26) 0, rgba(255, 201, 71, 0) 48%),
+    #070b16;
+}
+
+.card {
+  width: min(980px, 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(117, 137, 202, 0.36);
+  background: linear-gradient(180deg, rgba(24, 33, 61, 0.94), rgba(10, 15, 29, 0.97));
+  padding: 24px;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(28px, 4vw, 44px);
+}
+
+.month {
+  margin-top: 8px;
+  color: #acb9df;
+}
+
+.stats {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.statBox {
+  border: 1px solid rgba(117, 137, 202, 0.32);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(14, 21, 39, 0.86);
+}
+
+.statBox span {
+  color: #c5d1f8;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.statBox strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 26px;
+  color: #f4f8ff;
+}
+
+.chart {
+  margin-top: 18px;
+  width: 100%;
+  height: 320px;
+}
+
+.grid {
+  stroke: rgba(140, 153, 200, 0.28);
+  stroke-width: 1;
+}
+
+.yellowGlow,
+.blueGlow {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+  opacity: 0.34;
+}
+
+.yellowGlow {
+  stroke: rgba(255, 210, 74, 0.74);
+}
+
+.blueGlow {
+  stroke: rgba(47, 131, 255, 0.74);
+}
+
+.yellow,
+.blue {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.yellow {
+  stroke: #ffd24a;
+}
+
+.blue {
+  stroke: #2f83ff;
+}
+
+.cta {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  color: #dbe3ff;
+}
+
+.cta a {
+  border: 1px solid rgba(121, 145, 228, 0.42);
+  border-radius: 999px;
+  padding: 10px 16px;
+  color: #f4f8ff;
+  text-decoration: none;
+  background: linear-gradient(90deg, #476ef5 0%, #5f95ff 100%);
+}
+
+@media (max-width: 768px) {
+  .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .chart {
+    height: 240px;
+  }
+}

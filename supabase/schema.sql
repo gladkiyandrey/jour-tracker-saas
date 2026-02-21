@@ -25,6 +25,22 @@ create table if not exists public.user_subscriptions (
 create index if not exists idx_tracker_entries_user on public.tracker_entries (user_id);
 create index if not exists idx_subscriptions_status on public.user_subscriptions (status);
 
+create table if not exists public.share_snapshots (
+  id text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  year integer not null check (year >= 2000 and year <= 2100),
+  month integer not null check (month >= 0 and month <= 11),
+  score integer not null check (score >= 0 and score <= 100),
+  green_streak integer not null default 0,
+  red_streak integer not null default 0,
+  chart_yellow text not null default '',
+  chart_blue text not null default '',
+  days jsonb not null default '[]'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_share_snapshots_user_created on public.share_snapshots (user_id, created_at desc);
+
 alter table public.tracker_entries enable row level security;
 alter table public.user_subscriptions enable row level security;
 

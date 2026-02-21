@@ -115,6 +115,9 @@ export default function TrackerClient({ userKey }: Props) {
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalError, setModalError] = useState("");
   const [syncError, setSyncError] = useState("");
+  const [shareLink, setShareLink] = useState("");
+  const [shareError, setShareError] = useState("");
+  const [shareLoading, setShareLoading] = useState(false);
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -339,6 +342,45 @@ export default function TrackerClient({ userKey }: Props) {
     return cells;
   }, [viewMonth, viewYear, dayData, selectedDateKey]);
 
+  const createShare = async () => {
+    setShareError("");
+    setShareLoading(true);
+    try {
+      const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+      const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
+      const days = monthEntries.map(([dateKey, entry]) => ({
+        day: Number(dateKey.slice(-2)),
+        variant: entry.variant,
+      }));
+
+      const res = await fetch("/api/share/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          year: viewYear,
+          month: viewMonth,
+          score: stats.score,
+          greenStreak: stats.greenStreak,
+          redStreak: stats.redStreak,
+          chartYellow: chartPaths.yellow,
+          chartBlue: chartPaths.blue,
+          days,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create share link");
+      const payload = (await res.json()) as { url?: string };
+      if (!payload.url) throw new Error("Invalid share response");
+      setShareLink(payload.url);
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(payload.url);
+      }
+    } catch {
+      setShareError("Failed to generate share link. Try again.");
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === "Escape" && modalOpen) {
@@ -394,6 +436,14 @@ export default function TrackerClient({ userKey }: Props) {
               <span>Red streak</span>
               <strong>{stats.redStreak}</strong>
             </div>
+          </div>
+
+          <div className={styles.shareRow}>
+            <button className="btn primary" type="button" onClick={createShare} disabled={shareLoading}>
+              {shareLoading ? "Creating..." : "Share your discipline sequence"}
+            </button>
+            {shareLink ? <p className={styles.shareInfo}>Link copied: {shareLink}</p> : null}
+            {shareError ? <p className={styles.shareError}>{shareError}</p> : null}
           </div>
         </div>
 

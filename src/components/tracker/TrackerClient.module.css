@@ -119,6 +119,25 @@
   max-width: 680px;
 }
 
+.shareRow {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.shareInfo {
+  margin: 0;
+  color: #9ec1ff;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.shareError {
+  margin: 0;
+  color: #ff9ab0;
+  font-size: 12px;
+}
+
 .score {
   min-height: 56px;
   display: flex;

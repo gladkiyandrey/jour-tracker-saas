@@ -5,6 +5,7 @@ import CustomCursor from "@/components/ui/CustomCursor";
 export const metadata: Metadata = {
   title: "Jour SaaS",
   description: "Trading discipline calendar with subscription access",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://consist.online"),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
