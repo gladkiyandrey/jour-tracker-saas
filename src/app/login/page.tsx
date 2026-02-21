@@ -32,13 +32,17 @@ export default function LoginPage() {
           <input className="input" id="password" name="password" type="password" placeholder="••••••••" required />
 
           <div className="auth-actions">
-            <GoogleSignInButton />
+            <div className="auth-row">
             <button className="btn primary" type="submit">
               Sign in
             </button>
             <button className="btn" type="submit" formAction="/api/auth/register">
               Create account
             </button>
+            </div>
+            <div className="auth-google">
+              <GoogleSignInButton />
+            </div>
           </div>
         </form>
       </section>

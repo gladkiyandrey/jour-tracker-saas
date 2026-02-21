@@ -171,12 +171,23 @@ a {
 
 .auth-actions {
   margin-top: 18px;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
+.auth-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.auth-google {
+  width: 100%;
+}
+
 .google-btn {
+  width: 100%;
   border: 1px solid rgba(165, 176, 215, 0.45);
   background: linear-gradient(180deg, rgba(12, 15, 26, 0.96), rgba(9, 11, 19, 0.96));
   color: #f3f6ff;
@@ -249,6 +260,10 @@ a {
   }
 
   .auth-actions {
+    gap: 10px;
+  }
+
+  .auth-row {
     grid-template-columns: 1fr;
   }
 }
