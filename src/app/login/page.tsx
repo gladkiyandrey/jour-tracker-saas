@@ -1,7 +1,25 @@
 import Link from "next/link";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: { error?: string };
+};
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const error = searchParams?.error;
+  const errorMessage =
+    error === "invalid_credentials"
+      ? "Account not found or wrong password. Click Create account if you are new."
+      : error === "invalid_signup"
+        ? "Invalid signup data. Use a valid email and password (min 6 chars)."
+        : error === "signup_failed"
+          ? "Signup failed. Try another email or sign in if account already exists."
+          : error === "oauth_sync_failed" || error === "oauth_no_session"
+            ? "Google sign in failed. Please try again."
+            : error === "auth_unavailable"
+              ? "Authentication service is temporarily unavailable."
+              : "";
+
   return (
     <main className="site">
       <header className="topbar">
@@ -19,6 +37,7 @@ export default function LoginPage() {
       <section className="card form-wrap">
         <h1>Login</h1>
         <p className="note">Sign in with Google or use email/password with Supabase Auth.</p>
+        {errorMessage ? <p className="note auth-error">{errorMessage}</p> : null}
 
         <form action="/api/auth/login" method="post">
           <label className="label" htmlFor="email">
