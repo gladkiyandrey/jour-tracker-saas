@@ -378,16 +378,16 @@ export default function TrackerClient({ userKey }: Props) {
       try {
         if (typeof navigator !== "undefined" && navigator.clipboard) {
           await navigator.clipboard.writeText(payload.url);
-          setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
+          setShareStatus("Copied. Share it anywhere.");
         } else {
-          setShareStatus("Ссылка создана. Скопируйте вручную из поля ниже.");
+          setShareStatus("Link ready. Copy manually below.");
         }
       } catch {
-        setShareStatus("Ссылка создана. Скопируйте вручную из поля ниже.");
+        setShareStatus("Link ready. Copy manually below.");
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : "Неизвестная ошибка";
-      setShareStatus(`Ошибка: ${message}`);
+      setShareStatus(`Error: ${message}`);
     } finally {
       setShareLoading(false);
     }
@@ -398,10 +398,10 @@ export default function TrackerClient({ userKey }: Props) {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(shareLink);
-        setShareStatus("Готово: ссылка скопирована, вы можете поделиться ей в любом удобном месте.");
+        setShareStatus("Copied. Share it anywhere.");
       }
     } catch {
-      setShareStatus("Не удалось скопировать автоматически. Скопируйте ссылку вручную.");
+      setShareStatus("Auto-copy failed. Copy it manually.");
     }
   };
 
@@ -539,7 +539,9 @@ export default function TrackerClient({ userKey }: Props) {
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
             </h4>
             <p>{stats.advice}</p>
+          </div>
 
+          <div className={`${styles.panel} ${styles.sharePanel}`}>
             <div className={styles.shareInline}>
               <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
                 {shareLoading ? "Creating..." : "Share sequence"}
