@@ -157,9 +157,8 @@
   min-height: 18px;
 }
 
-.sharePanel {
-  padding-top: 12px;
-  padding-bottom: 12px;
+.shareBar {
+  margin-top: 10px;
 }
 
 .shareManualRow {
@@ -177,6 +176,13 @@
   color: #f5f7ff;
   padding: 0 10px;
   font-size: 12px;
+}
+
+.copyOk {
+  border-color: rgba(69, 197, 137, 0.75) !important;
+  color: #dcffe9 !important;
+  background: rgba(32, 122, 81, 0.35) !important;
+  box-shadow: 0 0 0 1px rgba(69, 197, 137, 0.35);
 }
 
 .score {

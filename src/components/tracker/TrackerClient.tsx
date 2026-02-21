@@ -118,6 +118,7 @@ export default function TrackerClient({ userKey }: Props) {
   const [shareLoading, setShareLoading] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
   const [shareLink, setShareLink] = useState("");
+  const [copyFlash, setCopyFlash] = useState(false);
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -399,6 +400,8 @@ export default function TrackerClient({ userKey }: Props) {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(shareLink);
         setShareStatus("Copied. Share it anywhere.");
+        setCopyFlash(true);
+        window.setTimeout(() => setCopyFlash(false), 700);
       }
     } catch {
       setShareStatus("Auto-copy failed. Copy it manually.");
@@ -541,23 +544,24 @@ export default function TrackerClient({ userKey }: Props) {
             <p>{stats.advice}</p>
           </div>
 
-          <div className={`${styles.panel} ${styles.sharePanel}`}>
-            <div className={styles.shareInline}>
-              <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-                {shareLoading ? "Creating..." : "Share sequence"}
-              </button>
-              <span className={styles.shareStatus}>{shareStatus}</span>
-            </div>
-            {shareLink ? (
-              <div className={styles.shareManualRow}>
-                <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
-                <button className="btn" type="button" onClick={copyShareLink}>
-                  Copy
-                </button>
-              </div>
-            ) : null}
-          </div>
         </div>
+      </div>
+
+      <div className={styles.shareBar}>
+        <div className={styles.shareInline}>
+          <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
+            {shareLoading ? "Creating..." : "Share sequence"}
+          </button>
+          <span className={styles.shareStatus}>{shareStatus}</span>
+        </div>
+        {shareLink ? (
+          <div className={styles.shareManualRow}>
+            <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
+            <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
+              Copy
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {modalOpen ? (
