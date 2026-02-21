@@ -8,17 +8,21 @@ export type CurrentUser = {
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const store = await cookies();
-  const accessToken = store.get(ACCESS_TOKEN_COOKIE)?.value;
+  try {
+    const store = await cookies();
+    const accessToken = store.get(ACCESS_TOKEN_COOKIE)?.value;
 
-  if (!accessToken) return null;
+    if (!accessToken) return null;
 
-  const supabase = getSupabasePublic();
-  const { data, error } = await supabase.auth.getUser(accessToken);
-  const userId = data.user?.id;
-  const email = data.user?.email?.toLowerCase();
+    const supabase = getSupabasePublic();
+    const { data, error } = await supabase.auth.getUser(accessToken);
+    const userId = data.user?.id;
+    const email = data.user?.email?.toLowerCase();
 
-  if (error || !userId || !email) return null;
+    if (error || !userId || !email) return null;
 
-  return { id: userId, email };
+    return { id: userId, email };
+  } catch {
+    return null;
+  }
 }
