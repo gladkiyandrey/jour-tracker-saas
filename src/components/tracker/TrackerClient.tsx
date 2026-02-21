@@ -421,7 +421,7 @@ export default function TrackerClient({ userKey }: Props) {
   return (
     <section className={styles.wrapper}>
       <div className={styles.tracker}>
-        <div className={styles.panel}>
+        <div className={`${styles.panel} ${styles.mainPanel}`}>
           <div className={styles.head}>
             <h2>Day Tracker</h2>
             {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
