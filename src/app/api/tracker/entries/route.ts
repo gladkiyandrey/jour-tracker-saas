@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
-import { getCurrentUserEmail } from "@/lib/current-user";
+import { getCurrentUser } from "@/lib/current-user";
 import { getTrackerData, upsertTrackerEntry } from "@/lib/tracker-store";
 
 export async function GET() {
-  const email = await getCurrentUserEmail();
-  if (!email) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const data = await getTrackerData(email);
+    const data = await getTrackerData(user.id);
     return NextResponse.json({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
@@ -18,8 +18,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const email = await getCurrentUserEmail();
-  if (!email) {
+  const user = await getCurrentUser();
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const entry = await upsertTrackerEntry(email, body.dateKey, {
+    const entry = await upsertTrackerEntry(user.id, body.dateKey, {
       result: body.result,
       variant: body.variant,
       deposit: body.deposit,

@@ -1,21 +1,26 @@
 import Link from "next/link";
-import { getSessionEmail, getSubscriptionState } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getSubscriptionState } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/current-user";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import TrackerClient from "@/components/tracker/TrackerClient";
 
 export default async function DashboardPage() {
-  const cookieEmail = await getSessionEmail();
-  const email = cookieEmail;
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
+  const email = user.email;
   let sub = await getSubscriptionState();
-  if (email && process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
-      const dbSub = await getSubscriptionStateFromDb(email);
+      const dbSub = await getSubscriptionStateFromDb(user.id);
       sub = { active: dbSub.active, expiresAt: dbSub.expiresAt };
     } catch {
       // fallback to cookie state
     }
   }
-  const userKey = email ?? "guest";
+  const userKey = user.id;
 
   return (
     <main className="site dashboard">

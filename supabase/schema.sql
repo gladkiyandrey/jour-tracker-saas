@@ -1,16 +1,16 @@
 create table if not exists public.tracker_entries (
-  user_email text not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
   date_key date not null,
   result smallint not null check (result in (-1, 1)),
   variant text not null check (variant in ('neg', 'pos', 'pos-outline')),
   deposit numeric(14, 2) not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  primary key (user_email, date_key)
+  primary key (user_id, date_key)
 );
 
 create table if not exists public.user_subscriptions (
-  user_email text primary key,
+  user_id uuid primary key references auth.users(id) on delete cascade,
   status text not null check (status in ('active', 'inactive', 'past_due', 'canceled')),
   expires_at timestamptz,
   plan_code text,
@@ -21,6 +21,40 @@ create table if not exists public.user_subscriptions (
   updated_at timestamptz not null default now()
 );
 
-create index if not exists idx_tracker_entries_user on public.tracker_entries (user_email);
+create index if not exists idx_tracker_entries_user on public.tracker_entries (user_id);
 create index if not exists idx_subscriptions_status on public.user_subscriptions (status);
 
+alter table public.tracker_entries enable row level security;
+alter table public.user_subscriptions enable row level security;
+
+drop policy if exists "tracker_select_own" on public.tracker_entries;
+drop policy if exists "tracker_insert_own" on public.tracker_entries;
+drop policy if exists "tracker_update_own" on public.tracker_entries;
+drop policy if exists "tracker_delete_own" on public.tracker_entries;
+drop policy if exists "subscription_select_own" on public.user_subscriptions;
+
+create policy "tracker_select_own"
+  on public.tracker_entries
+  for select
+  using (auth.uid() = user_id);
+
+create policy "tracker_insert_own"
+  on public.tracker_entries
+  for insert
+  with check (auth.uid() = user_id);
+
+create policy "tracker_update_own"
+  on public.tracker_entries
+  for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create policy "tracker_delete_own"
+  on public.tracker_entries
+  for delete
+  using (auth.uid() = user_id);
+
+create policy "subscription_select_own"
+  on public.user_subscriptions
+  for select
+  using (auth.uid() = user_id);

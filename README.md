@@ -19,10 +19,11 @@ npm run dev
 
 ## Production steps
 1. Create Supabase project and run SQL from `supabase/schema.sql`.
-2. Add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` to Vercel env vars.
-3. In Supabase Auth enable Google provider and configure Google OAuth credentials.
-4. In Supabase URL Configuration set Site URL to your Vercel domain and allow `/auth/callback`.
-5. Use `/login` to create accounts or sign in with Google.
-6. Connect crypto checkout provider (or Stripe) and in webhook update `user_subscriptions`.
-7. Verify webhook signatures and activate subscriptions in DB.
-8. Deploy to Vercel.
+2. If you previously used the email-based schema, run `supabase/migrate_email_to_user_id.sql` once to migrate existing records.
+3. Add `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` to Vercel env vars.
+4. In Supabase Auth enable Google provider and configure Google OAuth credentials.
+5. In Supabase URL Configuration set Site URL to your Vercel domain and allow `/auth/callback`.
+6. Use `/login` to create accounts or sign in with Google.
+7. Connect crypto checkout provider (or Stripe) and in webhook update `user_subscriptions`.
+8. Verify webhook signatures and activate subscriptions in DB.
+9. Deploy to Vercel.

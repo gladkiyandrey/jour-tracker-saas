@@ -20,7 +20,8 @@ export default function AuthCallbackPage() {
 
         const { data: sessionData } = await supabase.auth.getSession();
         const token = sessionData.session?.access_token;
-        if (!token) {
+        const refreshToken = sessionData.session?.refresh_token;
+        if (!token || !refreshToken) {
           window.location.replace("/login?error=oauth_no_session");
           return;
         }
@@ -28,7 +29,7 @@ export default function AuthCallbackPage() {
         const syncRes = await fetch("/api/auth/session-sync", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accessToken: token }),
+          body: JSON.stringify({ accessToken: token, refreshToken }),
         });
 
         if (!syncRes.ok) {
@@ -54,4 +55,3 @@ export default function AuthCallbackPage() {
     </main>
   );
 }
-

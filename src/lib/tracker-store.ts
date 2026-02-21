@@ -25,12 +25,12 @@ function normalizeEntry(entry: Partial<TrackerEntry>): TrackerEntry {
   };
 }
 
-export async function getTrackerData(email: string): Promise<TrackerMap> {
+export async function getTrackerData(userId: string): Promise<TrackerMap> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("tracker_entries")
     .select("date_key,result,variant,deposit")
-    .eq("user_email", email);
+    .eq("user_id", userId);
 
   if (error) {
     throw new Error(`Failed to load tracker data: ${error.message}`);
@@ -48,20 +48,20 @@ export async function getTrackerData(email: string): Promise<TrackerMap> {
   return output;
 }
 
-export async function upsertTrackerEntry(email: string, dateKey: string, entry: Partial<TrackerEntry>) {
+export async function upsertTrackerEntry(userId: string, dateKey: string, entry: Partial<TrackerEntry>) {
   const normalized = normalizeEntry(entry);
   const supabase = getSupabaseAdmin();
 
   const { error } = await supabase.from("tracker_entries").upsert(
     {
-      user_email: email,
+      user_id: userId,
       date_key: dateKey,
       result: normalized.result,
       variant: normalized.variant,
       deposit: normalized.deposit,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "user_email,date_key" },
+    { onConflict: "user_id,date_key" },
   );
 
   if (error) {
@@ -70,4 +70,3 @@ export async function upsertTrackerEntry(email: string, dateKey: string, entry: 
 
   return normalized;
 }
-

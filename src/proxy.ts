@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { AUTH_COOKIE, SUB_EXPIRES_COOKIE, SUB_STATUS_COOKIE } from "@/lib/auth";
+import { ACCESS_TOKEN_COOKIE, SUB_EXPIRES_COOKIE, SUB_STATUS_COOKIE } from "@/lib/auth";
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -9,7 +9,7 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const session = req.cookies.get(AUTH_COOKIE)?.value;
+  const session = req.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
   if (!session) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
