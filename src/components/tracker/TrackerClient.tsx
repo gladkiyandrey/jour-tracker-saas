@@ -111,8 +111,9 @@ export default function TrackerClient({ userKey }: Props) {
     }
   });
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalVariant, setModalVariant] = useState<Variant>("pos");
+  const [modalVariant, setModalVariant] = useState<Variant | "">("");
   const [modalDeposit, setModalDeposit] = useState("");
+  const [modalError, setModalError] = useState("");
   const [syncError, setSyncError] = useState("");
 
   const storageKey = `jour-tracker-${userKey}`;
@@ -231,21 +232,41 @@ export default function TrackerClient({ userKey }: Props) {
 
   const openModal = (dateKey: string) => {
     setSelectedDateKey(dateKey);
-    const current = dayData[dateKey] ?? { result: 1 as const, variant: "pos" as const, deposit: 0 };
-    setModalVariant(current.variant);
-    setModalDeposit(current.deposit ? String(current.deposit) : "");
+    const current = dayData[dateKey];
+    setModalVariant(current?.variant ?? "");
+    setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
+    setModalError("");
     setModalOpen(true);
   };
 
-  const closeModal = () => setModalOpen(false);
+  const closeModal = () => {
+    setModalOpen(false);
+    setModalError("");
+  };
 
   const saveDay = async () => {
     if (!selectedDateKey) return;
-    const deposit = Number(modalDeposit);
+    const deposit = Number(modalDeposit.trim());
+    const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
+    const hasDeposit = Number.isFinite(deposit) && deposit > 0;
+
+    if (!hasVariant || !hasDeposit) {
+      if (!hasVariant && !hasDeposit) {
+        setModalError("Choose day type and enter deposit amount (> 0).");
+      } else if (!hasVariant) {
+        setModalError("Choose day type.");
+      } else {
+        setModalError("Enter deposit amount greater than 0.");
+      }
+      return;
+    }
+
+    setModalError("");
+    const variant = modalVariant as Variant;
     const nextEntry: Entry = {
-      result: modalVariant === "neg" ? -1 : 1,
-      variant: modalVariant,
-      deposit: Number.isFinite(deposit) && deposit >= 0 ? deposit : 0,
+      result: variant === "neg" ? -1 : 1,
+      variant,
+      deposit,
     };
 
     setDayData((prev) => ({
@@ -471,7 +492,10 @@ export default function TrackerClient({ userKey }: Props) {
                     name="resultVariant"
                     value="neg"
                     checked={modalVariant === "neg"}
-                    onChange={() => setModalVariant("neg")}
+                    onChange={() => {
+                      setModalVariant("neg");
+                      setModalError("");
+                    }}
                   />
                   <span className={`${styles.colorSwatch} ${styles.swatchRed}`} />
                 </label>
@@ -481,7 +505,10 @@ export default function TrackerClient({ userKey }: Props) {
                     name="resultVariant"
                     value="pos"
                     checked={modalVariant === "pos"}
-                    onChange={() => setModalVariant("pos")}
+                    onChange={() => {
+                      setModalVariant("pos");
+                      setModalError("");
+                    }}
                   />
                   <span className={`${styles.colorSwatch} ${styles.swatchGreen}`} />
                 </label>
@@ -491,7 +518,10 @@ export default function TrackerClient({ userKey }: Props) {
                     name="resultVariant"
                     value="pos-outline"
                     checked={modalVariant === "pos-outline"}
-                    onChange={() => setModalVariant("pos-outline")}
+                    onChange={() => {
+                      setModalVariant("pos-outline");
+                      setModalError("");
+                    }}
                   />
                   <span className={`${styles.colorSwatch} ${styles.swatchGreenOutline}`} />
                 </label>
@@ -506,9 +536,14 @@ export default function TrackerClient({ userKey }: Props) {
                 pattern="[0-9]*"
                 placeholder="Enter deposit amount"
                 value={modalDeposit}
-                onChange={(e) => setModalDeposit(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => {
+                  setModalDeposit(e.target.value.replace(/\D/g, ""));
+                  setModalError("");
+                }}
               />
             </label>
+
+            {modalError ? <p className={styles.modalError}>{modalError}</p> : null}
 
             <div className={styles.actions}>
               <button className="btn" type="button" onClick={closeModal}>

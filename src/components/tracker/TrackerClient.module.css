@@ -406,6 +406,13 @@
   gap: 10px;
 }
 
+.modalError {
+  margin-top: 10px;
+  min-height: 18px;
+  color: #ffb4c3;
+  font-size: 12px;
+}
+
 @media (max-width: 1024px) {
   .tracker {
     grid-template-columns: 1fr;
