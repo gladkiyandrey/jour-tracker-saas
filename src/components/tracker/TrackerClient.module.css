@@ -12,8 +12,7 @@
 
 .mainPanel {
   height: 100%;
-  display: flex;
-  flex-direction: column;
+  display: block;
 }
 
 .panel {
@@ -76,9 +75,7 @@
 
 .chart {
   width: 100%;
-  height: auto;
-  min-height: 170px;
-  flex: 1 1 auto;
+  height: 220px;
   margin-top: 18px;
 }
 
@@ -120,12 +117,11 @@
 }
 
 .scoreRow {
-  margin: 16px auto 0;
+  margin: 12px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   max-width: 680px;
-  flex-shrink: 0;
 }
 
 .shareRow {
