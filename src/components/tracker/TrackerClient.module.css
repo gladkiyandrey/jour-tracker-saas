@@ -116,7 +116,7 @@
 }
 
 .scoreRow {
-  margin: 84px auto 0;
+  margin: 69px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
