@@ -441,8 +441,8 @@ export default function TrackerClient({ userKey }: Props) {
               <line className={styles.gridLine} x1="10" y1="30" x2="510" y2="30" />
               <line className={styles.gridLine} x1="10" y1="80" x2="510" y2="80" />
               <line className={styles.gridLine} x1="10" y1="130" x2="510" y2="130" />
-              <line className={styles.gridLine} x1="10" y1="180" x2="510" y2="180" />
-              <line className={styles.gridLine} x1="10" y1="180" x2="510" y2="180" />
+              <line className={styles.gridLine} x1="10" y1="170" x2="510" y2="170" />
+              <line className={styles.gridLine} x1="10" y1="170" x2="510" y2="170" />
             </g>
             <path className={styles.yellowGlow} d={chartPaths.yellow} />
             <path className={styles.blueGlow} d={chartPaths.blue} />
