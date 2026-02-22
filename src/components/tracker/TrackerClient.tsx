@@ -273,11 +273,19 @@ export default function TrackerClient({ userKey }: Props) {
     const depositValues = visible.map((v) => v.deposit);
     const tradesValues = visible.map((v) => v.trades);
 
-    const minResult = Math.min(...resultValues, 0);
-    const maxResult = Math.max(...resultValues, 1);
-    const maxDeposit = Math.max(...depositValues, 1);
-    const minDeposit = Math.min(...depositValues, 0);
+    const minDeposit = Math.min(...depositValues);
+    const maxDeposit = Math.max(...depositValues);
     const maxTrades = Math.max(...tradesValues, 1);
+
+    const normalizeSeries = (values: number[]) => {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      if (max === min) return values.map(() => 50);
+      return values.map((value) => ((value - min) / (max - min)) * 100);
+    };
+
+    const normalizedResult = normalizeSeries(resultValues);
+    const normalizedDeposit = normalizeSeries(depositValues);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -299,8 +307,8 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     return {
-      yellow: buildPath(resultValues, minResult, maxResult, bounds),
-      blue: buildPath(depositValues, minDeposit, maxDeposit, bounds),
+      yellow: buildPath(normalizedResult, 0, 100, bounds),
+      blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
       maxTrades,
