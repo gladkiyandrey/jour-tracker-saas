@@ -304,23 +304,24 @@ export default function TrackerClient({ userKey }: Props) {
 
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
+    const firstResult = resultValues[0] ?? 0;
+    const resultDelta = resultValues.map((value) => value - firstResult);
+    const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
-    const normalizeMinMax = (values: number[], low = 6, high = 94, contrast = 1) => {
+    const SPAN = 44;
+    const normalizeAroundCenter = (values: number[], maxAbs: number) =>
+      values.map((value) => CENTER + (value / maxAbs) * SPAN);
+    const normalizeMinMax = (values: number[]) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
       if (max === min) return values.map(() => CENTER);
-      const span = high - low;
-      return values.map((value) => {
-        const ratio = (value - min) / (max - min);
-        const contrasted = Math.max(0, Math.min(1, (ratio - 0.5) * contrast + 0.5));
-        return low + contrasted * span;
-      });
+      return values.map((value) => 6 + ((value - min) / (max - min)) * 88);
     };
 
-    const normalizedResult = normalizeMinMax(resultValues, 2, 98, 1.24);
-    const normalizedDeposit = normalizeMinMax(depositValues, 8, 92, 1.0);
+    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
+    const normalizedDeposit = normalizeMinMax(depositValues);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
