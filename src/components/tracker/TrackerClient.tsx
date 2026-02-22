@@ -162,6 +162,7 @@ export default function TrackerClient({ userKey }: Props) {
         const payload = (await res.json()) as { data?: Record<string, Entry> };
         if (!cancelled && payload.data) {
           setDayData(payload.data);
+          setSyncError("");
           try {
             localStorage.setItem(storageKey, JSON.stringify(payload.data));
           } catch {
