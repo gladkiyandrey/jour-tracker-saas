@@ -54,8 +54,8 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
             Plan
           </label>
           <select className="select" id="plan" name="plan" defaultValue="monthly">
-            <option value="monthly">Monthly - 29 USDT</option>
-            <option value="quarterly">Quarterly - 79 USDT</option>
+            <option value="monthly">1 month - $5</option>
+            <option value="yearly">12 months - $51 (-15%)</option>
           </select>
 
           <button className="btn primary" type="submit" style={{ marginTop: "18px", width: "100%" }}>

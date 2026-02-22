@@ -6,12 +6,11 @@ import { activateSubscription } from "@/lib/subscription-store";
 export async function POST(req: Request) {
   try {
     const form = await req.formData();
-    const plan = String(form.get("plan") || "monthly");
-    const monthsRaw = Number(form.get("months"));
-    const hasMonths = Number.isInteger(monthsRaw) && monthsRaw >= 1 && monthsRaw <= 24;
-    const months = hasMonths ? monthsRaw : plan === "quarterly" ? 3 : 1;
+    const rawPlan = String(form.get("plan") || "monthly");
+    const plan = rawPlan === "yearly" ? "yearly" : "monthly";
+    const months = plan === "yearly" ? 12 : 1;
     const days = months * 30;
-    const planCode = hasMonths ? `months_${months}` : plan;
+    const planCode = plan;
     const user = await getCurrentUser();
 
     const expiresAt = user

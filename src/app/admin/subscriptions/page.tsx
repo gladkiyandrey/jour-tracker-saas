@@ -47,7 +47,7 @@ export default async function AdminSubscriptionsPage() {
                 <span title="Текущий статус подписки: active, inactive, past_due, canceled или expired.">Статус</span>
               </th>
               <th>
-                <span title="Код тарифа подписки (например monthly, quarterly).">Тариф</span>
+                <span title="Код тарифа подписки (monthly или yearly).">Тариф</span>
               </th>
               <th>
                 <span title="Дата последней успешной оплаты или активации подписки.">Дата оплаты</span>

@@ -8,10 +8,13 @@ type Props = {
 };
 
 const MONTHLY_PRICE = 5;
+const YEAR_MONTHS = 12;
+const YEAR_DISCOUNT = 0.15;
+type PlanType = "monthly" | "yearly";
 
 export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
   const [open, setOpen] = useState(false);
-  const [months, setMonths] = useState(1);
+  const [plan, setPlan] = useState<PlanType>("monthly");
 
   const expiresText = useMemo(() => {
     if (!expiresAt) return "Unknown";
@@ -21,12 +24,13 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
   }, [expiresAt]);
 
   const pricing = useMemo(() => {
+    const months = plan === "yearly" ? YEAR_MONTHS : 1;
     const base = months * MONTHLY_PRICE;
-    const hasDiscount = months >= 12;
-    const discount = hasDiscount ? base * 0.15 : 0;
+    const hasDiscount = plan === "yearly";
+    const discount = hasDiscount ? base * YEAR_DISCOUNT : 0;
     const total = base - discount;
-    return { base, discount, total, hasDiscount };
-  }, [months]);
+    return { base, discount, total, hasDiscount, months };
+  }, [plan]);
 
   return (
     <>
@@ -50,23 +54,20 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
         <div className="sub-modal-backdrop" role="presentation" onClick={() => setOpen(false)}>
           <div className="sub-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h3>Продление подписки</h3>
-            <p className="note">Выберите количество месяцев. Цена: $5 / месяц.</p>
+            <p className="note">Выберите план. Цена: $5 / месяц. Годовой план: скидка 15%.</p>
             <form action="/api/billing/activate" method="post">
-              <label className="label" htmlFor="renew-months">
-                Месяцев
+              <label className="label" htmlFor="renew-plan">
+                План
               </label>
               <select
-                id="renew-months"
-                name="months"
+                id="renew-plan"
+                name="plan"
                 className="select"
-                value={months}
-                onChange={(e) => setMonths(Math.max(1, Number(e.target.value) || 1))}
+                value={plan}
+                onChange={(e) => setPlan(e.target.value === "yearly" ? "yearly" : "monthly")}
               >
-                {Array.from({ length: 24 }, (_, i) => i + 1).map((m) => (
-                  <option key={m} value={m}>
-                    {m} мес.
-                  </option>
-                ))}
+                <option value="monthly">1 месяц — $5</option>
+                <option value="yearly">12 месяцев — $51 (-15%)</option>
               </select>
 
               <div className="sub-price-box">
