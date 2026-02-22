@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     result?: -1 | 1;
     variant?: "neg" | "pos" | "pos-outline";
     deposit?: number;
+    trades?: number;
   };
 
   if (!body.dateKey) {
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       result: body.result,
       variant: body.variant,
       deposit: body.deposit,
+      trades: body.trades,
     });
     return NextResponse.json({ entry });
   } catch (error) {

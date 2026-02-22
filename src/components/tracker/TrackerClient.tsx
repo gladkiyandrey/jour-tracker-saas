@@ -5,7 +5,7 @@ import Image from "next/image";
 import styles from "./TrackerClient.module.css";
 
 type Variant = "neg" | "pos" | "pos-outline";
-type Entry = { result: -1 | 1; variant: Variant; deposit: number };
+type Entry = { result: -1 | 1; variant: Variant; deposit: number; trades: number };
 
 type Props = {
   userKey: string;
@@ -98,10 +98,12 @@ export default function TrackerClient({ userKey }: Props) {
               : "pos";
 
         const depositNum = Number(value.deposit);
+        const tradesNum = Number(value.trades);
         normalized[dateKey] = {
           result: variant === "neg" ? -1 : 1,
           variant,
           deposit: Number.isFinite(depositNum) && depositNum >= 0 ? depositNum : 0,
+          trades: Number.isFinite(tradesNum) && tradesNum >= 0 ? Math.floor(tradesNum) : 0,
         };
       });
 
@@ -113,6 +115,7 @@ export default function TrackerClient({ userKey }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalVariant, setModalVariant] = useState<Variant | "">("");
   const [modalDeposit, setModalDeposit] = useState("");
+  const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
   const [syncError, setSyncError] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
@@ -205,32 +208,65 @@ export default function TrackerClient({ userKey }: Props) {
     return { score, greenStreak, redStreak, advice };
   }, [sortedEntries]);
 
-  const chartPaths = useMemo(() => {
+  const chartModel = useMemo(() => {
+    const bounds = { left: 10, right: 510, top: 28, bottom: 220 };
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
 
     if (!monthEntries.length) {
-      return { yellow: "", blue: "" };
+      return { yellow: "", blue: "", bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot" }>, ticks: [] as Array<{ x: number; label: string }>, maxTrades: 0, minDeposit: 0, maxDeposit: 0 };
     }
 
     let cumulative = 0;
     const visible = monthEntries
-      .map(([, entry]) => {
+      .map(([dateKey, entry]) => {
         cumulative += Number(entry.result) || 0;
-        return { cumulative, deposit: Number(entry.deposit) || 0 };
+        return {
+          day: Number(dateKey.slice(-2)),
+          cumulative,
+          deposit: Number(entry.deposit) || 0,
+          trades: Number(entry.trades) || 0,
+        };
       })
       .slice(-31);
 
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
+    const tradesValues = visible.map((v) => v.trades);
 
     const minResult = Math.min(...resultValues, 0);
     const maxResult = Math.max(...resultValues, 1);
     const maxDeposit = Math.max(...depositValues, 1);
+    const minDeposit = Math.min(...depositValues, 0);
+    const maxTrades = Math.max(...tradesValues, 1);
+
+    const steps = visible.length > 1 ? visible.length - 1 : 1;
+    const width = bounds.right - bounds.left;
+    const height = bounds.bottom - bounds.top;
+    const barWidth = Math.max(4, Math.min(12, width / Math.max(visible.length * 1.8, 1)));
+    const bars = visible.map((v, index) => {
+      const x = bounds.left + (width * index) / steps - barWidth / 2;
+      const ratio = maxTrades > 0 ? v.trades / maxTrades : 0;
+      const y = bounds.bottom - ratio * height;
+      const h = bounds.bottom - y;
+      const kind: "ok" | "warn" | "hot" = v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
+      return { x, y, w: barWidth, h, kind };
+    });
+
+    const tickIndexes = Array.from(new Set([0, Math.floor((visible.length - 1) / 2), visible.length - 1])).filter((v) => v >= 0);
+    const ticks = tickIndexes.map((idx) => {
+      const x = bounds.left + (width * idx) / steps;
+      return { x, label: String(visible[idx]?.day ?? "") };
+    });
 
     return {
-      yellow: buildPath(resultValues, minResult, maxResult),
-      blue: buildPath(depositValues, 0, maxDeposit),
+      yellow: buildPath(resultValues, minResult, maxResult, bounds),
+      blue: buildPath(depositValues, minDeposit, maxDeposit, bounds),
+      bars,
+      ticks,
+      maxTrades,
+      minDeposit,
+      maxDeposit,
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
@@ -239,6 +275,7 @@ export default function TrackerClient({ userKey }: Props) {
     const current = dayData[dateKey];
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
+    setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
     setModalError("");
     setModalOpen(true);
   };
@@ -251,16 +288,20 @@ export default function TrackerClient({ userKey }: Props) {
   const saveDay = async () => {
     if (!selectedDateKey) return;
     const deposit = Number(modalDeposit.trim());
+    const trades = Number(modalTrades.trim());
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
+    const hasTrades = Number.isFinite(trades) && trades > 0;
 
-    if (!hasVariant || !hasDeposit) {
-      if (!hasVariant && !hasDeposit) {
-        setModalError("Choose day type and enter deposit amount (> 0).");
+    if (!hasVariant || !hasDeposit || !hasTrades) {
+      if (!hasVariant && !hasDeposit && !hasTrades) {
+        setModalError("Choose day type, enter deposit and trades count (> 0).");
       } else if (!hasVariant) {
         setModalError("Choose day type.");
-      } else {
+      } else if (!hasDeposit) {
         setModalError("Enter deposit amount greater than 0.");
+      } else {
+        setModalError("Enter trades count greater than 0.");
       }
       return;
     }
@@ -271,6 +312,7 @@ export default function TrackerClient({ userKey }: Props) {
       result: variant === "neg" ? -1 : 1,
       variant,
       deposit,
+      trades: Math.floor(trades),
     };
 
     setDayData((prev) => ({
@@ -288,6 +330,7 @@ export default function TrackerClient({ userKey }: Props) {
           result: nextEntry.result,
           variant: nextEntry.variant,
           deposit: nextEntry.deposit,
+          trades: nextEntry.trades,
         }),
       });
       if (!res.ok) {
@@ -364,8 +407,8 @@ export default function TrackerClient({ userKey }: Props) {
           score: stats.score,
           greenStreak: stats.greenStreak,
           redStreak: stats.redStreak,
-          chartYellow: chartPaths.yellow,
-          chartBlue: chartPaths.blue,
+          chartYellow: chartModel.yellow,
+          chartBlue: chartModel.blue,
           days,
         }),
       });
@@ -434,6 +477,9 @@ export default function TrackerClient({ userKey }: Props) {
             <span className={styles.legendItem}>
               <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
             </span>
+            <span className={styles.legendItem}>
+              <i className={`${styles.legendBar} ${styles.legendBarTrades}`} /> Trades / day
+            </span>
           </div>
 
           <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-label="Tracker chart">
@@ -444,10 +490,37 @@ export default function TrackerClient({ userKey }: Props) {
               <line className={styles.gridLine} x1="10" y1="172" x2="510" y2="172" />
               <line className={styles.gridLine} x1="10" y1="220" x2="510" y2="220" />
             </g>
-            <path className={styles.yellowGlow} d={chartPaths.yellow} />
-            <path className={styles.blueGlow} d={chartPaths.blue} />
-            <path className={`${styles.line} ${styles.yellow}`} d={chartPaths.yellow} />
-            <path className={`${styles.line} ${styles.blue}`} d={chartPaths.blue} />
+            <g>
+              {chartModel.bars.map((bar, index) => (
+                <rect
+                  key={`bar-${index}`}
+                  className={`${styles.tradeBar} ${bar.kind === "ok" ? styles.tradeBarOk : bar.kind === "warn" ? styles.tradeBarWarn : styles.tradeBarHot}`}
+                  x={bar.x}
+                  y={bar.y}
+                  width={bar.w}
+                  height={Math.max(0, bar.h)}
+                  rx="2"
+                />
+              ))}
+            </g>
+            <path className={styles.yellowGlow} d={chartModel.yellow} />
+            <path className={styles.blueGlow} d={chartModel.blue} />
+            <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
+            <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+            {chartModel.ticks.map((tick, index) => (
+              <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
+                {tick.label}
+              </text>
+            ))}
+            <text className={styles.axisHint} x={10} y={258}>
+              Open dates (day of month)
+            </text>
+            <text className={styles.axisHint} x={510} y={258} textAnchor="end">
+              Deposit range: {Math.round(chartModel.minDeposit)} - {Math.round(chartModel.maxDeposit)}
+            </text>
+            <text className={styles.axisHint} x={510} y={20} textAnchor="end">
+              Trades scale: 0 - {chartModel.maxTrades}
+            </text>
           </svg>
 
           <div className={styles.scoreRow}>
@@ -627,6 +700,21 @@ export default function TrackerClient({ userKey }: Props) {
                 value={modalDeposit}
                 onChange={(e) => {
                   setModalDeposit(e.target.value.replace(/\D/g, ""));
+                  setModalError("");
+                }}
+              />
+            </label>
+
+            <label className={styles.field}>
+              <span>Opened trades (count)</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="1, 2, 3..."
+                value={modalTrades}
+                onChange={(e) => {
+                  setModalTrades(e.target.value.replace(/\D/g, ""));
                   setModalError("");
                 }}
               />

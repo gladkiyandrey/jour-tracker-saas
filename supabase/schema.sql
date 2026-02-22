@@ -4,6 +4,7 @@ create table if not exists public.tracker_entries (
   result smallint not null check (result in (-1, 1)),
   variant text not null check (variant in ('neg', 'pos', 'pos-outline')),
   deposit numeric(14, 2) not null default 0,
+  trades_count integer not null default 0 check (trades_count >= 0),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (user_id, date_key)

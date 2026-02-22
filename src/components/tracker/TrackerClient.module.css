@@ -75,6 +75,17 @@
   border-color: #2f83ff;
 }
 
+.legendBar {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+.legendBarTrades {
+  background: rgba(120, 157, 255, 0.75);
+}
+
 .chart {
   width: 100%;
   height: 100%;
@@ -117,6 +128,32 @@
 
 .blue {
   stroke: #2f83ff;
+}
+
+.tradeBar {
+  opacity: 0.45;
+}
+
+.tradeBarOk {
+  fill: rgba(63, 221, 153, 0.8);
+}
+
+.tradeBarWarn {
+  fill: rgba(255, 210, 74, 0.8);
+}
+
+.tradeBarHot {
+  fill: rgba(255, 122, 146, 0.84);
+}
+
+.tickLabel {
+  fill: #9eabd4;
+  font-size: 10px;
+}
+
+.axisHint {
+  fill: #8d9bc8;
+  font-size: 9px;
 }
 
 .scoreRow {

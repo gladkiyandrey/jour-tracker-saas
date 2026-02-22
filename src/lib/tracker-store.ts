@@ -1,7 +1,7 @@
 import { getSupabaseAdmin } from "@/lib/supabase/server";
 
 export type TrackerVariant = "neg" | "pos" | "pos-outline";
-export type TrackerEntry = { result: -1 | 1; variant: TrackerVariant; deposit: number };
+export type TrackerEntry = { result: -1 | 1; variant: TrackerVariant; deposit: number; trades: number };
 export type TrackerMap = Record<string, TrackerEntry>;
 
 const RESULT_BY_VARIANT: Record<TrackerVariant, -1 | 1> = {
@@ -18,10 +18,12 @@ function normalizeEntry(entry: Partial<TrackerEntry>): TrackerEntry {
         ? "neg"
         : "pos";
   const depositNum = Number(entry.deposit);
+  const tradesNum = Number(entry.trades);
   return {
     result: RESULT_BY_VARIANT[variant],
     variant,
     deposit: Number.isFinite(depositNum) && depositNum >= 0 ? depositNum : 0,
+    trades: Number.isFinite(tradesNum) && tradesNum >= 0 ? Math.floor(tradesNum) : 0,
   };
 }
 
@@ -29,7 +31,7 @@ export async function getTrackerData(userId: string): Promise<TrackerMap> {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("tracker_entries")
-    .select("date_key,result,variant,deposit")
+    .select("date_key,result,variant,deposit,trades_count")
     .eq("user_id", userId);
 
   if (error) {
@@ -42,6 +44,7 @@ export async function getTrackerData(userId: string): Promise<TrackerMap> {
       result: Number(row.result) === -1 ? -1 : 1,
       variant: row.variant as TrackerVariant,
       deposit: Number(row.deposit),
+      trades: Number(row.trades_count),
     });
   }
 
@@ -59,6 +62,7 @@ export async function upsertTrackerEntry(userId: string, dateKey: string, entry:
       result: normalized.result,
       variant: normalized.variant,
       deposit: normalized.deposit,
+      trades_count: normalized.trades,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id,date_key" },
