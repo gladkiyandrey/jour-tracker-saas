@@ -78,8 +78,31 @@ function buildPath(
 
 export default function TrackerClient({ userKey }: Props) {
   const now = new Date();
-  const [viewYear, setViewYear] = useState(now.getFullYear());
-  const [viewMonth, setViewMonth] = useState(now.getMonth());
+  const viewStateKey = `jour-tracker-view-${userKey}`;
+  const [viewYear, setViewYear] = useState(() => {
+    if (typeof window === "undefined") return now.getFullYear();
+    try {
+      const raw = localStorage.getItem(viewStateKey);
+      if (!raw) return now.getFullYear();
+      const parsed = JSON.parse(raw) as { year?: number };
+      return Number.isInteger(parsed.year) ? parsed.year : now.getFullYear();
+    } catch {
+      return now.getFullYear();
+    }
+  });
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (typeof window === "undefined") return now.getMonth();
+    try {
+      const raw = localStorage.getItem(viewStateKey);
+      if (!raw) return now.getMonth();
+      const parsed = JSON.parse(raw) as { month?: number };
+      return Number.isInteger(parsed.month) && (parsed.month ?? -1) >= 0 && (parsed.month ?? 12) <= 11
+        ? (parsed.month as number)
+        : now.getMonth();
+    } catch {
+      return now.getMonth();
+    }
+  });
   const [selectedDateKey, setSelectedDateKey] = useState("");
   const [dayData, setDayData] = useState<Record<string, Entry>>(() => {
     if (typeof window === "undefined") return {};
@@ -162,6 +185,14 @@ export default function TrackerClient({ userKey }: Props) {
       // ignore storage errors
     }
   }, [dayData, storageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(viewStateKey, JSON.stringify({ year: viewYear, month: viewMonth }));
+    } catch {
+      // ignore storage errors
+    }
+  }, [viewMonth, viewStateKey, viewYear]);
 
   const sortedEntries = useMemo(
     () => Object.entries(dayData).sort(([a], [b]) => a.localeCompare(b)),
