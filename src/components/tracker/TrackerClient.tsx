@@ -268,7 +268,13 @@ export default function TrackerClient({ userKey }: Props) {
 
     let cumulative = 0;
     let currentDeposit = 0;
-    const visible = Array.from({ length: daysInMonth }, (_, i) => {
+    const visible: Array<{
+      day: number;
+      cumulative: number;
+      deposit: number;
+      trades: number;
+      variant: Variant | "none";
+    }> = Array.from({ length: daysInMonth }, (_, i) => {
       const day = i + 1;
       const entry = byDay.get(day);
       if (entry) {
