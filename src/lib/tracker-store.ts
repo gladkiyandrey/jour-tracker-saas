@@ -46,11 +46,18 @@ export async function getTrackerData(userId: string): Promise<TrackerMap> {
 
   const output: TrackerMap = {};
   for (const row of data ?? []) {
+    const rowVariant = row.variant as TrackerVariant;
+    const rowTradesRaw = Number(row.trades_count);
+    const rowTrades =
+      (rowVariant === "neg" || rowVariant === "pos") && (!Number.isFinite(rowTradesRaw) || rowTradesRaw <= 0)
+        ? 1
+        : rowTradesRaw;
+
     output[row.date_key as string] = normalizeEntry({
       result: Number(row.result) === -1 ? -1 : 1,
-      variant: row.variant as TrackerVariant,
+      variant: rowVariant,
       deposit: Number(row.deposit),
-      trades: Number(row.trades_count),
+      trades: rowTrades,
     });
   }
 
