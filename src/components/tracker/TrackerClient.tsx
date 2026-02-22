@@ -34,7 +34,7 @@ function buildPath(
   values: number[],
   minY: number,
   maxY: number,
-  bounds = { left: 10, right: 510, top: 30, bottom: 250 }
+  bounds = { left: 10, right: 510, top: 30, bottom: 260 }
 ) {
   if (!values.length) return "";
 
@@ -442,7 +442,7 @@ export default function TrackerClient({ userKey }: Props) {
               <line className={styles.gridLine} x1="10" y1="80" x2="510" y2="80" />
               <line className={styles.gridLine} x1="10" y1="130" x2="510" y2="130" />
               <line className={styles.gridLine} x1="10" y1="180" x2="510" y2="180" />
-              <line className={styles.gridLine} x1="10" y1="250" x2="510" y2="250" />
+              <line className={styles.gridLine} x1="10" y1="260" x2="510" y2="260" />
             </g>
             <path className={styles.yellowGlow} d={chartPaths.yellow} />
             <path className={styles.blueGlow} d={chartPaths.blue} />
