@@ -216,7 +216,7 @@
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 8px 9px;
   border-radius: 10px;
   border: 1px solid rgba(121, 133, 173, 0.38);
@@ -226,10 +226,12 @@
 }
 
 .score span {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1;
   color: #fff;
 }
 
@@ -237,6 +239,8 @@
   font-size: 17px;
   line-height: 1;
   letter-spacing: -0.02em;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .scoreBlue {
