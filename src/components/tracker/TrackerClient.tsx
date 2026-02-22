@@ -34,7 +34,7 @@ function buildPath(
   values: number[],
   minY: number,
   maxY: number,
-  bounds = { left: 10, right: 510, top: 30, bottom: 230 }
+  bounds = { left: 10, right: 510, top: 30, bottom: 320 }
 ) {
   if (!values.length) return "";
 
@@ -436,13 +436,13 @@ export default function TrackerClient({ userKey }: Props) {
             </span>
           </div>
 
-          <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-label="Tracker chart">
+          <svg className={styles.chart} viewBox="0 0 520 350" preserveAspectRatio="none" aria-label="Tracker chart">
             <g>
               <line className={styles.gridLine} x1="10" y1="30" x2="510" y2="30" />
               <line className={styles.gridLine} x1="10" y1="80" x2="510" y2="80" />
               <line className={styles.gridLine} x1="10" y1="130" x2="510" y2="130" />
               <line className={styles.gridLine} x1="10" y1="180" x2="510" y2="180" />
-              <line className={styles.gridLine} x1="10" y1="230" x2="510" y2="230" />
+              <line className={styles.gridLine} x1="10" y1="320" x2="510" y2="320" />
             </g>
             <path className={styles.yellowGlow} d={chartPaths.yellow} />
             <path className={styles.blueGlow} d={chartPaths.blue} />
