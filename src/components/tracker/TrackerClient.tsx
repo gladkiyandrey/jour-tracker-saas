@@ -79,25 +79,25 @@ function buildPath(
 export default function TrackerClient({ userKey }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
-  const [viewYear, setViewYear] = useState(() => {
+  const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
       const raw = localStorage.getItem(viewStateKey);
       if (!raw) return now.getFullYear();
       const parsed = JSON.parse(raw) as { year?: number };
-      return Number.isInteger(parsed.year) ? parsed.year : now.getFullYear();
+      return typeof parsed.year === "number" && Number.isInteger(parsed.year) ? parsed.year : now.getFullYear();
     } catch {
       return now.getFullYear();
     }
   });
-  const [viewMonth, setViewMonth] = useState(() => {
+  const [viewMonth, setViewMonth] = useState<number>(() => {
     if (typeof window === "undefined") return now.getMonth();
     try {
       const raw = localStorage.getItem(viewStateKey);
       if (!raw) return now.getMonth();
       const parsed = JSON.parse(raw) as { month?: number };
-      return Number.isInteger(parsed.month) && (parsed.month ?? -1) >= 0 && (parsed.month ?? 12) <= 11
-        ? (parsed.month as number)
+      return typeof parsed.month === "number" && Number.isInteger(parsed.month) && parsed.month >= 0 && parsed.month <= 11
+        ? parsed.month
         : now.getMonth();
     } catch {
       return now.getMonth();
