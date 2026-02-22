@@ -258,6 +258,8 @@ export default function TrackerClient({ userKey }: Props) {
 
   const chartModel = useMemo(() => {
     const bounds = { left: 10, right: 510, top: 28, bottom: 220 };
+    const TRADE_BAR_UNIT = 12; // fixed px per 1 trade
+    const TRADE_BAR_CAP = 8; // visual cap, tooltip still shows real value
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
     const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
@@ -293,10 +295,6 @@ export default function TrackerClient({ userKey }: Props) {
     const hasAnyData = monthEntries.length > 0;
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
-    const tradesValues = visible.map((v) => v.trades);
-
-    const maxTrades = Math.max(...tradesValues, 1);
-
     const firstResult = resultValues[0] ?? 0;
     const firstDeposit = depositValues[0] ?? 0;
     const resultDelta = resultValues.map((value) => value - firstResult);
@@ -316,12 +314,13 @@ export default function TrackerClient({ userKey }: Props) {
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
     const height = bounds.bottom - bounds.top;
+    const tradeMaxHeight = Math.min(height, TRADE_BAR_UNIT * TRADE_BAR_CAP);
     const barWidth = Math.max(4, Math.min(12, width / Math.max(visible.length * 1.8, 1)));
     const bars = visible.map((v, index) => {
       const x = bounds.left + (width * index) / steps - barWidth / 2;
-      const ratio = maxTrades > 0 ? v.trades / maxTrades : 0;
-      const y = bounds.bottom - ratio * height;
-      const h = bounds.bottom - y;
+      const cappedTrades = Math.max(0, Math.min(v.trades, TRADE_BAR_CAP));
+      const h = Math.min(cappedTrades * TRADE_BAR_UNIT, tradeMaxHeight);
+      const y = bounds.bottom - h;
       const kind: "ok" | "warn" | "hot" = v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
       return { x, y, w: barWidth, h, kind, day: v.day, deposit: v.deposit, trades: v.trades, variant: v.variant };
     });
@@ -651,7 +650,7 @@ export default function TrackerClient({ userKey }: Props) {
                     x={bar.x}
                     y={bar.y}
                     width={bar.w}
-                    height={Math.max(2, bar.h)}
+                    height={bar.h}
                     rx="2"
                     onMouseMove={(event) => {
                       const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
