@@ -253,7 +253,7 @@ export default function TrackerClient({ userKey }: Props) {
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
 
     if (!monthEntries.length) {
-      return { yellow: "", blue: "", bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot" }>, ticks: [] as Array<{ x: number; label: string }>, maxTrades: 0, minDeposit: 0, maxDeposit: 0 };
+      return { yellow: "", blue: "", bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot" }> };
     }
 
     let cumulative = 0;
@@ -273,8 +273,6 @@ export default function TrackerClient({ userKey }: Props) {
     const depositValues = visible.map((v) => v.deposit);
     const tradesValues = visible.map((v) => v.trades);
 
-    const minDeposit = Math.min(...depositValues);
-    const maxDeposit = Math.max(...depositValues);
     const maxTrades = Math.max(...tradesValues, 1);
 
     const normalizeSeries = (values: number[]) => {
@@ -300,20 +298,10 @@ export default function TrackerClient({ userKey }: Props) {
       return { x, y, w: barWidth, h, kind };
     });
 
-    const tickIndexes = Array.from(new Set([0, Math.floor((visible.length - 1) / 2), visible.length - 1])).filter((v) => v >= 0);
-    const ticks = tickIndexes.map((idx) => {
-      const x = bounds.left + (width * idx) / steps;
-      return { x, label: String(visible[idx]?.day ?? "") };
-    });
-
     return {
       yellow: buildPath(normalizedResult, 0, 100, bounds),
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
-      ticks,
-      maxTrades,
-      minDeposit,
-      maxDeposit,
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
@@ -608,20 +596,6 @@ export default function TrackerClient({ userKey }: Props) {
             <path className={styles.blueGlow} d={chartModel.blue} />
             <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
             <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
-            {chartModel.ticks.map((tick, index) => (
-              <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
-                {tick.label}
-              </text>
-            ))}
-            <text className={styles.axisHint} x={10} y={258}>
-              Open dates (day of month)
-            </text>
-            <text className={styles.axisHint} x={510} y={258} textAnchor="end">
-              Deposit range: {Math.round(chartModel.minDeposit)} - {Math.round(chartModel.maxDeposit)}
-            </text>
-            <text className={styles.axisHint} x={510} y={20} textAnchor="end">
-              Trades scale: 0 - {chartModel.maxTrades}
-            </text>
           </svg>
 
           <div className={styles.scoreRow}>
