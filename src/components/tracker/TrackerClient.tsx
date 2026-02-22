@@ -6,6 +6,14 @@ import styles from "./TrackerClient.module.css";
 
 type Variant = "neg" | "pos" | "pos-outline";
 type Entry = { result: -1 | 1; variant: Variant; deposit: number; trades: number };
+type ChartHover = {
+  x: number;
+  y: number;
+  day: number;
+  deposit: number;
+  trades: number;
+  variant: Variant | "none";
+};
 
 type Props = {
   userKey: string;
@@ -145,6 +153,7 @@ export default function TrackerClient({ userKey }: Props) {
   const [shareStatus, setShareStatus] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
+  const [chartHover, setChartHover] = useState<ChartHover | null>(null);
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -271,6 +280,7 @@ export default function TrackerClient({ userKey }: Props) {
         cumulative,
         deposit: currentDeposit,
         trades: entry ? Number(entry.trades) || 0 : 0,
+        variant: entry?.variant ?? "none",
       };
     });
 
@@ -307,7 +317,7 @@ export default function TrackerClient({ userKey }: Props) {
       const y = bounds.bottom - ratio * height;
       const h = bounds.bottom - y;
       const kind: "ok" | "warn" | "hot" = v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
-      return { x, y, w: barWidth, h, kind };
+      return { x, y, w: barWidth, h, kind, day: v.day, deposit: v.deposit, trades: v.trades, variant: v.variant };
     });
 
     const ticks = visible.map((v, index) => {
@@ -315,13 +325,29 @@ export default function TrackerClient({ userKey }: Props) {
       return { x, label: String(v.day) };
     });
 
+    const yTicks = Array.from({ length: 5 }, (_, i) => {
+      const y = bounds.bottom - (height * i) / 4;
+      const normalized = ((bounds.bottom - y) / height) * 100;
+      const delta = maxDelta === minDelta ? 0 : minDelta + (normalized / 100) * (maxDelta - minDelta);
+      const depositAtY = Math.max(0, firstDeposit + delta);
+      return { y, label: String(Math.round(depositAtY)) };
+    });
+
     return {
       yellow: hasAnyData ? buildPath(normalizedResult, 0, 100, bounds) : "",
       blue: hasAnyData ? buildPath(normalizedDeposit, 0, 100, bounds) : "",
       bars,
       ticks,
+      yTicks,
     };
   }, [sortedEntries, viewMonth, viewYear]);
+
+  const variantLabel = (variant: Variant | "none") => {
+    if (variant === "neg") return "Red day (-1)";
+    if (variant === "pos") return "Green day (+1)";
+    if (variant === "pos-outline") return "Green outline (+1)";
+    return "No day type";
+  };
 
   const getPreviousDayDeposit = (dateKey: string) => {
     const current = new Date(`${dateKey}T00:00:00`);
@@ -589,37 +615,73 @@ export default function TrackerClient({ userKey }: Props) {
             </span>
           </div>
 
-          <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-label="Tracker chart">
-            <g>
+          <div className={styles.chartWrap}>
+            <svg
+              className={styles.chart}
+              viewBox="0 0 520 280"
+              preserveAspectRatio="none"
+              aria-label="Tracker chart"
+              onMouseLeave={() => setChartHover(null)}
+            >
+              <g>
+                {chartModel.yTicks.map((tick, index) => (
+                  <text key={`y-tick-${index}`} className={styles.yTickLabel} x={8} y={tick.y + 3} textAnchor="end">
+                    {tick.label}
+                  </text>
+                ))}
+              </g>
+              <g>
               <line className={styles.gridLine} x1="10" y1="28" x2="510" y2="28" />
               <line className={styles.gridLine} x1="10" y1="76" x2="510" y2="76" />
               <line className={styles.gridLine} x1="10" y1="124" x2="510" y2="124" />
               <line className={styles.gridLine} x1="10" y1="172" x2="510" y2="172" />
               <line className={styles.gridLine} x1="10" y1="220" x2="510" y2="220" />
-            </g>
-            <g>
-              {chartModel.bars.map((bar, index) => (
-                <rect
-                  key={`bar-${index}`}
-                  className={`${styles.tradeBar} ${bar.kind === "ok" ? styles.tradeBarOk : bar.kind === "warn" ? styles.tradeBarWarn : styles.tradeBarHot}`}
-                  x={bar.x}
-                  y={bar.y}
-                  width={bar.w}
-                  height={Math.max(0, bar.h)}
-                  rx="2"
-                />
+              </g>
+              <g>
+                {chartModel.bars.map((bar, index) => (
+                  <rect
+                    key={`bar-${index}`}
+                    className={`${styles.tradeBar} ${bar.kind === "ok" ? styles.tradeBarOk : bar.kind === "warn" ? styles.tradeBarWarn : styles.tradeBarHot}`}
+                    x={bar.x}
+                    y={bar.y}
+                    width={bar.w}
+                    height={Math.max(2, bar.h)}
+                    rx="2"
+                    onMouseMove={(event) => {
+                      const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                      if (!rect) return;
+                      setChartHover({
+                        x: event.clientX - rect.left + 10,
+                        y: event.clientY - rect.top - 8,
+                        day: bar.day,
+                        deposit: bar.deposit,
+                        trades: bar.trades,
+                        variant: bar.variant,
+                      });
+                    }}
+                    onMouseLeave={() => setChartHover(null)}
+                  />
+                ))}
+              </g>
+              <path className={styles.yellowGlow} d={chartModel.yellow} />
+              <path className={styles.blueGlow} d={chartModel.blue} />
+              <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
+              <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+              {chartModel.ticks.map((tick, index) => (
+                <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
+                  {tick.label}
+                </text>
               ))}
-            </g>
-            <path className={styles.yellowGlow} d={chartModel.yellow} />
-            <path className={styles.blueGlow} d={chartModel.blue} />
-            <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
-            <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
-            {chartModel.ticks.map((tick, index) => (
-              <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
-                {tick.label}
-              </text>
-            ))}
-          </svg>
+            </svg>
+            {chartHover ? (
+              <div className={styles.chartTooltip} style={{ left: `${chartHover.x}px`, top: `${chartHover.y}px` }}>
+                <div>Day: {chartHover.day}</div>
+                <div>Type: {variantLabel(chartHover.variant)}</div>
+                <div>Trades: {chartHover.trades}</div>
+                <div>Deposit: {Math.round(chartHover.deposit)}</div>
+              </div>
+            ) : null}
+          </div>
 
           <div className={styles.scoreRow}>
             <div className={`${styles.score} ${styles.scoreBlue}`}>

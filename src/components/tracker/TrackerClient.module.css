@@ -93,6 +93,11 @@
   margin-top: 8px;
 }
 
+.chartWrap {
+  position: relative;
+  height: 100%;
+}
+
 .gridLine {
   stroke: rgba(125, 136, 176, 0.28);
   stroke-width: 1;
@@ -132,6 +137,7 @@
 
 .tradeBar {
   opacity: 0.45;
+  cursor: pointer;
 }
 
 .tradeBarOk {
@@ -151,9 +157,25 @@
   font-size: 10px;
 }
 
-.axisHint {
+.yTickLabel {
   fill: #8d9bc8;
   font-size: 9px;
+}
+
+.chartTooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  z-index: 6;
+  min-width: 160px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(144, 164, 226, 0.42);
+  background: rgba(10, 16, 31, 0.94);
+  color: #e7eeff;
+  font-size: 11px;
+  line-height: 1.35;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.34);
 }
 
 .scoreRow {
