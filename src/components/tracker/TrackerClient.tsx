@@ -42,7 +42,8 @@ function buildPath(
   values: number[],
   minY: number,
   maxY: number,
-  bounds = { left: 10, right: 510, top: 28, bottom: 220 }
+  bounds = { left: 10, right: 510, top: 28, bottom: 220 },
+  smoothness = 1 / 6
 ) {
   if (!values.length) return "";
 
@@ -73,10 +74,10 @@ function buildPath(
     const p2 = points[i + 1];
     const p3 = points[i + 2] || p2;
 
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    const cp1x = p1.x + (p2.x - p0.x) * smoothness;
+    const cp1y = p1.y + (p2.y - p0.y) * smoothness;
+    const cp2x = p2.x - (p3.x - p1.x) * smoothness;
+    const cp2y = p2.y - (p3.y - p1.y) * smoothness;
 
     path += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   }
@@ -350,7 +351,7 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     return {
-      yellow: buildPath(normalizedResult, 0, 100, bounds),
+      yellow: buildPath(normalizedResult, 0, 100, bounds, 0.08),
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
