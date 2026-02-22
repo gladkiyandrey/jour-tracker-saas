@@ -120,7 +120,7 @@
 }
 
 .scoreRow {
-  margin: -100px auto 0;
+  margin: 20px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
@@ -210,7 +210,7 @@
 }
 
 .score {
-  min-height: 56px;
+  min-height: 58px;
   display: flex;
   flex-direction: row;
   justify-content: center;
