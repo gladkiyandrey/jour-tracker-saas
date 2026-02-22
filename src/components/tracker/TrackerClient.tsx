@@ -84,6 +84,30 @@ function buildPath(
   return path;
 }
 
+function buildLinearPath(
+  values: number[],
+  minY: number,
+  maxY: number,
+  bounds = { left: 10, right: 510, top: 28, bottom: 220 }
+) {
+  if (!values.length) return "";
+
+  const { left, right, top, bottom } = bounds;
+  const width = right - left;
+  const height = bottom - top;
+  const steps = values.length > 1 ? values.length - 1 : 1;
+  const safeRange = maxY - minY || 1;
+
+  return values
+    .map((value, index) => {
+      const x = left + (width * index) / steps;
+      const ratio = (value - minY) / safeRange;
+      const y = bottom - ratio * height;
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
 export default function TrackerClient({ userKey }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
@@ -304,15 +328,9 @@ export default function TrackerClient({ userKey }: Props) {
 
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
-    const firstResult = resultValues[0] ?? 0;
-    const resultDelta = resultValues.map((value) => value - firstResult);
-    const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
-    const SPAN = 44;
-    const normalizeAroundCenter = (values: number[], maxAbs: number) =>
-      values.map((value) => CENTER + (value / maxAbs) * SPAN);
     const normalizeMinMax = (values: number[]) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
@@ -320,7 +338,7 @@ export default function TrackerClient({ userKey }: Props) {
       return values.map((value) => 6 + ((value - min) / (max - min)) * 88);
     };
 
-    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
+    const normalizedResult = normalizeMinMax(resultValues);
     const normalizedDeposit = normalizeMinMax(depositValues);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
@@ -351,7 +369,7 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     return {
-      yellow: buildPath(normalizedResult, 0, 100, bounds),
+      yellow: buildLinearPath(normalizedResult, 0, 100, bounds),
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
