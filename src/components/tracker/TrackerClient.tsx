@@ -292,7 +292,6 @@ export default function TrackerClient({ userKey }: Props) {
         bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
         yTicksLeft: [] as Array<{ y: number; label: string }>,
-        yTicksRight: [] as Array<{ y: number; label: string }>,
         bounds,
         gridY,
       };
@@ -346,20 +345,12 @@ export default function TrackerClient({ userKey }: Props) {
       return { y, label: Math.round(depositAtY).toLocaleString("en-US") };
     });
 
-    const yTicksRight = Array.from({ length: 5 }, (_, i) => {
-      const y = bounds.bottom - (height * i) / 4;
-      const normalized = ((bounds.bottom - y) / height) * 100;
-      const disciplineAtY = firstResult + ((normalized - CENTER) / SPAN) * maxAbsResult;
-      return { y, label: String(Math.round(disciplineAtY)) };
-    });
-
     return {
       yellow: buildPath(normalizedResult, 0, 100, bounds),
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
       yTicksLeft,
-      yTicksRight,
       bounds,
       gridY,
     };
@@ -648,12 +639,7 @@ export default function TrackerClient({ userKey }: Props) {
             >
               <g>
                 {chartModel.yTicksLeft.map((tick, index) => (
-                  <text key={`y-left-tick-${index}`} className={styles.yTickLabelLeft} x={chartModel.bounds.left - 6} y={tick.y + 3} textAnchor="end">
-                    {tick.label}
-                  </text>
-                ))}
-                {chartModel.yTicksRight.map((tick, index) => (
-                  <text key={`y-right-tick-${index}`} className={styles.yTickLabelRight} x={chartModel.bounds.right + 6} y={tick.y + 3} textAnchor="start">
+                  <text key={`y-left-tick-${index}`} className={styles.yTickLabelLeft} x={chartModel.bounds.left - 10} y={tick.y + 3} textAnchor="end">
                     {tick.label}
                   </text>
                 ))}
