@@ -240,16 +240,21 @@ export default function TrackerClient({ userKey }: Props) {
       }
     });
 
-    let advice = "Track at least 5 days to get a practical discipline recommendation.";
+    let advice =
+      "Track at least 5 days to unlock a reliable recommendation. Keep entries consistent for a clearer pattern. Fill both result and deposit to improve accuracy.";
     if (total >= 5) {
       if (score >= 75 && greenStreak >= 4) {
-        advice = "Strong consistency. Keep the same routine and protect your streak by limiting impulsive entries.";
+        advice =
+          "Strong consistency. Keep the same routine and protect your streak by limiting impulsive entries. Use the same risk per trade to avoid variance spikes. Review only your best setups and repeat what already works.";
       } else if (redStreak >= 3) {
-        advice = "Red streak is growing. Reduce position size for the next sessions and trade only A+ setups.";
+        advice =
+          "Red streak is growing. Reduce position size for the next sessions and trade only A+ setups. Pause after two consecutive losses to reset execution quality. Focus on one pattern and skip marginal entries this week.";
       } else if (score >= 60) {
-        advice = "Progress is stable. Focus on avoiding single emotional days that break momentum.";
+        advice =
+          "Progress is stable. Focus on avoiding single emotional days that break momentum. Lock your max trades limit before the session starts. Keep a brief post-trade note to catch repeated mistakes early.";
       } else {
-        advice = "Discipline is unstable. Use a strict daily checklist and cap risk until score recovers.";
+        advice =
+          "Discipline is unstable. Use a strict daily checklist and cap risk until score recovers. Reduce frequency and prioritize quality over activity. Aim for three clean sessions in a row before increasing risk.";
       }
     }
 
