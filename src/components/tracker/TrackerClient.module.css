@@ -74,7 +74,7 @@
 
 .chart {
   width: 100%;
-  height: 280px;
+  height: 250px;
   margin-top: 18px;
 }
 
@@ -116,7 +116,7 @@
 }
 
 .scoreRow {
-  margin: 69px auto 0;
+  margin: 24px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
