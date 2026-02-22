@@ -188,7 +188,7 @@
 }
 
 .scoreRow {
-  margin: 0 auto 0;
+  margin: -8px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -278,14 +278,14 @@
 }
 
 .score {
-  min-height: 62px;
+  min-height: 54px;
   margin-bottom: 0;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 8px;
+  padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid rgba(121, 133, 173, 0.38);
   background: linear-gradient(180deg, rgba(30, 38, 62, 0.88), rgba(15, 21, 36, 0.92));
