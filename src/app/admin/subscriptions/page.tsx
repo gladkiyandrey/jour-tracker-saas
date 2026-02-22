@@ -11,7 +11,11 @@ function fmtDate(value: string | null) {
   return d.toLocaleString("ru-RU");
 }
 
-export default async function AdminSubscriptionsPage() {
+type PageProps = {
+  searchParams?: Promise<{ q?: string }> | { q?: string };
+};
+
+export default async function AdminSubscriptionsPage({ searchParams }: PageProps) {
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
@@ -20,7 +24,10 @@ export default async function AdminSubscriptionsPage() {
     redirect("/app");
   }
 
+  const params = searchParams ? await searchParams : {};
+  const q = String(params?.q ?? "").trim().toLowerCase();
   const rows = await listSubscriptionsForAdmin(500);
+  const filtered = q ? rows.filter((row) => row.email.includes(q) || row.userId.toLowerCase().includes(q)) : rows;
 
   return (
     <main className="site dashboard">
@@ -36,6 +43,26 @@ export default async function AdminSubscriptionsPage() {
       <section className="card" style={{ overflowX: "auto" }}>
         <div className="note" style={{ marginTop: 0 }}>
           Показывает: кто оплатил, когда оплатил и когда подписка заканчивается.
+        </div>
+        <form className="admin-search" action="/admin/subscriptions" method="get">
+          <input
+            className="input admin-search-input"
+            type="text"
+            name="q"
+            defaultValue={q}
+            placeholder="Поиск по email или user_id"
+          />
+          <button className="btn primary" type="submit">
+            Найти
+          </button>
+          {q ? (
+            <Link className="btn" href="/admin/subscriptions">
+              Сбросить
+            </Link>
+          ) : null}
+        </form>
+        <div className="note" style={{ marginTop: "8px" }}>
+          Найдено: {filtered.length}
         </div>
         <table className="admin-table">
           <thead>
@@ -61,9 +88,15 @@ export default async function AdminSubscriptionsPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {filtered.map((row) => (
               <tr key={row.userId}>
-                <td>{row.email}</td>
+                <td>
+                  <div>{row.email}</div>
+                  <div className="admin-sub-id">{row.userId}</div>
+                  <Link className="admin-user-link" href={`/admin/users/${row.userId}`}>
+                    Карточка пользователя
+                  </Link>
+                </td>
                 <td>
                   <span className={`status-chip ${row.isExpired ? "expired" : row.status === "active" ? "active" : "inactive"}`}>
                     {row.isExpired ? "expired" : row.status}
@@ -75,6 +108,11 @@ export default async function AdminSubscriptionsPage() {
                 <td>{fmtDate(row.startedAt)}</td>
               </tr>
             ))}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6}>Ничего не найдено по запросу.</td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </section>
