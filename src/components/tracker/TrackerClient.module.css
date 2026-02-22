@@ -465,14 +465,14 @@
 }
 
 .field {
-  margin-top: 12px;
+  margin-top: 18px;
 }
 
 .field span {
   display: block;
   font-size: 12px;
   color: #d2dbff;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 }
 
 .field input,
@@ -532,7 +532,7 @@
 }
 
 .actions {
-  margin-top: 14px;
+  margin-top: 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -545,17 +545,22 @@
 }
 
 .clearBtn {
-  min-height: 30px;
-  padding: 4px 10px;
-  font-size: 11px;
-  border-color: rgba(255, 126, 149, 0.35);
-  color: rgba(255, 183, 199, 0.86);
-  opacity: 0.88;
+  min-height: auto;
+  padding: 0;
+  font-size: 12px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 183, 199, 0.9);
+  opacity: 0.92;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .clearBtn:hover {
-  border-color: rgba(255, 154, 174, 0.62);
-  box-shadow: 0 4px 12px rgba(122, 35, 59, 0.22);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: rgba(255, 201, 211, 1);
   opacity: 1;
 }
 
