@@ -156,7 +156,8 @@ export default function TrackerClient({ userKey }: Props) {
         const res = await fetch("/api/tracker/entries", { cache: "no-store" });
         if (!res.ok) {
           if (res.status === 401) return;
-          throw new Error(`Failed to load (${res.status})`);
+          const errPayload = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(errPayload?.error || `Failed to load (${res.status})`);
         }
         const payload = (await res.json()) as { data?: Record<string, Entry> };
         if (!cancelled && payload.data) {
@@ -167,8 +168,11 @@ export default function TrackerClient({ userKey }: Props) {
             // ignore storage errors
           }
         }
-      } catch {
-        if (!cancelled) setSyncError("Cloud sync is temporarily unavailable.");
+      } catch (error) {
+        if (!cancelled) {
+          const msg = error instanceof Error ? error.message : "";
+          setSyncError(msg ? `Cloud sync error: ${msg}` : "Cloud sync is temporarily unavailable.");
+        }
       }
     };
 
