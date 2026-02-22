@@ -382,6 +382,7 @@ export default function TrackerClient({ userKey }: Props) {
       [selectedDateKey]: nextEntry,
     }));
     setModalOpen(false);
+    setSelectedDateKey("");
 
     try {
       const res = await fetch("/api/tracker/entries", {
