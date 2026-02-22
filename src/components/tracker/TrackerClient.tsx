@@ -288,7 +288,7 @@ export default function TrackerClient({ userKey }: Props) {
       return {
         yellow: "",
         blue: "",
-        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
+        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
         yTicks: [] as Array<{ y: number; label: string }>,
       };
@@ -302,14 +302,13 @@ export default function TrackerClient({ userKey }: Props) {
     const depositDelta = depositValues.map((value) => value - firstDeposit);
     const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
     const maxAbsDeposit = Math.max(1, ...depositDelta.map((v) => Math.abs(v)));
-    const sharedAbs = Math.max(maxAbsResult, maxAbsDeposit);
     const CENTER = 50;
     const SPAN = 44;
     const normalizeAroundCenter = (values: number[], maxAbs: number) =>
       values.map((value) => CENTER + (value / maxAbs) * SPAN);
 
-    const normalizedResult = normalizeAroundCenter(resultDelta, sharedAbs);
-    const normalizedDeposit = normalizeAroundCenter(depositDelta, sharedAbs);
+    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
+    const normalizedDeposit = normalizeAroundCenter(depositDelta, maxAbsDeposit);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -319,9 +318,10 @@ export default function TrackerClient({ userKey }: Props) {
     const bars = visible.map((v, index) => {
       const x = bounds.left + (width * index) / steps - barWidth / 2;
       const cappedTrades = Math.max(0, Math.min(v.trades, TRADE_BAR_CAP));
-      const h = Math.min(cappedTrades * TRADE_BAR_UNIT, tradeMaxHeight);
+      const h = cappedTrades === 0 ? 3 : Math.min(cappedTrades * TRADE_BAR_UNIT, tradeMaxHeight);
       const y = bounds.bottom - h;
-      const kind: "ok" | "warn" | "hot" = v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
+      const kind: "zero" | "ok" | "warn" | "hot" =
+        v.trades === 0 ? "zero" : v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
       return { x, y, w: barWidth, h, kind, day: v.day, deposit: v.deposit, trades: v.trades, variant: v.variant };
     });
 
@@ -333,7 +333,7 @@ export default function TrackerClient({ userKey }: Props) {
     const yTicks = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const normalized = ((bounds.bottom - y) / height) * 100;
-      const delta = ((normalized - CENTER) / SPAN) * sharedAbs;
+      const delta = ((normalized - CENTER) / SPAN) * maxAbsDeposit;
       const depositAtY = Math.max(0, firstDeposit + delta);
       return { y, label: String(Math.round(depositAtY)) };
     });
@@ -646,7 +646,15 @@ export default function TrackerClient({ userKey }: Props) {
                 {chartModel.bars.map((bar, index) => (
                   <rect
                     key={`bar-${index}`}
-                    className={`${styles.tradeBar} ${bar.kind === "ok" ? styles.tradeBarOk : bar.kind === "warn" ? styles.tradeBarWarn : styles.tradeBarHot}`}
+                    className={`${styles.tradeBar} ${
+                      bar.kind === "zero"
+                        ? styles.tradeBarZero
+                        : bar.kind === "ok"
+                          ? styles.tradeBarOk
+                          : bar.kind === "warn"
+                            ? styles.tradeBarWarn
+                            : styles.tradeBarHot
+                    }`}
                     x={bar.x}
                     y={bar.y}
                     width={bar.w}

@@ -144,6 +144,10 @@
   fill: rgba(63, 221, 153, 0.8);
 }
 
+.tradeBarZero {
+  fill: rgba(154, 165, 196, 0.26);
+}
+
 .tradeBarWarn {
   fill: rgba(255, 210, 74, 0.8);
 }
