@@ -205,7 +205,10 @@ export default function TrackerClient({ userKey }: Props) {
   );
 
   const stats = useMemo(() => {
-    const values = sortedEntries.map(([, value]) => value);
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const values = sortedEntries
+      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .map(([, value]) => value);
     const greens = values.filter((v) => v.result === 1).length;
     const reds = values.filter((v) => v.result === -1).length;
     const total = greens + reds;
@@ -242,7 +245,7 @@ export default function TrackerClient({ userKey }: Props) {
     }
 
     return { score, greenStreak, redStreak, advice };
-  }, [sortedEntries]);
+  }, [sortedEntries, viewMonth, viewYear]);
 
   const chartModel = useMemo(() => {
     const bounds = { left: 10, right: 510, top: 28, bottom: 220 };
