@@ -343,7 +343,9 @@ export default function TrackerClient({ userKey }: Props) {
   const saveDay = async () => {
     if (!selectedDateKey) return;
     const isOutline = modalVariant === "pos-outline";
-    const outlineDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : Number(modalDeposit.trim());
+    const previousDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : 0;
+    const enteredDeposit = Number(modalDeposit.trim());
+    const outlineDeposit = isOutline ? (previousDeposit > 0 ? previousDeposit : enteredDeposit) : enteredDeposit;
     const deposit = outlineDeposit;
     const trades = isOutline ? 0 : Number(modalTrades.trim());
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
@@ -356,7 +358,7 @@ export default function TrackerClient({ userKey }: Props) {
       } else if (!hasVariant) {
         setModalError("Choose day type.");
       } else if (!hasDeposit) {
-        setModalError(isOutline ? "No previous day with deposit found. Set deposit on a previous day first." : "Enter deposit amount greater than 0.");
+        setModalError("Enter deposit amount greater than 0.");
       } else {
         setModalError(isOutline ? "For outlined green day, trades can be 0 or more." : "Enter trades count greater than 0.");
       }
@@ -534,6 +536,9 @@ export default function TrackerClient({ userKey }: Props) {
       setShareStatus("Auto-copy failed. Copy it manually.");
     }
   };
+
+  const outlinePreviousDeposit = selectedDateKey ? getPreviousDayDeposit(selectedDateKey) : 0;
+  const outlineNeedsManualDeposit = modalVariant === "pos-outline" && outlinePreviousDeposit <= 0;
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -783,11 +788,17 @@ export default function TrackerClient({ userKey }: Props) {
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                placeholder={modalVariant === "pos-outline" ? "Auto from previous day" : "Enter deposit amount"}
+                placeholder={
+                  modalVariant === "pos-outline"
+                    ? outlineNeedsManualDeposit
+                      ? "No previous day found, enter deposit"
+                      : "Auto from previous day"
+                    : "Enter deposit amount"
+                }
                 value={modalDeposit}
-                readOnly={modalVariant === "pos-outline"}
+                readOnly={modalVariant === "pos-outline" && !outlineNeedsManualDeposit}
                 onChange={(e) => {
-                  if (modalVariant === "pos-outline") return;
+                  if (modalVariant === "pos-outline" && !outlineNeedsManualDeposit) return;
                   setModalDeposit(e.target.value.replace(/\D/g, ""));
                   setModalError("");
                 }}
