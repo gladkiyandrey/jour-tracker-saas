@@ -459,20 +459,20 @@
 }
 
 .modalDate {
-  margin-top: 6px;
+  margin-top: 4px;
   color: #9ea9cc;
   font-size: 13px;
 }
 
 .field {
-  margin-top: 14px;
+  margin-top: 12px;
 }
 
 .field span {
   display: block;
   font-size: 12px;
   color: #d2dbff;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .field input,
@@ -531,27 +531,32 @@
   box-shadow: 0 0 0 2px rgba(122, 159, 255, 0.5);
 }
 
-.clearWrap {
+.actions {
   margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
 }
 
-.actions {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
+.actionsRight {
+  display: inline-flex;
   gap: 10px;
 }
 
 .clearBtn {
-  width: 100%;
-  min-height: 42px;
-  border-color: rgba(255, 126, 149, 0.52);
-  color: #ffb7c7;
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 11px;
+  border-color: rgba(255, 126, 149, 0.35);
+  color: rgba(255, 183, 199, 0.86);
+  opacity: 0.88;
 }
 
 .clearBtn:hover {
-  border-color: rgba(255, 154, 174, 0.82);
-  box-shadow: 0 8px 20px rgba(122, 35, 59, 0.28);
+  border-color: rgba(255, 154, 174, 0.62);
+  box-shadow: 0 4px 12px rgba(122, 35, 59, 0.22);
+  opacity: 1;
 }
 
 .modalError {

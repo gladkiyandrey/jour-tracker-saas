@@ -409,6 +409,7 @@ export default function TrackerClient({ userKey }: Props) {
     });
     setModalOpen(false);
     setModalError("");
+    setSelectedDateKey("");
 
     try {
       const res = await fetch("/api/tracker/entries", {
@@ -812,19 +813,18 @@ export default function TrackerClient({ userKey }: Props) {
 
             {modalError ? <p className={styles.modalError}>{modalError}</p> : null}
 
-            <div className={styles.clearWrap}>
-              <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
-                Стереть информацию дня
-              </button>
-            </div>
-
             <div className={styles.actions}>
-              <button className="btn" type="button" onClick={closeModal}>
-                Cancel
+              <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
+                Стереть день
               </button>
-              <button className="btn primary" type="button" onClick={saveDay}>
-                Save
-              </button>
+              <div className={styles.actionsRight}>
+                <button className="btn" type="button" onClick={closeModal}>
+                  Cancel
+                </button>
+                <button className="btn primary" type="button" onClick={saveDay}>
+                  Save
+                </button>
+              </div>
             </div>
           </div>
         </div>
