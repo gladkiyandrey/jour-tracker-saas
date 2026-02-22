@@ -262,39 +262,42 @@ export default function TrackerClient({ userKey }: Props) {
     const TRADE_BAR_CAP = 8; // visual cap, tooltip still shows real value
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
-    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-    const byDay = new Map<number, Entry>();
-    monthEntries.forEach(([dateKey, entry]) => {
-      byDay.set(Number(dateKey.slice(-2)), entry);
+    const tradingEntries = monthEntries.filter(([dateKey]) => {
+      const date = new Date(`${dateKey}T00:00:00`);
+      const weekday = date.getDay();
+      return weekday !== 0 && weekday !== 6;
     });
 
     let cumulative = 0;
-    let currentDeposit = 0;
     const visible: Array<{
       day: number;
       cumulative: number;
       deposit: number;
       trades: number;
       variant: Variant | "none";
-    }> = Array.from({ length: daysInMonth }, (_, i) => {
-      const day = i + 1;
-      const entry = byDay.get(day);
-      let dayDelta = 0;
-      if (entry) {
-        dayDelta = entry.variant === "neg" ? -1 : 1;
-        cumulative += dayDelta;
-        currentDeposit = Number(entry.deposit) || currentDeposit;
-      }
+    }> = tradingEntries.map(([dateKey, entry]) => {
+      const dayDelta = entry.variant === "neg" ? -1 : 1;
+      cumulative += dayDelta;
       return {
-        day,
+        day: Number(dateKey.slice(-2)),
         cumulative,
-        deposit: currentDeposit,
-        trades: entry ? Number(entry.trades) || 0 : 0,
-        variant: entry?.variant ?? "none",
+        deposit: Number(entry.deposit) || 0,
+        trades: Number(entry.trades) || 0,
+        variant: entry.variant,
       };
     });
 
-    const hasAnyData = monthEntries.length > 0;
+    const hasAnyData = visible.length > 0;
+    if (!hasAnyData) {
+      return {
+        yellow: "",
+        blue: "",
+        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
+        ticks: [] as Array<{ x: number; label: string }>,
+        yTicks: [] as Array<{ y: number; label: string }>,
+      };
+    }
+
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
     const firstResult = resultValues[0] ?? 0;
@@ -339,8 +342,8 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     return {
-      yellow: hasAnyData ? buildPath(normalizedResult, 0, 100, bounds) : "",
-      blue: hasAnyData ? buildPath(normalizedDeposit, 0, 100, bounds) : "",
+      yellow: buildPath(normalizedResult, 0, 100, bounds),
+      blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
       yTicks,
