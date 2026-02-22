@@ -5,7 +5,7 @@
 .tracker {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr;
+  grid-template-columns: 1.35fr 0.85fr;
   gap: 16px;
   align-items: stretch;
 }
@@ -246,7 +246,7 @@
 .shareRow {
   margin-top: 6px;
   display: grid;
-  grid-template-columns: 1.2fr 0.9fr;
+  grid-template-columns: 1.35fr 0.85fr;
   gap: 16px;
 }
 

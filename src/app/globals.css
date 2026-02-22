@@ -29,7 +29,7 @@ a {
 }
 
 .site {
-  width: min(1040px, calc(100% - 32px));
+  width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
 }
 
@@ -42,10 +42,9 @@ a {
 }
 
 .logo-mark {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: conic-gradient(from 90deg, #6dc0ff 0 40%, #3f74ff 40% 75%, #41de9c 75% 100%);
+  width: 18px;
+  height: 18px;
+  background: url("/brand/logo-mark.svg") center / contain no-repeat;
 }
 
 .topbar {
