@@ -262,11 +262,7 @@ export default function TrackerClient({ userKey }: Props) {
     const TRADE_BAR_CAP = 8; // visual cap, tooltip still shows real value
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
-    const tradingEntries = monthEntries.filter(([dateKey]) => {
-      const date = new Date(`${dateKey}T00:00:00`);
-      const weekday = date.getDay();
-      return weekday !== 0 && weekday !== 6;
-    });
+    const filledEntries = monthEntries;
 
     let cumulative = 0;
     const visible: Array<{
@@ -275,7 +271,7 @@ export default function TrackerClient({ userKey }: Props) {
       deposit: number;
       trades: number;
       variant: Variant | "none";
-    }> = tradingEntries.map(([dateKey, entry]) => {
+    }> = filledEntries.map(([dateKey, entry]) => {
       const dayDelta = entry.variant === "neg" ? -1 : 1;
       cumulative += dayDelta;
       return {
