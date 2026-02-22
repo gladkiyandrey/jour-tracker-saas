@@ -191,8 +191,11 @@
   margin: -8px auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  max-width: 680px;
+  gap: 12px;
+  max-width: none;
+  width: 100%;
+  padding: 0 2px;
+  margin-bottom: 8px;
 }
 
 .shareRow {
@@ -438,6 +441,7 @@
 }
 
 .ai {
+  margin-top: 8px;
   border: 1px solid rgba(120, 136, 190, 0.28);
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(28, 36, 57, 0.94), rgba(16, 22, 36, 0.96));
