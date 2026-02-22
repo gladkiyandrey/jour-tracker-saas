@@ -123,7 +123,7 @@
   margin: 0 auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 15px;
   max-width: 680px;
 }
 
@@ -211,6 +211,7 @@
 
 .score {
   min-height: 58px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: row;
   justify-content: center;
