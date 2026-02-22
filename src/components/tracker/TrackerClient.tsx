@@ -257,7 +257,8 @@ export default function TrackerClient({ userKey }: Props) {
   }, [sortedEntries, viewMonth, viewYear]);
 
   const chartModel = useMemo(() => {
-    const bounds = { left: 10, right: 510, top: 28, bottom: 220 };
+    const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
+    const gridY = [28, 76, 124, 172, 220];
     const TRADE_BAR_UNIT = 12; // fixed px per 1 trade
     const TRADE_BAR_CAP = 8; // visual cap, tooltip still shows real value
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -290,7 +291,10 @@ export default function TrackerClient({ userKey }: Props) {
         blue: "",
         bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
-        yTicks: [] as Array<{ y: number; label: string }>,
+        yTicksLeft: [] as Array<{ y: number; label: string }>,
+        yTicksRight: [] as Array<{ y: number; label: string }>,
+        bounds,
+        gridY,
       };
     }
 
@@ -335,11 +339,18 @@ export default function TrackerClient({ userKey }: Props) {
       return { x, label: String(v.day) };
     });
 
-    const yTicks = Array.from({ length: 5 }, (_, i) => {
+    const yTicksLeft = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const ratio = i / 4;
       const depositAtY = minDeposit + (maxDeposit - minDeposit) * ratio;
-      return { y, label: String(Math.round(depositAtY)) };
+      return { y, label: Math.round(depositAtY).toLocaleString("en-US") };
+    });
+
+    const yTicksRight = Array.from({ length: 5 }, (_, i) => {
+      const y = bounds.bottom - (height * i) / 4;
+      const normalized = ((bounds.bottom - y) / height) * 100;
+      const disciplineAtY = firstResult + ((normalized - CENTER) / SPAN) * maxAbsResult;
+      return { y, label: String(Math.round(disciplineAtY)) };
     });
 
     return {
@@ -347,7 +358,10 @@ export default function TrackerClient({ userKey }: Props) {
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
-      yTicks,
+      yTicksLeft,
+      yTicksRight,
+      bounds,
+      gridY,
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
@@ -633,18 +647,21 @@ export default function TrackerClient({ userKey }: Props) {
               onMouseLeave={() => setChartHover(null)}
             >
               <g>
-                {chartModel.yTicks.map((tick, index) => (
-                  <text key={`y-tick-${index}`} className={styles.yTickLabel} x={8} y={tick.y + 3} textAnchor="end">
+                {chartModel.yTicksLeft.map((tick, index) => (
+                  <text key={`y-left-tick-${index}`} className={styles.yTickLabelLeft} x={chartModel.bounds.left - 6} y={tick.y + 3} textAnchor="end">
+                    {tick.label}
+                  </text>
+                ))}
+                {chartModel.yTicksRight.map((tick, index) => (
+                  <text key={`y-right-tick-${index}`} className={styles.yTickLabelRight} x={chartModel.bounds.right + 6} y={tick.y + 3} textAnchor="start">
                     {tick.label}
                   </text>
                 ))}
               </g>
               <g>
-              <line className={styles.gridLine} x1="10" y1="28" x2="510" y2="28" />
-              <line className={styles.gridLine} x1="10" y1="76" x2="510" y2="76" />
-              <line className={styles.gridLine} x1="10" y1="124" x2="510" y2="124" />
-              <line className={styles.gridLine} x1="10" y1="172" x2="510" y2="172" />
-              <line className={styles.gridLine} x1="10" y1="220" x2="510" y2="220" />
+                {chartModel.gridY.map((y, index) => (
+                  <line key={`grid-${index}`} className={styles.gridLine} x1={chartModel.bounds.left} y1={y} x2={chartModel.bounds.right} y2={y} />
+                ))}
               </g>
               <g>
                 {chartModel.bars.map((bar, index) => (
