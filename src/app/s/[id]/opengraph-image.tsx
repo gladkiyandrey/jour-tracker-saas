@@ -33,6 +33,21 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       size
     );
   }
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+  const activeDays = snapshot.days.length;
 
   return new ImageResponse(
     (
@@ -51,9 +66,12 @@ export default async function Image({ params }: { params: Promise<{ id: string }
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ display: "flex", flexDirection: "column" }}>
-            <div style={{ fontSize: 52, fontWeight: 700 }}>Trading Discipline</div>
-            <div style={{ marginTop: 10, fontSize: 26, color: "#b8c7f5" }}>
-              Score {snapshot.score}% · Green {snapshot.greenStreak} · Red {snapshot.redStreak}
+            <div style={{ fontSize: 52, fontWeight: 700 }}>I built a {snapshot.score}% discipline this month.</div>
+            <div style={{ marginTop: 10, fontSize: 24, color: "#b8c7f5" }}>
+              Can you beat it?
+            </div>
+            <div style={{ marginTop: 10, fontSize: 20, color: "#d7e0ff" }}>
+              {monthNames[snapshot.month]} {snapshot.year} · {activeDays} tracked days
             </div>
           </div>
           <div
@@ -67,6 +85,27 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           >
             consist.online
           </div>
+        </div>
+
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+            fontSize: 20,
+            color: "#d9e2ff",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 28, height: 0, borderTop: "4px solid #ffd24a", borderRadius: 999 }} />
+            Consistency
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 28, height: 0, borderTop: "4px solid #2f83ff", borderRadius: 999 }} />
+            Deposit size
+          </div>
+          <div style={{ marginLeft: "auto", color: "#b8c7f5" }}>Auto-generated from journal data</div>
         </div>
 
         <div
@@ -90,8 +129,10 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: "#d9e2ff" }}>
-          <div>Share your consistency with Consist</div>
-          <div>Open: consist.online</div>
+          <div>
+            Score {snapshot.score}% · Green streak {snapshot.greenStreak} · Red streak {snapshot.redStreak}
+          </div>
+          <div>Build your own score on consist.online</div>
         </div>
       </div>
     ),
