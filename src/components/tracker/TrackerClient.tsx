@@ -154,7 +154,6 @@ export default function TrackerClient({ userKey }: Props) {
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
-  const [disciplinePenaltiesOn, setDisciplinePenaltiesOn] = useState(true);
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -272,7 +271,6 @@ export default function TrackerClient({ userKey }: Props) {
     const filledEntries = monthEntries;
 
     let cumulative = 0;
-    let previousDeposit: number | null = null;
     const visible: Array<{
       day: number;
       cumulative: number;
@@ -280,18 +278,8 @@ export default function TrackerClient({ userKey }: Props) {
       trades: number;
       variant: Variant | "none";
     }> = filledEntries.map(([dateKey, entry]) => {
-      const baseScore =
-        entry.variant === "neg" ? -1.2 : entry.variant === "pos-outline" ? 0.7 : 1.0;
-      const overtradingPenalty = Math.max(0, (Number(entry.trades) || 0) - 2) * 0.35;
-      const prevDeposit = previousDeposit ?? 0;
-      const hasPreviousDeposit = prevDeposit > 0;
-      const dropPct = hasPreviousDeposit
-        ? ((prevDeposit - (Number(entry.deposit) || 0)) / prevDeposit) * 100
-        : 0;
-      const riskPenalty = dropPct > 2 ? 0.5 : 0;
-      const dayScore = disciplinePenaltiesOn ? baseScore - overtradingPenalty - riskPenalty : baseScore;
+      const dayScore = entry.variant === "neg" ? -1 : 1;
       cumulative += dayScore;
-      previousDeposit = Number(entry.deposit) || 0;
       return {
         day: Number(dateKey.slice(-2)),
         cumulative,
@@ -370,7 +358,7 @@ export default function TrackerClient({ userKey }: Props) {
       bounds,
       gridY,
     };
-  }, [disciplinePenaltiesOn, sortedEntries, viewMonth, viewYear]);
+  }, [sortedEntries, viewMonth, viewYear]);
 
   const variantLabel = (variant: Variant | "none") => {
     if (variant === "neg") return "Red day (-1)";
@@ -643,14 +631,6 @@ export default function TrackerClient({ userKey }: Props) {
             <span className={styles.legendItem}>
               <i className={`${styles.legendBar} ${styles.legendBarTrades}`} /> Trades / day
             </span>
-            <button
-              type="button"
-              className={styles.chartModeBtn}
-              onClick={() => setDisciplinePenaltiesOn((prev) => !prev)}
-              aria-label="Toggle discipline curve mode"
-            >
-              {disciplinePenaltiesOn ? "Mode: with penalties" : "Mode: base only"}
-            </button>
           </div>
 
           <div className={styles.chartWrap}>
