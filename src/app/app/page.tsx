@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import TrackerClient from "@/components/tracker/TrackerClient";
+import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -34,7 +35,7 @@ export default async function DashboardPage() {
         <div className="logo logo-light">Trading Calendar</div>
         <nav className="nav">
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span className={`badge ${sub.active ? "active" : ""}`}>Subscription: {sub.active ? "Active" : "Inactive"}</span>
+            <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} />
           </div>
           <Link className="btn" href="/">
             Home

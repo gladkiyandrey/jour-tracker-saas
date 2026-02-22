@@ -321,6 +321,104 @@ a {
   flex-wrap: wrap;
 }
 
+.sub-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.sub-tooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 230px;
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(27, 36, 62, 0.98), rgba(14, 20, 37, 0.98));
+  padding: 10px;
+  z-index: 25;
+  transition: opacity 0.18s ease;
+}
+
+.sub-wrap:hover .sub-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sub-tooltip p {
+  margin: 0;
+  font-size: 12px;
+  color: #d4ddff;
+}
+
+.sub-renew-link {
+  margin-top: 8px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #8fb4ff;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.sub-renew-link:hover {
+  color: #b8d1ff;
+}
+
+.sub-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(7, 10, 18, 0.66);
+}
+
+.sub-modal {
+  width: min(460px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(31, 40, 72, 0.96), rgba(18, 25, 47, 0.96));
+  padding: 18px;
+}
+
+.sub-modal h3 {
+  margin: 0;
+}
+
+.sub-price-box {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  color: #dbe4ff;
+  background: rgba(12, 18, 34, 0.7);
+}
+
+.sub-total {
+  margin-top: 4px;
+  font-weight: 700;
+  color: #f4f8ff;
+}
+
+.sub-discount-note {
+  color: #9fecc1;
+  font-size: 12px;
+}
+
+.sub-modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .footer-note {
   margin-top: 24px;
   font-size: 12px;

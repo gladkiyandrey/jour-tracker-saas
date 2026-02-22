@@ -7,11 +7,15 @@ export async function POST(req: Request) {
   try {
     const form = await req.formData();
     const plan = String(form.get("plan") || "monthly");
-    const days = plan === "quarterly" ? 90 : 30;
+    const monthsRaw = Number(form.get("months"));
+    const hasMonths = Number.isInteger(monthsRaw) && monthsRaw >= 1 && monthsRaw <= 24;
+    const months = hasMonths ? monthsRaw : plan === "quarterly" ? 3 : 1;
+    const days = months * 30;
+    const planCode = hasMonths ? `months_${months}` : plan;
     const user = await getCurrentUser();
 
     const expiresAt = user
-      ? (await activateSubscription(user.id, days, plan)).expiresAt
+      ? (await activateSubscription(user.id, days, planCode)).expiresAt
       : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
 
     const res = NextResponse.redirect(new URL("/app", req.url), 303);
