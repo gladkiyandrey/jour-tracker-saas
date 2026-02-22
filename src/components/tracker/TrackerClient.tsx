@@ -251,24 +251,30 @@ export default function TrackerClient({ userKey }: Props) {
     const bounds = { left: 10, right: 510, top: 28, bottom: 220 };
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
-
-    if (!monthEntries.length) {
-      return { yellow: "", blue: "", bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "ok" | "warn" | "hot" }> };
-    }
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const byDay = new Map<number, Entry>();
+    monthEntries.forEach(([dateKey, entry]) => {
+      byDay.set(Number(dateKey.slice(-2)), entry);
+    });
 
     let cumulative = 0;
-    const visible = monthEntries
-      .map(([dateKey, entry]) => {
+    let currentDeposit = 0;
+    const visible = Array.from({ length: daysInMonth }, (_, i) => {
+      const day = i + 1;
+      const entry = byDay.get(day);
+      if (entry) {
         cumulative += Number(entry.result) || 0;
-        return {
-          day: Number(dateKey.slice(-2)),
-          cumulative,
-          deposit: Number(entry.deposit) || 0,
-          trades: Number(entry.trades) || 0,
-        };
-      })
-      .slice(-31);
+        currentDeposit = Number(entry.deposit) || currentDeposit;
+      }
+      return {
+        day,
+        cumulative,
+        deposit: currentDeposit,
+        trades: entry ? Number(entry.trades) || 0 : 0,
+      };
+    });
 
+    const hasAnyData = monthEntries.length > 0;
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
     const tradesValues = visible.map((v) => v.trades);
@@ -304,10 +310,16 @@ export default function TrackerClient({ userKey }: Props) {
       return { x, y, w: barWidth, h, kind };
     });
 
+    const ticks = visible.map((v, index) => {
+      const x = bounds.left + (width * index) / steps;
+      return { x, label: String(v.day) };
+    });
+
     return {
-      yellow: buildPath(normalizedResult, 0, 100, bounds),
-      blue: buildPath(normalizedDeposit, 0, 100, bounds),
+      yellow: hasAnyData ? buildPath(normalizedResult, 0, 100, bounds) : "",
+      blue: hasAnyData ? buildPath(normalizedDeposit, 0, 100, bounds) : "",
       bars,
+      ticks,
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
@@ -602,6 +614,11 @@ export default function TrackerClient({ userKey }: Props) {
             <path className={styles.blueGlow} d={chartModel.blue} />
             <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
             <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+            {chartModel.ticks.map((tick, index) => (
+              <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
+                {tick.label}
+              </text>
+            ))}
           </svg>
 
           <div className={styles.scoreRow}>
