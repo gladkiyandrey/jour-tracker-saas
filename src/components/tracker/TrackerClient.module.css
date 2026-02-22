@@ -123,8 +123,8 @@
   margin: 0 auto 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  max-width: 740px;
+  gap: 15px;
+  max-width: 680px;
 }
 
 .shareRow {
@@ -210,14 +210,14 @@
 }
 
 .score {
-  min-height: 62px;
+  min-height: 58px;
   margin-bottom: 20px;
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 9px;
-  padding: 10px 12px;
+  gap: 8px;
+  padding: 8px 9px;
   border-radius: 10px;
   border: 1px solid rgba(121, 133, 173, 0.38);
   background: linear-gradient(180deg, rgba(30, 38, 62, 0.88), rgba(15, 21, 36, 0.92));
@@ -226,17 +226,17 @@
 }
 
 .score span {
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
   line-height: 1;
   color: #fff;
 }
 
 .score strong {
-  font-size: 22px;
+  font-size: 17px;
   line-height: 1;
   letter-spacing: -0.02em;
   white-space: nowrap;
