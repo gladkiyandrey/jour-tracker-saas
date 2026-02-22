@@ -34,7 +34,7 @@ function buildPath(
   values: number[],
   minY: number,
   maxY: number,
-  bounds = { left: 10, right: 510, top: 40, bottom: 180 }
+  bounds = { left: 10, right: 510, top: 28, bottom: 220 }
 ) {
   if (!values.length) return "";
 
@@ -438,11 +438,11 @@ export default function TrackerClient({ userKey }: Props) {
 
           <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-label="Tracker chart">
             <g>
-              <line className={styles.gridLine} x1="10" y1="40" x2="510" y2="40" />
-              <line className={styles.gridLine} x1="10" y1="75" x2="510" y2="75" />
-              <line className={styles.gridLine} x1="10" y1="110" x2="510" y2="110" />
-              <line className={styles.gridLine} x1="10" y1="145" x2="510" y2="145" />
-              <line className={styles.gridLine} x1="10" y1="180" x2="510" y2="180" />
+              <line className={styles.gridLine} x1="10" y1="28" x2="510" y2="28" />
+              <line className={styles.gridLine} x1="10" y1="76" x2="510" y2="76" />
+              <line className={styles.gridLine} x1="10" y1="124" x2="510" y2="124" />
+              <line className={styles.gridLine} x1="10" y1="172" x2="510" y2="172" />
+              <line className={styles.gridLine} x1="10" y1="220" x2="510" y2="220" />
             </g>
             <path className={styles.yellowGlow} d={chartPaths.yellow} />
             <path className={styles.blueGlow} d={chartPaths.blue} />
