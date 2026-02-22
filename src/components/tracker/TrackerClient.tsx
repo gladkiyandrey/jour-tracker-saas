@@ -374,6 +374,32 @@ export default function TrackerClient({ userKey }: Props) {
     }
   };
 
+  const clearDay = async () => {
+    if (!selectedDateKey) return;
+
+    setDayData((prev) => {
+      const next = { ...prev };
+      delete next[selectedDateKey];
+      return next;
+    });
+    setModalOpen(false);
+    setModalError("");
+
+    try {
+      const res = await fetch("/api/tracker/entries", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dateKey: selectedDateKey }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to clear (${res.status})`);
+      }
+      setSyncError("");
+    } catch {
+      setSyncError("Cleared locally, but cloud sync failed. Try again.");
+    }
+  };
+
   const renderDayClass = (entry: Entry | undefined, isSelected: boolean) => {
     const classes = [styles.day];
     if (!entry) {
@@ -755,6 +781,9 @@ export default function TrackerClient({ userKey }: Props) {
             {modalError ? <p className={styles.modalError}>{modalError}</p> : null}
 
             <div className={styles.actions}>
+              <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
+                Clear day
+              </button>
               <button className="btn" type="button" onClick={closeModal}>
                 Cancel
               </button>

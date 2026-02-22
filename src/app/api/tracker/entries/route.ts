@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/current-user";
-import { getTrackerData, upsertTrackerEntry } from "@/lib/tracker-store";
+import { deleteTrackerEntry, getTrackerData, upsertTrackerEntry } from "@/lib/tracker-store";
 
 export async function GET() {
   const user = await getCurrentUser();
@@ -55,6 +55,33 @@ export async function POST(req: Request) {
       trades: body.trades,
     });
     return NextResponse.json({ entry });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: Request) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  let dateKey = "";
+  try {
+    const body = (await req.json()) as { dateKey?: string };
+    dateKey = String(body?.dateKey ?? "");
+  } catch {
+    dateKey = "";
+  }
+
+  if (!dateKey) {
+    return NextResponse.json({ error: "dateKey is required" }, { status: 400 });
+  }
+
+  try {
+    await deleteTrackerEntry(user.id, dateKey);
+    return NextResponse.json({ ok: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
     return NextResponse.json({ error: message }, { status: 500 });

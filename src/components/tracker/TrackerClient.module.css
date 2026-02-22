@@ -534,8 +534,18 @@
 .actions {
   margin-top: 18px;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.clearBtn {
+  border-color: rgba(255, 126, 149, 0.52);
+  color: #ffb7c7;
+}
+
+.clearBtn:hover {
+  border-color: rgba(255, 154, 174, 0.82);
+  box-shadow: 0 8px 20px rgba(122, 35, 59, 0.28);
 }
 
 .modalError {

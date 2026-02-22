@@ -80,3 +80,12 @@ export async function upsertTrackerEntry(userId: string, dateKey: string, entry:
 
   return normalized;
 }
+
+export async function deleteTrackerEntry(userId: string, dateKey: string) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from("tracker_entries").delete().eq("user_id", userId).eq("date_key", dateKey);
+
+  if (error) {
+    throw new Error(`Failed to delete tracker entry: ${error.message}`);
+  }
+}
