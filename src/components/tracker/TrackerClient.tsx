@@ -814,7 +814,7 @@ export default function TrackerClient({ userKey }: Props) {
 
             <div className={styles.actions}>
               <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
-                Clear day
+                Стереть день
               </button>
               <button className="btn" type="button" onClick={closeModal}>
                 Cancel

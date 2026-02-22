@@ -539,6 +539,7 @@
 }
 
 .clearBtn {
+  min-width: 126px;
   border-color: rgba(255, 126, 149, 0.52);
   color: #ffb7c7;
 }
