@@ -306,12 +306,31 @@ export default function TrackerClient({ userKey }: Props) {
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
+  const getPreviousDayDeposit = (dateKey: string) => {
+    const current = new Date(`${dateKey}T00:00:00`);
+    if (Number.isNaN(current.getTime())) return 0;
+    const probe = new Date(current);
+    for (let i = 0; i < 400; i += 1) {
+      probe.setDate(probe.getDate() - 1);
+      const key = probe.toISOString().slice(0, 10);
+      const prev = dayData[key];
+      if (prev && Number.isFinite(prev.deposit) && prev.deposit > 0) {
+        return prev.deposit;
+      }
+    }
+    return 0;
+  };
+
   const openModal = (dateKey: string) => {
     setSelectedDateKey(dateKey);
     const current = dayData[dateKey];
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
-    setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
+    if (current?.variant === "pos-outline") {
+      setModalTrades("0");
+    } else {
+      setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
+    }
     setModalError("");
     setModalOpen(true);
   };
@@ -323,11 +342,12 @@ export default function TrackerClient({ userKey }: Props) {
 
   const saveDay = async () => {
     if (!selectedDateKey) return;
-    const deposit = Number(modalDeposit.trim());
-    const trades = Number(modalTrades.trim());
+    const isOutline = modalVariant === "pos-outline";
+    const outlineDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : Number(modalDeposit.trim());
+    const deposit = outlineDeposit;
+    const trades = isOutline ? 0 : Number(modalTrades.trim());
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
-    const isOutline = modalVariant === "pos-outline";
     const hasTrades = Number.isFinite(trades) && (isOutline ? trades >= 0 : trades > 0);
 
     if (!hasVariant || !hasDeposit || !hasTrades) {
@@ -336,7 +356,7 @@ export default function TrackerClient({ userKey }: Props) {
       } else if (!hasVariant) {
         setModalError("Choose day type.");
       } else if (!hasDeposit) {
-        setModalError("Enter deposit amount greater than 0.");
+        setModalError(isOutline ? "No previous day with deposit found. Set deposit on a previous day first." : "Enter deposit amount greater than 0.");
       } else {
         setModalError(isOutline ? "For outlined green day, trades can be 0 or more." : "Enter trades count greater than 0.");
       }
@@ -745,6 +765,9 @@ export default function TrackerClient({ userKey }: Props) {
                     checked={modalVariant === "pos-outline"}
                     onChange={() => {
                       setModalVariant("pos-outline");
+                      const prevDeposit = selectedDateKey ? getPreviousDayDeposit(selectedDateKey) : 0;
+                      setModalDeposit(prevDeposit > 0 ? String(prevDeposit) : "");
+                      setModalTrades("0");
                       setModalError("");
                     }}
                   />
@@ -759,9 +782,11 @@ export default function TrackerClient({ userKey }: Props) {
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                placeholder="Enter deposit amount"
+                placeholder={modalVariant === "pos-outline" ? "Auto from previous day" : "Enter deposit amount"}
                 value={modalDeposit}
+                readOnly={modalVariant === "pos-outline"}
                 onChange={(e) => {
+                  if (modalVariant === "pos-outline") return;
                   setModalDeposit(e.target.value.replace(/\D/g, ""));
                   setModalError("");
                 }}
@@ -776,7 +801,9 @@ export default function TrackerClient({ userKey }: Props) {
                 pattern="[0-9]*"
                 placeholder="1, 2, 3..."
                 value={modalTrades}
+                readOnly={modalVariant === "pos-outline"}
                 onChange={(e) => {
+                  if (modalVariant === "pos-outline") return;
                   setModalTrades(e.target.value.replace(/\D/g, ""));
                   setModalError("");
                 }}
