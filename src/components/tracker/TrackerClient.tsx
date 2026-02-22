@@ -315,7 +315,7 @@ export default function TrackerClient({ userKey }: Props) {
     const probe = new Date(current);
     for (let i = 0; i < 400; i += 1) {
       probe.setDate(probe.getDate() - 1);
-      const key = probe.toISOString().slice(0, 10);
+      const key = formatDateKey(probe.getFullYear(), probe.getMonth(), probe.getDate());
       const prev = dayData[key];
       if (prev && Number.isFinite(prev.deposit) && prev.deposit > 0) {
         return prev.deposit;
