@@ -306,13 +306,14 @@ export default function TrackerClient({ userKey }: Props) {
     const depositDelta = depositValues.map((value) => value - firstDeposit);
     const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
     const maxAbsDeposit = Math.max(1, ...depositDelta.map((v) => Math.abs(v)));
+    const sharedAbs = Math.max(maxAbsResult, maxAbsDeposit);
     const CENTER = 50;
     const SPAN = 44;
     const normalizeAroundCenter = (values: number[], maxAbs: number) =>
       values.map((value) => CENTER + (value / maxAbs) * SPAN);
 
-    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
-    const normalizedDeposit = normalizeAroundCenter(depositDelta, maxAbsDeposit);
+    const normalizedResult = normalizeAroundCenter(resultDelta, sharedAbs);
+    const normalizedDeposit = normalizeAroundCenter(depositDelta, sharedAbs);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -336,7 +337,7 @@ export default function TrackerClient({ userKey }: Props) {
     const yTicks = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const normalized = ((bounds.bottom - y) / height) * 100;
-      const delta = ((normalized - CENTER) / SPAN) * maxAbsDeposit;
+      const delta = ((normalized - CENTER) / SPAN) * sharedAbs;
       const depositAtY = Math.max(0, firstDeposit + delta);
       return { y, label: String(Math.round(depositAtY)) };
     });
