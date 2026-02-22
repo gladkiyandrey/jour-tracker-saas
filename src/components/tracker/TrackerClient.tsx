@@ -297,18 +297,23 @@ export default function TrackerClient({ userKey }: Props) {
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
     const firstResult = resultValues[0] ?? 0;
-    const firstDeposit = depositValues[0] ?? 0;
     const resultDelta = resultValues.map((value) => value - firstResult);
-    const depositDelta = depositValues.map((value) => value - firstDeposit);
     const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
-    const maxAbsDeposit = Math.max(1, ...depositDelta.map((v) => Math.abs(v)));
+    const minDeposit = Math.min(...depositValues);
+    const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
     const SPAN = 44;
     const normalizeAroundCenter = (values: number[], maxAbs: number) =>
       values.map((value) => CENTER + (value / maxAbs) * SPAN);
+    const normalizeMinMax = (values: number[]) => {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      if (max === min) return values.map(() => CENTER);
+      return values.map((value) => 6 + ((value - min) / (max - min)) * 88);
+    };
 
     const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
-    const normalizedDeposit = normalizeAroundCenter(depositDelta, maxAbsDeposit);
+    const normalizedDeposit = normalizeMinMax(depositValues);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -332,9 +337,8 @@ export default function TrackerClient({ userKey }: Props) {
 
     const yTicks = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
-      const normalized = ((bounds.bottom - y) / height) * 100;
-      const delta = ((normalized - CENTER) / SPAN) * maxAbsDeposit;
-      const depositAtY = Math.max(0, firstDeposit + delta);
+      const ratio = i / 4;
+      const depositAtY = minDeposit + (maxDeposit - minDeposit) * ratio;
       return { y, label: String(Math.round(depositAtY)) };
     });
 
