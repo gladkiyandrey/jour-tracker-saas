@@ -279,8 +279,10 @@ export default function TrackerClient({ userKey }: Props) {
     }> = Array.from({ length: daysInMonth }, (_, i) => {
       const day = i + 1;
       const entry = byDay.get(day);
+      let dayDelta = 0;
       if (entry) {
-        cumulative += Number(entry.result) || 0;
+        dayDelta = entry.variant === "neg" ? -1 : 1;
+        cumulative += dayDelta;
         currentDeposit = Number(entry.deposit) || currentDeposit;
       }
       return {
@@ -299,17 +301,15 @@ export default function TrackerClient({ userKey }: Props) {
     const firstDeposit = depositValues[0] ?? 0;
     const resultDelta = resultValues.map((value) => value - firstResult);
     const depositDelta = depositValues.map((value) => value - firstDeposit);
-    const allDelta = [...resultDelta, ...depositDelta];
-    const minDelta = Math.min(...allDelta);
-    const maxDelta = Math.max(...allDelta);
+    const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
+    const maxAbsDeposit = Math.max(1, ...depositDelta.map((v) => Math.abs(v)));
+    const CENTER = 50;
+    const SPAN = 44;
+    const normalizeAroundCenter = (values: number[], maxAbs: number) =>
+      values.map((value) => CENTER + (value / maxAbs) * SPAN);
 
-    const normalizeShared = (values: number[]) => {
-      if (maxDelta === minDelta) return values.map(() => 50);
-      return values.map((value) => ((value - minDelta) / (maxDelta - minDelta)) * 100);
-    };
-
-    const normalizedResult = normalizeShared(resultDelta);
-    const normalizedDeposit = normalizeShared(depositDelta);
+    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
+    const normalizedDeposit = normalizeAroundCenter(depositDelta, maxAbsDeposit);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -333,7 +333,7 @@ export default function TrackerClient({ userKey }: Props) {
     const yTicks = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const normalized = ((bounds.bottom - y) / height) * 100;
-      const delta = maxDelta === minDelta ? 0 : minDelta + (normalized / 100) * (maxDelta - minDelta);
+      const delta = ((normalized - CENTER) / SPAN) * maxAbsDeposit;
       const depositAtY = Math.max(0, firstDeposit + delta);
       return { y, label: String(Math.round(depositAtY)) };
     });
