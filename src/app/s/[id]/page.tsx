@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { getShareSnapshot } from "@/lib/share-store";
 import styles from "./share.module.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const monthNames = [
   "January",
   "February",
@@ -23,24 +26,59 @@ type Params = { id: string };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
   const { id } = await params;
-  const snapshot = await getShareSnapshot(id);
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://consist.online").replace(/\/$/, "");
+  const ogImageUrl = `${appUrl}/s/${id}/opengraph-image`;
+  let snapshot = null;
+  try {
+    snapshot = await getShareSnapshot(id);
+  } catch {
+    snapshot = null;
+  }
   if (!snapshot) {
-    return { title: "Share not found | Consist" };
+    return {
+      title: "Share not found | Consist",
+      description: "Trading discipline snapshot by Consist.",
+      openGraph: {
+        title: "Share not found | Consist",
+        description: "Trading discipline snapshot by Consist.",
+        url: `${appUrl}/s/${id}`,
+        siteName: "Consist",
+        type: "website",
+        images: [{ url: ogImageUrl, width: 1200, height: 630, type: "image/png" }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "Share not found | Consist",
+        description: "Trading discipline snapshot by Consist.",
+        images: [ogImageUrl],
+      },
+    };
   }
 
   return {
     title: `Discipline Score ${snapshot.score}% | Consist`,
     description: `I built a ${snapshot.score}% trading discipline this month. Can you beat it?`,
+    alternates: {
+      canonical: `${appUrl}/s/${snapshot.id}`,
+    },
     openGraph: {
       title: `Discipline Score ${snapshot.score}%`,
       description: `I built a ${snapshot.score}% trading discipline this month. Can you beat it?`,
-      images: [{ url: `/s/${snapshot.id}/opengraph-image` }],
+      url: `${appUrl}/s/${snapshot.id}`,
+      siteName: "Consist",
+      type: "website",
+      locale: "en_US",
+      images: [{ url: ogImageUrl, width: 1200, height: 630, type: "image/png" }],
     },
     twitter: {
       card: "summary_large_image",
       title: `Discipline Score ${snapshot.score}%`,
       description: `I built a ${snapshot.score}% trading discipline this month. Can you beat it?`,
-      images: [`/s/${snapshot.id}/opengraph-image`],
+      images: [ogImageUrl],
+    },
+    robots: {
+      index: true,
+      follow: true,
     },
   };
 }

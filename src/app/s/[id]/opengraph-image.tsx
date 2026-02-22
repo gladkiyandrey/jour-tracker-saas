@@ -1,6 +1,9 @@
 import { ImageResponse } from "next/og";
 import { getShareSnapshot } from "@/lib/share-store";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export const size = {
   width: 1200,
   height: 630,
@@ -10,7 +13,12 @@ export const contentType = "image/png";
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const snapshot = await getShareSnapshot(id);
+  let snapshot = null;
+  try {
+    snapshot = await getShareSnapshot(id);
+  } catch {
+    snapshot = null;
+  }
 
   if (!snapshot) {
     return new ImageResponse(
