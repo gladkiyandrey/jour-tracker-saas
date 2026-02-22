@@ -271,6 +271,7 @@ export default function TrackerClient({ userKey }: Props) {
     const filledEntries = monthEntries;
 
     let cumulative = 0;
+    let previousDeposit: number | null = null;
     const visible: Array<{
       day: number;
       cumulative: number;
@@ -278,8 +279,17 @@ export default function TrackerClient({ userKey }: Props) {
       trades: number;
       variant: Variant | "none";
     }> = filledEntries.map(([dateKey, entry]) => {
-      const dayDelta = entry.variant === "neg" ? -1 : 1;
-      cumulative += dayDelta;
+      const baseScore =
+        entry.variant === "neg" ? -1.2 : entry.variant === "pos-outline" ? 0.7 : 1.0;
+      const overtradingPenalty = Math.max(0, (Number(entry.trades) || 0) - 2) * 0.35;
+      const hasPreviousDeposit = previousDeposit !== null && previousDeposit > 0;
+      const dropPct = hasPreviousDeposit
+        ? ((previousDeposit - (Number(entry.deposit) || 0)) / previousDeposit) * 100
+        : 0;
+      const riskPenalty = dropPct > 2 ? 0.5 : 0;
+      const dayScore = baseScore - overtradingPenalty - riskPenalty;
+      cumulative += dayScore;
+      previousDeposit = Number(entry.deposit) || 0;
       return {
         day: Number(dateKey.slice(-2)),
         cumulative,
@@ -304,24 +314,21 @@ export default function TrackerClient({ userKey }: Props) {
 
     const resultValues = visible.map((v) => v.cumulative);
     const depositValues = visible.map((v) => v.deposit);
-    const firstResult = resultValues[0] ?? 0;
-    const resultDelta = resultValues.map((value) => value - firstResult);
-    const maxAbsResult = Math.max(1, ...resultDelta.map((v) => Math.abs(v)));
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
-    const SPAN = 44;
-    const normalizeAroundCenter = (values: number[], maxAbs: number) =>
-      values.map((value) => CENTER + (value / maxAbs) * SPAN);
-    const normalizeMinMax = (values: number[]) => {
+    const normalizeMinMax = (values: number[], padding = 0) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
       if (max === min) return values.map(() => CENTER);
-      return values.map((value) => 6 + ((value - min) / (max - min)) * 88);
+      const span = max - min;
+      const minPadded = min - span * padding;
+      const maxPadded = max + span * padding;
+      return values.map((value) => 6 + ((value - minPadded) / (maxPadded - minPadded)) * 88);
     };
 
-    const normalizedResult = normalizeAroundCenter(resultDelta, maxAbsResult);
-    const normalizedDeposit = normalizeMinMax(depositValues);
+    const normalizedResult = normalizeMinMax(resultValues, 0.12);
+    const normalizedDeposit = normalizeMinMax(depositValues, 0.02);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
