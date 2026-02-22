@@ -531,15 +531,20 @@
   box-shadow: 0 0 0 2px rgba(122, 159, 255, 0.5);
 }
 
+.clearWrap {
+  margin-top: 14px;
+}
+
 .actions {
-  margin-top: 18px;
+  margin-top: 12px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 10px;
 }
 
 .clearBtn {
-  min-width: 126px;
+  width: 100%;
+  min-height: 42px;
   border-color: rgba(255, 126, 149, 0.52);
   color: #ffb7c7;
 }

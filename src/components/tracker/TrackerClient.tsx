@@ -812,10 +812,13 @@ export default function TrackerClient({ userKey }: Props) {
 
             {modalError ? <p className={styles.modalError}>{modalError}</p> : null}
 
-            <div className={styles.actions}>
+            <div className={styles.clearWrap}>
               <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
-                Стереть день
+                Стереть информацию дня
               </button>
+            </div>
+
+            <div className={styles.actions}>
               <button className="btn" type="button" onClick={closeModal}>
                 Cancel
               </button>
