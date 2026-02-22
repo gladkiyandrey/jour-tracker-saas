@@ -35,6 +35,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "dateKey is required" }, { status: 400 });
   }
 
+  const variant = body.variant;
+  const trades = Number(body.trades);
+  if (variant === "neg" || variant === "pos" || variant === "pos-outline") {
+    const validTrades = variant === "pos-outline" ? Number.isFinite(trades) && trades >= 0 : Number.isFinite(trades) && trades > 0;
+    if (!validTrades) {
+      return NextResponse.json(
+        { error: variant === "pos-outline" ? "For pos-outline, trades must be >= 0" : "For neg/pos, trades must be > 0" },
+        { status: 400 },
+      );
+    }
+  }
+
   try {
     const entry = await upsertTrackerEntry(user.id, body.dateKey, {
       result: body.result,

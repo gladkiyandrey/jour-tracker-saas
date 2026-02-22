@@ -19,12 +19,18 @@ function normalizeEntry(entry: Partial<TrackerEntry>): TrackerEntry {
         : "pos";
   const depositNum = Number(entry.deposit);
   const tradesNum = Number(entry.trades);
-  return {
+  const normalized: TrackerEntry = {
     result: RESULT_BY_VARIANT[variant],
     variant,
     deposit: Number.isFinite(depositNum) && depositNum >= 0 ? depositNum : 0,
     trades: Number.isFinite(tradesNum) && tradesNum >= 0 ? Math.floor(tradesNum) : 0,
   };
+
+  if ((normalized.variant === "neg" || normalized.variant === "pos") && normalized.trades <= 0) {
+    throw new Error("trades must be > 0 for neg/pos");
+  }
+
+  return normalized;
 }
 
 export async function getTrackerData(userId: string): Promise<TrackerMap> {

@@ -291,17 +291,18 @@ export default function TrackerClient({ userKey }: Props) {
     const trades = Number(modalTrades.trim());
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
-    const hasTrades = Number.isFinite(trades) && trades > 0;
+    const isOutline = modalVariant === "pos-outline";
+    const hasTrades = Number.isFinite(trades) && (isOutline ? trades >= 0 : trades > 0);
 
     if (!hasVariant || !hasDeposit || !hasTrades) {
       if (!hasVariant && !hasDeposit && !hasTrades) {
-        setModalError("Choose day type, enter deposit and trades count (> 0).");
+        setModalError("Choose day type, enter deposit and trades count.");
       } else if (!hasVariant) {
         setModalError("Choose day type.");
       } else if (!hasDeposit) {
         setModalError("Enter deposit amount greater than 0.");
       } else {
-        setModalError("Enter trades count greater than 0.");
+        setModalError(isOutline ? "For outlined green day, trades can be 0 or more." : "Enter trades count greater than 0.");
       }
       return;
     }
