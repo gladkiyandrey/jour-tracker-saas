@@ -275,15 +275,21 @@ export default function TrackerClient({ userKey }: Props) {
 
     const maxTrades = Math.max(...tradesValues, 1);
 
-    const normalizeSeries = (values: number[]) => {
-      const min = Math.min(...values);
-      const max = Math.max(...values);
-      if (max === min) return values.map(() => 50);
-      return values.map((value) => ((value - min) / (max - min)) * 100);
+    const firstResult = resultValues[0] ?? 0;
+    const firstDeposit = depositValues[0] ?? 0;
+    const resultDelta = resultValues.map((value) => value - firstResult);
+    const depositDelta = depositValues.map((value) => value - firstDeposit);
+    const allDelta = [...resultDelta, ...depositDelta];
+    const minDelta = Math.min(...allDelta);
+    const maxDelta = Math.max(...allDelta);
+
+    const normalizeShared = (values: number[]) => {
+      if (maxDelta === minDelta) return values.map(() => 50);
+      return values.map((value) => ((value - minDelta) / (maxDelta - minDelta)) * 100);
     };
 
-    const normalizedResult = normalizeSeries(resultValues);
-    const normalizedDeposit = normalizeSeries(depositValues);
+    const normalizedResult = normalizeShared(resultDelta);
+    const normalizedDeposit = normalizeShared(depositDelta);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
