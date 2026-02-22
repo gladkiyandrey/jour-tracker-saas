@@ -4,7 +4,7 @@ export default function HomePage() {
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">Jour</div>
+        <div className="logo">Consist</div>
         <nav className="nav">
           <Link className="btn" href="/login">
             Login
@@ -18,7 +18,7 @@ export default function HomePage() {
       <section className="hero card">
         <h1>Build discipline. Track consistency. Trade with structure.</h1>
         <p>
-          Jour is a subscription SaaS for traders. Users log in, manage their personal calendar,
+          Consist is a subscription SaaS for traders. Users log in, manage their personal calendar,
           and keep access only with an active crypto subscription.
         </p>
       </section>

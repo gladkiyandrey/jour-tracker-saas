@@ -27,7 +27,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             fontSize: 48,
           }}
         >
-          Jour
+          Consist
         </div>
       ),
       size
@@ -90,7 +90,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: "#d9e2ff" }}>
-          <div>Share your consistency with Jour</div>
+          <div>Share your consistency with Consist</div>
           <div>Open: consist.online</div>
         </div>
       </div>

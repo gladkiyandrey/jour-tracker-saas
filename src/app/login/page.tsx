@@ -43,7 +43,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">Jour</div>
+        <div className="logo">Consist</div>
         <nav className="nav">
           <Link className="btn" href="/">
             Home

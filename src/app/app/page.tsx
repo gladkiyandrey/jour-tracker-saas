@@ -29,10 +29,10 @@ export default async function DashboardPage() {
     <main className="site dashboard">
       <div className="top-logo-bar">
         <div className="logo-mark" />
-        <div className="logo">Jour</div>
+        <div className="logo">Consist</div>
       </div>
       <header className="topbar">
-        <div className="logo logo-light">Trading Calendar</div>
+        <div className="logo logo-light">Consist</div>
         <nav className="nav">
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} />

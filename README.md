@@ -1,4 +1,4 @@
-# Jour Tracker SaaS (Next.js)
+# Consist SaaS (Next.js)
 
 This is a starter SaaS structure for a subscription-based trading journal.
 

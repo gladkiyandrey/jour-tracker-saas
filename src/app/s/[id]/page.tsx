@@ -25,21 +25,21 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
   const { id } = await params;
   const snapshot = await getShareSnapshot(id);
   if (!snapshot) {
-    return { title: "Share not found | Jour" };
+    return { title: "Share not found | Consist" };
   }
 
   return {
-    title: `Discipline Score ${snapshot.score}% | Jour`,
+    title: `Discipline Score ${snapshot.score}% | Consist`,
     description: `Green streak ${snapshot.greenStreak}, red streak ${snapshot.redStreak}.`,
     openGraph: {
       title: `Discipline Score ${snapshot.score}%`,
-      description: "See my trading consistency in Jour",
+      description: "See my trading consistency in Consist",
       images: [{ url: `/s/${snapshot.id}/opengraph-image` }],
     },
     twitter: {
       card: "summary_large_image",
       title: `Discipline Score ${snapshot.score}%`,
-      description: "See my trading consistency in Jour",
+      description: "See my trading consistency in Consist",
       images: [`/s/${snapshot.id}/opengraph-image`],
     },
   };
@@ -88,8 +88,8 @@ export default async function SharePage({ params }: { params: Promise<Params> })
         </svg>
 
         <div className={styles.cta}>
-          <span>Track your own discipline and grow consistency with Jour.</span>
-          <Link href="/login">Open Jour</Link>
+          <span>Track your own discipline and grow consistency with Consist.</span>
+          <Link href="/login">Open Consist</Link>
         </div>
       </section>
     </main>
