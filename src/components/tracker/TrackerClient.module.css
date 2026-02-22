@@ -136,7 +136,7 @@
 }
 
 .tradeBar {
-  opacity: 0.45;
+  opacity: 0.28;
   cursor: pointer;
 }
 
@@ -167,8 +167,8 @@
 }
 
 .yTickLabelRight {
-  fill: #9cb3e9;
-  font-size: 9px;
+  fill: #c3d3ff;
+  font-size: 10px;
 }
 
 .chartTooltip {
