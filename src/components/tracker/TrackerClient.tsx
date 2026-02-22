@@ -84,30 +84,6 @@ function buildPath(
   return path;
 }
 
-function buildLinearPath(
-  values: number[],
-  minY: number,
-  maxY: number,
-  bounds = { left: 10, right: 510, top: 28, bottom: 220 }
-) {
-  if (!values.length) return "";
-
-  const { left, right, top, bottom } = bounds;
-  const width = right - left;
-  const height = bottom - top;
-  const steps = values.length > 1 ? values.length - 1 : 1;
-  const safeRange = maxY - minY || 1;
-
-  return values
-    .map((value, index) => {
-      const x = left + (width * index) / steps;
-      const ratio = (value - minY) / safeRange;
-      const y = bottom - ratio * height;
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
-}
-
 export default function TrackerClient({ userKey }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
@@ -331,15 +307,20 @@ export default function TrackerClient({ userKey }: Props) {
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
-    const normalizeMinMax = (values: number[]) => {
+    const normalizeMinMax = (values: number[], low = 6, high = 94, contrast = 1) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
       if (max === min) return values.map(() => CENTER);
-      return values.map((value) => 6 + ((value - min) / (max - min)) * 88);
+      const span = high - low;
+      return values.map((value) => {
+        const ratio = (value - min) / (max - min);
+        const contrasted = Math.max(0, Math.min(1, (ratio - 0.5) * contrast + 0.5));
+        return low + contrasted * span;
+      });
     };
 
-    const normalizedResult = normalizeMinMax(resultValues);
-    const normalizedDeposit = normalizeMinMax(depositValues);
+    const normalizedResult = normalizeMinMax(resultValues, 2, 98, 1.24);
+    const normalizedDeposit = normalizeMinMax(depositValues, 8, 92, 1.0);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -369,7 +350,7 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     return {
-      yellow: buildLinearPath(normalizedResult, 0, 100, bounds),
+      yellow: buildPath(normalizedResult, 0, 100, bounds),
       blue: buildPath(normalizedDeposit, 0, 100, bounds),
       bars,
       ticks,
