@@ -53,6 +53,25 @@
   flex-wrap: wrap;
 }
 
+.chartModeBtn {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 142, 210, 0.45);
+  background: rgba(20, 29, 53, 0.65);
+  color: #d8e4ff;
+  font-size: 11px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.chartModeBtn:hover {
+  border-color: rgba(151, 180, 255, 0.7);
+  background: rgba(30, 42, 73, 0.9);
+  color: #f0f6ff;
+}
+
 .legendItem {
   display: inline-flex;
   align-items: center;
