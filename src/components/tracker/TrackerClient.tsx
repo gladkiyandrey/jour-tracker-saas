@@ -321,13 +321,22 @@ export default function TrackerClient({ userKey }: Props) {
         (value) => DISPLAY_MIN + ((value - minPadded) / (maxPadded - minPadded)) * (DISPLAY_MAX - DISPLAY_MIN)
       );
     };
+    const fitIntoDisplayRange = (values: number[]) => {
+      if (!values.length) return values;
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      if (max === min) return values.map(() => Math.max(DISPLAY_MIN, Math.min(DISPLAY_MAX, values[0])));
+      if (min >= DISPLAY_MIN && max <= DISPLAY_MAX) return values;
+      const span = max - min;
+      const targetSpan = DISPLAY_MAX - DISPLAY_MIN;
+      return values.map((value) => DISPLAY_MIN + ((value - min) / span) * targetSpan);
+    };
 
-    const normalizedResultRaw = normalizeMinMax(resultValues, 0.12);
+    const normalizedResultRaw = normalizeMinMax(resultValues, 0.06);
     const normalizedDeposit = normalizeMinMax(depositValues, 0.02);
     const startShift = (normalizedDeposit[0] ?? CENTER) - (normalizedResultRaw[0] ?? CENTER);
-    const normalizedResult = normalizedResultRaw.map((value) =>
-      Math.max(DISPLAY_MIN, Math.min(DISPLAY_MAX, value + startShift))
-    );
+    const normalizedResultShifted = normalizedResultRaw.map((value) => value + startShift);
+    const normalizedResult = fitIntoDisplayRange(normalizedResultShifted);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
