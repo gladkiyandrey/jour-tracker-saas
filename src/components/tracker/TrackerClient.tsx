@@ -421,6 +421,9 @@ export default function TrackerClient({ userKey }: Props) {
     const startShift = (normalizedDeposit[0] ?? CENTER) - (normalizedResultRaw[0] ?? CENTER);
     const normalizedResultShifted = normalizedResultRaw.map((value) => value + startShift);
     const normalizedResult = fitIntoDisplayRange(limitLocalSlope(normalizedResultShifted, 14));
+    if (normalizedResult.length && normalizedDeposit.length) {
+      normalizedResult[0] = normalizedDeposit[0];
+    }
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
