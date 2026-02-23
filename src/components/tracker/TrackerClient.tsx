@@ -412,10 +412,31 @@ export default function TrackerClient({ userKey }: Props) {
       }
       return out;
     };
+    const fitWithAnchor = (values: number[], anchor: number, min = 2, max = 98) => {
+      if (!values.length) return values;
+      const low = Math.min(...values);
+      const high = Math.max(...values);
+      if (low >= min && high <= max) return values;
+      const up = Math.max(0, high - anchor);
+      const down = Math.max(0, anchor - low);
+      const upCapacity = Math.max(1e-6, max - anchor);
+      const downCapacity = Math.max(1e-6, anchor - min);
+      const scale = Math.max(1, up / upCapacity, down / downCapacity);
+      return values.map((value) => anchor + (value - anchor) / scale);
+    };
 
     const normalizedDeposit = normalizeToAxis(depositValues, minDeposit, maxDeposit);
     const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
-    const normalizedResult = limitLocalSlope(normalizedResultRaw, 14);
+    const normalizedResultBase = limitLocalSlope(normalizedResultRaw, 14);
+    const startDelta =
+      normalizedDeposit.length && normalizedResultBase.length
+        ? normalizedDeposit[0] - normalizedResultBase[0]
+        : 0;
+    const normalizedResultShifted = normalizedResultBase.map((value) => value + startDelta);
+    const normalizedResult = fitWithAnchor(
+      normalizedResultShifted,
+      normalizedDeposit[0] ?? normalizedResultShifted[0] ?? CENTER
+    );
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
