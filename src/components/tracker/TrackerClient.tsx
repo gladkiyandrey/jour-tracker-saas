@@ -1070,42 +1070,6 @@ export default function TrackerClient({ userKey }: Props) {
             <p>{stats.advice}</p>
           </div>
 
-          <div
-            className={`${styles.panel} ${styles.signalizer} ${
-              signalizer.summaryLevel === "critical"
-                ? styles.signalCritical
-                : signalizer.summaryLevel === "warn"
-                  ? styles.signalWarn
-                  : styles.signalOk
-            }`}
-          >
-            <h4>Signalizer</h4>
-            <p className={styles.signalSummary}>
-              <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-            </p>
-            <div className={styles.signalList}>
-              {signalizer.items.map((item) => (
-                <div key={item.key} className={styles.signalItem}>
-                  <span
-                    className={`${styles.signalBadge} ${
-                      item.level === "critical"
-                        ? styles.signalBadgeCritical
-                        : item.level === "warn"
-                          ? styles.signalBadgeWarn
-                          : styles.signalBadgeOk
-                    }`}
-                  >
-                    {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                  </span>
-                  <div className={styles.signalText}>
-                    <strong>{item.label}</strong>
-                    <p>{item.message}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </div>
 
@@ -1133,6 +1097,42 @@ export default function TrackerClient({ userKey }: Props) {
               <span>Rule adherence</span>
               <strong>{monthlyReview.adherence}</strong>
             </div>
+          </div>
+        </div>
+
+        <div
+          className={`${styles.panel} ${styles.signalizer} ${
+            signalizer.summaryLevel === "critical"
+              ? styles.signalCritical
+              : signalizer.summaryLevel === "warn"
+                ? styles.signalWarn
+                : styles.signalOk
+          }`}
+        >
+          <h4>Signalizer</h4>
+          <p className={styles.signalSummary}>
+            <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+          </p>
+          <div className={styles.signalList}>
+            {signalizer.items.map((item) => (
+              <div key={item.key} className={styles.signalItem}>
+                <span
+                  className={`${styles.signalBadge} ${
+                    item.level === "critical"
+                      ? styles.signalBadgeCritical
+                      : item.level === "warn"
+                        ? styles.signalBadgeWarn
+                        : styles.signalBadgeOk
+                  }`}
+                >
+                  {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                </span>
+                <div className={styles.signalText}>
+                  <strong>{item.label}</strong>
+                  <p>{item.message}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
