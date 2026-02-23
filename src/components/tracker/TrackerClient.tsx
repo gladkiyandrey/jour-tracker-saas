@@ -66,6 +66,7 @@ function buildPath(
   }
 
   let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+  const smoothFactor = 10; // larger value => less aggressive smoothing, fewer flat plateaus
 
   for (let i = 0; i < points.length - 1; i += 1) {
     const p0 = points[i - 1] || points[i];
@@ -73,10 +74,10 @@ function buildPath(
     const p2 = points[i + 1];
     const p3 = points[i + 2] || p2;
 
-    const cp1x = p1.x + (p2.x - p0.x) / 6;
-    const cp1y = p1.y + (p2.y - p0.y) / 6;
-    const cp2x = p2.x - (p3.x - p1.x) / 6;
-    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    const cp1x = p1.x + (p2.x - p0.x) / smoothFactor;
+    const cp1y = p1.y + (p2.y - p0.y) / smoothFactor;
+    const cp2x = p2.x - (p3.x - p1.x) / smoothFactor;
+    const cp2y = p2.y - (p3.y - p1.y) / smoothFactor;
 
     path += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   }
@@ -307,6 +308,8 @@ export default function TrackerClient({ userKey }: Props) {
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
+    const DISPLAY_MIN = 10;
+    const DISPLAY_MAX = 90;
     const normalizeMinMax = (values: number[], padding = 0) => {
       const min = Math.min(...values);
       const max = Math.max(...values);
@@ -314,13 +317,17 @@ export default function TrackerClient({ userKey }: Props) {
       const span = max - min;
       const minPadded = min - span * padding;
       const maxPadded = max + span * padding;
-      return values.map((value) => 6 + ((value - minPadded) / (maxPadded - minPadded)) * 88);
+      return values.map(
+        (value) => DISPLAY_MIN + ((value - minPadded) / (maxPadded - minPadded)) * (DISPLAY_MAX - DISPLAY_MIN)
+      );
     };
 
     const normalizedResultRaw = normalizeMinMax(resultValues, 0.12);
     const normalizedDeposit = normalizeMinMax(depositValues, 0.02);
     const startShift = (normalizedDeposit[0] ?? CENTER) - (normalizedResultRaw[0] ?? CENTER);
-    const normalizedResult = normalizedResultRaw.map((value) => Math.max(2, Math.min(98, value + startShift)));
+    const normalizedResult = normalizedResultRaw.map((value) =>
+      Math.max(DISPLAY_MIN, Math.min(DISPLAY_MAX, value + startShift))
+    );
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
