@@ -399,7 +399,9 @@ export default function TrackerClient({ userKey }: Props) {
     const normalizeToAxis = (values: number[], min: number, max: number) => {
       if (!values.length) return [];
       if (max === min) return values.map(() => CENTER);
-      return values.map((value) => ((value - min) / (max - min)) * 100);
+      return values.map(
+        (value) => DISPLAY_MIN + ((value - min) / (max - min)) * (DISPLAY_MAX - DISPLAY_MIN)
+      );
     };
     const limitLocalSlope = (values: number[], maxStep = 14) => {
       if (values.length < 2) return values;
