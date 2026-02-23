@@ -14,6 +14,13 @@ type ChartHover = {
   trades: number;
   variant: Variant | "none";
 };
+type SignalLevel = "ok" | "warn" | "critical";
+type SignalItem = {
+  key: "critical-tilt" | "lucky-profit" | "regression" | "divergence" | "healthy";
+  level: SignalLevel;
+  label: string;
+  message: string;
+};
 
 type Props = {
   userKey: string;
@@ -264,6 +271,137 @@ export default function TrackerClient({ userKey }: Props) {
     }
 
     return { score, greenStreak, redStreak, advice };
+  }, [sortedEntries, viewMonth, viewYear]);
+
+  const signalizer = useMemo(() => {
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const monthItems = sortedEntries
+      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .map(([dateKey, entry]) => ({ dateKey, ...entry }));
+
+    const items: SignalItem[] = [];
+    if (monthItems.length < 2) {
+      items.push({
+        key: "healthy",
+        level: "ok",
+        label: "Monitoring",
+        message: "Need at least 2 filled days to detect risk patterns.",
+      });
+    } else {
+      const dayScore = (variant: Variant) => (variant === "neg" ? -1 : variant === "pos-outline" ? 0.5 : 1);
+      const cumulative = monthItems.reduce<number[]>((acc, day) => {
+        const prev = acc.length ? acc[acc.length - 1] : 0;
+        acc.push(prev + dayScore(day.variant));
+        return acc;
+      }, []);
+
+      const latest = monthItems[monthItems.length - 1];
+      const previous = monthItems[monthItems.length - 2];
+      const latestDeposit = Number(latest.deposit) || 0;
+      const previousDeposit = Number(previous.deposit) || 0;
+      const depositDelta = latestDeposit - previousDeposit;
+
+      const greenTrades = monthItems
+        .filter((day) => day.variant !== "neg")
+        .map((day) => Number(day.trades) || 0);
+      const fallbackTrades = monthItems.map((day) => Number(day.trades) || 0);
+      const baselineSource = greenTrades.length ? greenTrades : fallbackTrades;
+      const baselineTrades =
+        baselineSource.length > 0
+          ? baselineSource.reduce((sum, trades) => sum + trades, 0) / baselineSource.length
+          : 1;
+      const severeTiltThreshold = Math.max(3, Math.ceil(baselineTrades * 3));
+
+      const isCriticalTilt =
+        latest.variant === "neg" && latest.trades >= severeTiltThreshold && depositDelta < 0;
+      if (isCriticalTilt) {
+        items.push({
+          key: "critical-tilt",
+          level: "critical",
+          label: "Critical Tilt",
+          message: `Red day + ${latest.trades} trades (above x3 baseline) + deposit drop. Stop trading and reset rules now.`,
+        });
+      }
+
+      const isLuckyProfit = latest.variant === "neg" && depositDelta > 0;
+      if (isLuckyProfit) {
+        items.push({
+          key: "lucky-profit",
+          level: "warn",
+          label: "Lucky Profit",
+          message: "Deposit grew on a red day. Profit is masking rule-breaking behavior.",
+        });
+      }
+
+      const prefix = monthItems.slice(0, Math.max(0, monthItems.length - 3));
+      let longestGreenRun = 0;
+      let currentGreenRun = 0;
+      prefix.forEach((day) => {
+        if (day.variant === "neg") {
+          currentGreenRun = 0;
+          return;
+        }
+        currentGreenRun += 1;
+        if (currentGreenRun > longestGreenRun) longestGreenRun = currentGreenRun;
+      });
+      const recent = monthItems.slice(-3);
+      const recentRedCount = recent.filter((day) => day.variant === "neg").length;
+      const isRegression = longestGreenRun >= 4 && recentRedCount >= 2;
+      if (isRegression) {
+        items.push({
+          key: "regression",
+          level: "warn",
+          label: "Regression",
+          message: "After a long green run, red days increased. Consider a white day for reset.",
+        });
+      }
+
+      const trendWindowSize = Math.min(6, monthItems.length);
+      const trendStartIndex = monthItems.length - trendWindowSize;
+      const firstTrendDay = monthItems[trendStartIndex];
+      const firstTrendDeposit = Number(firstTrendDay.deposit) || 0;
+      const trendDepositChange = latestDeposit - firstTrendDeposit;
+      const trendDisciplineChange =
+        cumulative[cumulative.length - 1] - (trendStartIndex > 0 ? cumulative[trendStartIndex - 1] : 0);
+      const isDivergence = trendDepositChange > 0 && trendDisciplineChange < 0;
+      if (isDivergence) {
+        items.push({
+          key: "divergence",
+          level: "warn",
+          label: "Divergence Risk",
+          message: "Deposit is rising while discipline trend is falling. This often precedes unstable drawdowns.",
+        });
+      }
+
+      if (!items.length) {
+        items.push({
+          key: "healthy",
+          level: "ok",
+          label: "Healthy State",
+          message: "No critical risk pattern detected. Keep execution quality and trade frequency stable.",
+        });
+      }
+    }
+
+    const summaryLevel: SignalLevel = items.some((item) => item.level === "critical")
+      ? "critical"
+      : items.some((item) => item.level === "warn")
+        ? "warn"
+        : "ok";
+    const summaryTitle =
+      summaryLevel === "critical"
+        ? "High risk detected"
+        : summaryLevel === "warn"
+          ? "Risk signal active"
+          : "System stable";
+    const summaryMessage =
+      summaryLevel === "critical"
+        ? "Execution risk is elevated right now. Reduce activity and follow strict limits."
+        : summaryLevel === "warn"
+          ? "Behavioral drift detected. Correct now before it compounds."
+          : "Execution profile is stable this month.";
+
+    return { summaryLevel, summaryTitle, summaryMessage, items };
   }, [sortedEntries, viewMonth, viewYear]);
 
   const monthlyReview = useMemo(() => {
@@ -930,6 +1068,42 @@ export default function TrackerClient({ userKey }: Props) {
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
             </h4>
             <p>{stats.advice}</p>
+          </div>
+
+          <div
+            className={`${styles.panel} ${styles.signalizer} ${
+              signalizer.summaryLevel === "critical"
+                ? styles.signalCritical
+                : signalizer.summaryLevel === "warn"
+                  ? styles.signalWarn
+                  : styles.signalOk
+            }`}
+          >
+            <h4>Signalizer</h4>
+            <p className={styles.signalSummary}>
+              <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+            </p>
+            <div className={styles.signalList}>
+              {signalizer.items.map((item) => (
+                <div key={item.key} className={styles.signalItem}>
+                  <span
+                    className={`${styles.signalBadge} ${
+                      item.level === "critical"
+                        ? styles.signalBadgeCritical
+                        : item.level === "warn"
+                          ? styles.signalBadgeWarn
+                          : styles.signalBadgeOk
+                    }`}
+                  >
+                    {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                  </span>
+                  <div className={styles.signalText}>
+                    <strong>{item.label}</strong>
+                    <p>{item.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
