@@ -155,6 +155,10 @@ export default function TrackerClient({ userKey }: Props) {
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const chartClipId = useMemo(
+    () => `chart-clip-${userKey.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24) || "default"}`,
+    [userKey]
+  );
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -732,6 +736,16 @@ export default function TrackerClient({ userKey }: Props) {
               aria-label="Tracker chart"
               onMouseLeave={() => setChartHover(null)}
             >
+              <defs>
+                <clipPath id={chartClipId}>
+                  <rect
+                    x={chartModel.bounds.left}
+                    y={chartModel.bounds.top}
+                    width={chartModel.bounds.right - chartModel.bounds.left}
+                    height={chartModel.bounds.bottom - chartModel.bounds.top}
+                  />
+                </clipPath>
+              </defs>
               <g>
                 {chartModel.yTicksLeft.map((tick, index) => (
                   <text key={`y-left-tick-${index}`} className={styles.yTickLabelLeft} x={chartModel.bounds.left - 10} y={tick.y + 3} textAnchor="end">
@@ -744,7 +758,7 @@ export default function TrackerClient({ userKey }: Props) {
                   <line key={`grid-${index}`} className={styles.gridLine} x1={chartModel.bounds.left} y1={y} x2={chartModel.bounds.right} y2={y} />
                 ))}
               </g>
-              <g>
+              <g clipPath={`url(#${chartClipId})`}>
                 {chartModel.bars.map((bar, index) => (
                   <rect
                     key={`bar-${index}`}
@@ -778,10 +792,12 @@ export default function TrackerClient({ userKey }: Props) {
                   />
                 ))}
               </g>
-              <path className={styles.yellowGlow} d={chartModel.yellow} />
-              <path className={styles.blueGlow} d={chartModel.blue} />
-              <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
-              <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+              <g clipPath={`url(#${chartClipId})`}>
+                <path className={styles.yellowGlow} d={chartModel.yellow} />
+                <path className={styles.blueGlow} d={chartModel.blue} />
+                <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
+                <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+              </g>
               {chartModel.ticks.map((tick, index) => (
                 <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
                   {tick.label}

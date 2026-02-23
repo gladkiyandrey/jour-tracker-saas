@@ -1,5 +1,7 @@
 .wrapper {
   margin-top: 0;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 .tracker {
@@ -661,12 +663,136 @@
 }
 
 @media (max-width: 768px) {
+  .panel {
+    padding: 14px 12px 10px;
+  }
+
+  .head h2 {
+    font-size: 20px;
+  }
+
+  .legend {
+    gap: 10px;
+  }
+
+  .legendItem {
+    font-size: 11px;
+  }
+
+  .chart {
+    min-height: 200px;
+  }
+
+  .tickLabel {
+    font-size: 9px;
+  }
+
+  .yTickLabelLeft {
+    font-size: 8px;
+  }
+
   .calendarGrid,
   .weekdays {
     gap: 6px;
   }
 
+  .day {
+    min-height: 34px;
+    font-size: 11px;
+  }
+
   .scoreRow {
     grid-template-columns: 1fr;
+  }
+
+  .weeklyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-wrap: wrap;
+  }
+
+  .actionsRight {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 480px) {
+  .tracker {
+    margin-top: 10px;
+    gap: 12px;
+  }
+
+  .shareRow {
+    gap: 12px;
+  }
+
+  .chart {
+    min-height: 180px;
+  }
+
+  .arrow {
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+  }
+
+  .calendarHead h3 {
+    font-size: 16px;
+  }
+
+  .weekdays span {
+    font-size: 10px;
+  }
+
+  .shareInline {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 390px) {
+  .panel {
+    padding: 12px 10px 8px;
+  }
+
+  .legend {
+    gap: 8px;
+  }
+
+  .legendLine {
+    width: 22px;
+  }
+
+  .day {
+    min-height: 31px;
+    border-radius: 8px;
+    font-size: 10px;
+  }
+
+  .score strong {
+    font-size: 16px;
+  }
+
+  .score span {
+    font-size: 10px;
+  }
+
+  .yellowGlow,
+  .blueGlow {
+    opacity: 0.2;
+    stroke-width: 4;
+  }
+}
+
+@media (pointer: coarse) {
+  .day,
+  .arrow {
+    transition: none;
+  }
+
+  .tradeBar {
+    opacity: 0.18;
   }
 }
