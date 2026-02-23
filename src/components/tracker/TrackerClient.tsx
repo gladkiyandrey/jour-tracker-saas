@@ -262,14 +262,14 @@ export default function TrackerClient({ userKey }: Props) {
     return { score, greenStreak, redStreak, advice };
   }, [sortedEntries, viewMonth, viewYear]);
 
-  const weeklyReview = useMemo(() => {
+  const monthlyReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const monthItems = sortedEntries
       .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
-    const recent = monthItems.slice(-7);
+    const values = monthItems;
 
-    if (!recent.length) {
+    if (!values.length) {
       return {
         avgTrades: "0.0",
         bestDay: "-",
@@ -280,12 +280,12 @@ export default function TrackerClient({ userKey }: Props) {
     }
 
     const avgTrades = (
-      recent.reduce((acc, day) => acc + (Number(day.trades) || 0), 0) / recent.length
+      values.reduce((acc, day) => acc + (Number(day.trades) || 0), 0) / values.length
     ).toFixed(1);
 
-    let peak = Number(recent[0].deposit) || 0;
+    let peak = Number(values[0].deposit) || 0;
     let maxDrawdownPct = 0;
-    for (const day of recent) {
+    for (const day of values) {
       const dep = Number(day.deposit) || 0;
       if (dep > peak) peak = dep;
       if (peak > 0) {
@@ -294,22 +294,28 @@ export default function TrackerClient({ userKey }: Props) {
       }
     }
 
-    const deltas = recent.map((day, index) => {
+    const deltas = values.map((day, index) => {
       if (index === 0) return { day: day.dateKey, delta: 0 };
-      const prev = Number(recent[index - 1].deposit) || 0;
+      const prev = Number(values[index - 1].deposit) || 0;
       const curr = Number(day.deposit) || 0;
       return { day: day.dateKey, delta: curr - prev };
     });
     const best = deltas.reduce((a, b) => (b.delta > a.delta ? b : a), deltas[0]);
     const worst = deltas.reduce((a, b) => (b.delta < a.delta ? b : a), deltas[0]);
 
-    const adherentDays = recent.filter((day) => {
+    const adherentDays = values.filter((day) => {
       const isOutline = day.variant === "pos-outline";
       const trades = Number(day.trades) || 0;
       const withinTradeLimit = isOutline ? trades === 0 : trades <= 2;
       return day.variant !== "neg" && withinTradeLimit;
     }).length;
-    const adherence = `${Math.round((adherentDays / recent.length) * 100)}%`;
+    const adherence = `${Math.round((adherentDays / values.length) * 100)}%`;
+
+    const weekdayShort = (dateKey: string) => {
+      const date = new Date(`${dateKey}T00:00:00`);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleDateString("en-US", { weekday: "long" });
+    };
 
     const shortDay = (dateKey: string) => {
       const d = Number(dateKey.slice(-2));
@@ -318,8 +324,12 @@ export default function TrackerClient({ userKey }: Props) {
 
     return {
       avgTrades,
-      bestDay: best ? `${shortDay(best.day)} (${best.delta >= 0 ? "+" : ""}${Math.round(best.delta)})` : "-",
-      worstDay: worst ? `${shortDay(worst.day)} (${Math.round(worst.delta)})` : "-",
+      bestDay: best
+        ? `${weekdayShort(best.day)} ${shortDay(best.day)} (${best.delta >= 0 ? "+$" : "-$"}${Math.abs(Math.round(best.delta))})`
+        : "-",
+      worstDay: worst
+        ? `${weekdayShort(worst.day)} ${shortDay(worst.day)} (${worst.delta >= 0 ? "+$" : "-$"}${Math.abs(Math.round(worst.delta))})`
+        : "-",
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
       adherence,
     };
@@ -891,29 +901,32 @@ export default function TrackerClient({ userKey }: Props) {
             <p>{stats.advice}</p>
           </div>
 
-          <div className={`${styles.panel} ${styles.weekly}`}>
-            <h4>Weekly review</h4>
-            <div className={styles.weeklyGrid}>
-              <div className={styles.weeklyItem}>
-                <span>Avg trades/day</span>
-                <strong>{weeklyReview.avgTrades}</strong>
-              </div>
-              <div className={styles.weeklyItem}>
-                <span>Best day</span>
-                <strong>{weeklyReview.bestDay}</strong>
-              </div>
-              <div className={styles.weeklyItem}>
-                <span>Worst day</span>
-                <strong>{weeklyReview.worstDay}</strong>
-              </div>
-              <div className={styles.weeklyItem}>
-                <span>Max drawdown</span>
-                <strong>{weeklyReview.maxDrawdown}</strong>
-              </div>
-              <div className={styles.weeklyItem}>
-                <span>Rule adherence</span>
-                <strong>{weeklyReview.adherence}</strong>
-              </div>
+        </div>
+      </div>
+
+      <div className={styles.monthlyRow}>
+        <div className={`${styles.panel} ${styles.weekly}`}>
+          <h4>Monthly review</h4>
+          <div className={styles.weeklyGrid}>
+            <div className={styles.weeklyItem}>
+              <span>Avg trades/day</span>
+              <strong>{monthlyReview.avgTrades}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
+              <span>Best day</span>
+              <strong>{monthlyReview.bestDay}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
+              <span>Worst day</span>
+              <strong>{monthlyReview.worstDay}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
+              <span>Max drawdown</span>
+              <strong>{monthlyReview.maxDrawdown}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
+              <span>Rule adherence</span>
+              <strong>{monthlyReview.adherence}</strong>
             </div>
           </div>
         </div>
