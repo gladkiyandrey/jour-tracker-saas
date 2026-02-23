@@ -162,6 +162,7 @@ export default function TrackerClient({ userKey }: Props) {
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const [insightScreen, setInsightScreen] = useState<"ai" | "signalizer">("ai");
   const chartClipId = useMemo(
     () => `chart-clip-${userKey.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24) || "default"}`,
     [userKey]
@@ -1063,48 +1064,71 @@ export default function TrackerClient({ userKey }: Props) {
             </div>
           </div>
 
-          <div className={`${styles.panel} ${styles.ai}`}>
-            <h4>
-              <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
-            </h4>
-            <p>{stats.advice}</p>
+          <div className={styles.insightSwitch} role="tablist" aria-label="Insight screens">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={insightScreen === "ai"}
+              className={`${styles.insightTab} ${insightScreen === "ai" ? styles.insightTabActive : ""}`}
+              onClick={() => setInsightScreen("ai")}
+            >
+              Screen 1
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={insightScreen === "signalizer"}
+              className={`${styles.insightTab} ${insightScreen === "signalizer" ? styles.insightTabActive : ""}`}
+              onClick={() => setInsightScreen("signalizer")}
+            >
+              Screen 2
+            </button>
           </div>
 
-          <div
-            className={`${styles.panel} ${styles.signalizer} ${
-              signalizer.summaryLevel === "critical"
-                ? styles.signalCritical
-                : signalizer.summaryLevel === "warn"
-                  ? styles.signalWarn
-                  : styles.signalOk
-            }`}
-          >
-            <h4>Signalizer</h4>
-            <p className={styles.signalSummary}>
-              <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-            </p>
-            <div className={styles.signalList}>
-              {signalizer.items.map((item) => (
-                <div key={item.key} className={styles.signalItem}>
-                  <span
-                    className={`${styles.signalBadge} ${
-                      item.level === "critical"
-                        ? styles.signalBadgeCritical
-                        : item.level === "warn"
-                          ? styles.signalBadgeWarn
-                          : styles.signalBadgeOk
-                    }`}
-                  >
-                    {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                  </span>
-                  <div className={styles.signalText}>
-                    <strong>{item.label}</strong>
-                    <p>{item.message}</p>
-                  </div>
-                </div>
-              ))}
+          {insightScreen === "ai" ? (
+            <div className={`${styles.panel} ${styles.ai}`}>
+              <h4>
+                <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
+              </h4>
+              <p>{stats.advice}</p>
             </div>
-          </div>
+          ) : (
+            <div
+              className={`${styles.panel} ${styles.signalizer} ${
+                signalizer.summaryLevel === "critical"
+                  ? styles.signalCritical
+                  : signalizer.summaryLevel === "warn"
+                    ? styles.signalWarn
+                    : styles.signalOk
+              }`}
+            >
+              <h4>Signalizer</h4>
+              <p className={styles.signalSummary}>
+                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+              </p>
+              <div className={styles.signalList}>
+                {signalizer.items.map((item) => (
+                  <div key={item.key} className={styles.signalItem}>
+                    <span
+                      className={`${styles.signalBadge} ${
+                        item.level === "critical"
+                          ? styles.signalBadgeCritical
+                          : item.level === "warn"
+                            ? styles.signalBadgeWarn
+                            : styles.signalBadgeOk
+                      }`}
+                    >
+                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                    </span>
+                    <div className={styles.signalText}>
+                      <strong>{item.label}</strong>
+                      <p>{item.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
