@@ -446,7 +446,8 @@ export default function TrackerClient({ userKey }: Props) {
     const tradeMaxHeight = Math.min(height, TRADE_BAR_UNIT * TRADE_BAR_CAP);
     const barWidth = Math.max(4, Math.min(12, width / Math.max(visible.length * 1.8, 1)));
     const bars = visible.map((v, index) => {
-      const x = bounds.left + (width * index) / steps - barWidth / 2;
+      const centerX = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
+      const x = centerX - barWidth / 2;
       const cappedTrades = Math.max(0, Math.min(v.trades, TRADE_BAR_CAP));
       const h = cappedTrades === 0 ? 3 : Math.min(cappedTrades * TRADE_BAR_UNIT, tradeMaxHeight);
       const y = bounds.bottom - h;
