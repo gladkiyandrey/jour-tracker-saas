@@ -262,6 +262,69 @@ export default function TrackerClient({ userKey }: Props) {
     return { score, greenStreak, redStreak, advice };
   }, [sortedEntries, viewMonth, viewYear]);
 
+  const weeklyReview = useMemo(() => {
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const monthItems = sortedEntries
+      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .map(([dateKey, entry]) => ({ dateKey, ...entry }));
+    const recent = monthItems.slice(-7);
+
+    if (!recent.length) {
+      return {
+        avgTrades: "0.0",
+        bestDay: "-",
+        worstDay: "-",
+        maxDrawdown: "0.0%",
+        adherence: "0%",
+      };
+    }
+
+    const avgTrades = (
+      recent.reduce((acc, day) => acc + (Number(day.trades) || 0), 0) / recent.length
+    ).toFixed(1);
+
+    let peak = Number(recent[0].deposit) || 0;
+    let maxDrawdownPct = 0;
+    for (const day of recent) {
+      const dep = Number(day.deposit) || 0;
+      if (dep > peak) peak = dep;
+      if (peak > 0) {
+        const dd = ((peak - dep) / peak) * 100;
+        if (dd > maxDrawdownPct) maxDrawdownPct = dd;
+      }
+    }
+
+    const deltas = recent.map((day, index) => {
+      if (index === 0) return { day: day.dateKey, delta: 0 };
+      const prev = Number(recent[index - 1].deposit) || 0;
+      const curr = Number(day.deposit) || 0;
+      return { day: day.dateKey, delta: curr - prev };
+    });
+    const best = deltas.reduce((a, b) => (b.delta > a.delta ? b : a), deltas[0]);
+    const worst = deltas.reduce((a, b) => (b.delta < a.delta ? b : a), deltas[0]);
+
+    const adherentDays = recent.filter((day) => {
+      const isOutline = day.variant === "pos-outline";
+      const trades = Number(day.trades) || 0;
+      const withinTradeLimit = isOutline ? trades === 0 : trades <= 2;
+      return day.variant !== "neg" && withinTradeLimit;
+    }).length;
+    const adherence = `${Math.round((adherentDays / recent.length) * 100)}%`;
+
+    const shortDay = (dateKey: string) => {
+      const d = Number(dateKey.slice(-2));
+      return Number.isFinite(d) ? `${d}` : "-";
+    };
+
+    return {
+      avgTrades,
+      bestDay: best ? `${shortDay(best.day)} (${best.delta >= 0 ? "+" : ""}${Math.round(best.delta)})` : "-",
+      worstDay: worst ? `${shortDay(worst.day)} (${Math.round(worst.delta)})` : "-",
+      maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
+      adherence,
+    };
+  }, [sortedEntries, viewMonth, viewYear]);
+
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
     const gridY = [28, 76, 124, 172, 220];
@@ -331,12 +394,23 @@ export default function TrackerClient({ userKey }: Props) {
       const targetSpan = DISPLAY_MAX - DISPLAY_MIN;
       return values.map((value) => DISPLAY_MIN + ((value - min) / span) * targetSpan);
     };
+    const limitLocalSlope = (values: number[], maxStep = 14) => {
+      if (values.length < 2) return values;
+      const out = [...values];
+      for (let i = 1; i < out.length; i += 1) {
+        const diff = out[i] - out[i - 1];
+        if (Math.abs(diff) > maxStep) {
+          out[i] = out[i - 1] + Math.sign(diff) * maxStep;
+        }
+      }
+      return out;
+    };
 
     const normalizedResultRaw = normalizeMinMax(resultValues, 0.06);
     const normalizedDeposit = normalizeMinMax(depositValues, 0.02);
     const startShift = (normalizedDeposit[0] ?? CENTER) - (normalizedResultRaw[0] ?? CENTER);
     const normalizedResultShifted = normalizedResultRaw.map((value) => value + startShift);
-    const normalizedResult = fitIntoDisplayRange(normalizedResultShifted);
+    const normalizedResult = fitIntoDisplayRange(limitLocalSlope(normalizedResultShifted, 14));
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -815,6 +889,32 @@ export default function TrackerClient({ userKey }: Props) {
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
             </h4>
             <p>{stats.advice}</p>
+          </div>
+
+          <div className={`${styles.panel} ${styles.weekly}`}>
+            <h4>Weekly review</h4>
+            <div className={styles.weeklyGrid}>
+              <div className={styles.weeklyItem}>
+                <span>Avg trades/day</span>
+                <strong>{weeklyReview.avgTrades}</strong>
+              </div>
+              <div className={styles.weeklyItem}>
+                <span>Best day</span>
+                <strong>{weeklyReview.bestDay}</strong>
+              </div>
+              <div className={styles.weeklyItem}>
+                <span>Worst day</span>
+                <strong>{weeklyReview.worstDay}</strong>
+              </div>
+              <div className={styles.weeklyItem}>
+                <span>Max drawdown</span>
+                <strong>{weeklyReview.maxDrawdown}</strong>
+              </div>
+              <div className={styles.weeklyItem}>
+                <span>Rule adherence</span>
+                <strong>{weeklyReview.adherence}</strong>
+              </div>
+            </div>
           </div>
         </div>
       </div>
