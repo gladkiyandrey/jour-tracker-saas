@@ -278,7 +278,7 @@ export default function TrackerClient({ userKey }: Props) {
       trades: number;
       variant: Variant | "none";
     }> = filledEntries.map(([dateKey, entry]) => {
-      const dayScore = entry.variant === "neg" ? -1 : 1;
+      const dayScore = entry.variant === "neg" ? -1 : entry.variant === "pos-outline" ? 0.5 : 1;
       cumulative += dayScore;
       return {
         day: Number(dateKey.slice(-2)),
