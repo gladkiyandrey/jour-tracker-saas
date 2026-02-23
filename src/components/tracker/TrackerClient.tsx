@@ -66,7 +66,7 @@ function buildPath(
   }
 
   let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-  const smoothFactor = 10; // larger value => less aggressive smoothing, fewer flat plateaus
+  const smoothFactor = 8; // slightly softer bends while preserving overall shape
 
   for (let i = 0; i < points.length - 1; i += 1) {
     const p0 = points[i - 1] || points[i];
