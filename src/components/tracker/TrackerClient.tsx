@@ -383,11 +383,13 @@ export default function TrackerClient({ userKey }: Props) {
     const CENTER = 50;
     const DISPLAY_MIN = 10;
     const DISPLAY_MAX = 90;
-    const normalizeFromBaseline = (values: number[], padding = 0) => {
+    const DISCIPLINE_FIXED_MAX_ABS = 20; // shared visual scale for all months
+    const normalizeFromBaseline = (values: number[], padding = 0, fixedMaxAbs?: number) => {
       if (!values.length) return [];
       const base = values[0];
       const deltas = values.map((value) => value - base);
-      const maxAbs = Math.max(1, ...deltas.map((delta) => Math.abs(delta)));
+      const dynamicMaxAbs = Math.max(1, ...deltas.map((delta) => Math.abs(delta)));
+      const maxAbs = fixedMaxAbs ? Math.max(1, fixedMaxAbs) : dynamicMaxAbs;
       const halfRange = (DISPLAY_MAX - DISPLAY_MIN) / 2;
       const scale = maxAbs * (1 + padding);
       return deltas.map((delta) => CENTER + (delta / scale) * halfRange);
@@ -405,7 +407,7 @@ export default function TrackerClient({ userKey }: Props) {
     };
 
     const normalizedDeposit = normalizeFromBaseline(depositValues, 0.08);
-    const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
+    const normalizedResultRaw = normalizeFromBaseline(resultValues, 0, DISCIPLINE_FIXED_MAX_ABS);
     const normalizedResult = limitLocalSlope(normalizedResultRaw, 14);
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
