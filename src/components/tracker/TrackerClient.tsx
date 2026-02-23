@@ -392,6 +392,11 @@ export default function TrackerClient({ userKey }: Props) {
       const scale = maxAbs * (1 + padding);
       return deltas.map((delta) => CENTER + (delta / scale) * halfRange);
     };
+    const normalizeToAxis = (values: number[], min: number, max: number) => {
+      if (!values.length) return [];
+      if (max === min) return values.map(() => CENTER);
+      return values.map((value) => ((value - min) / (max - min)) * 100);
+    };
     const limitLocalSlope = (values: number[], maxStep = 14) => {
       if (values.length < 2) return values;
       const out = [...values];
@@ -404,7 +409,7 @@ export default function TrackerClient({ userKey }: Props) {
       return out;
     };
 
-    const normalizedDeposit = normalizeFromBaseline(depositValues, 0.08);
+    const normalizedDeposit = normalizeToAxis(depositValues, minDeposit, maxDeposit);
     const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
     const normalizedResult = limitLocalSlope(normalizedResultRaw, 14);
 
