@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { Locale } from "@/lib/i18n";
 
 type Props = {
   active: boolean;
   expiresAt: string | null;
+  locale: Locale;
 };
 
 const MONTHLY_PRICE = 5;
@@ -12,7 +14,7 @@ const YEAR_MONTHS = 12;
 const YEAR_DISCOUNT = 0.15;
 type PlanType = "monthly" | "yearly";
 
-export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
+export default function SubscriptionBadgeClient({ active, expiresAt, locale }: Props) {
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<PlanType>("monthly");
 
@@ -20,8 +22,69 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
     if (!expiresAt) return "Unknown";
     const d = new Date(expiresAt);
     if (Number.isNaN(d.getTime())) return "Unknown";
-    return d.toLocaleDateString("ru-RU");
-  }, [expiresAt]);
+    return d.toLocaleDateString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US");
+  }, [expiresAt, locale]);
+
+  const txt = useMemo(() => {
+    if (locale === "ru") {
+      return {
+        sub: "Подписка",
+        active: "Активна",
+        inactive: "Неактивна",
+        validTo: "Действует до",
+        renew: "Продлить подписку",
+        renewTitle: "Продление подписки",
+        renewText: "Выберите план. Цена: $5 / месяц. Годовой план: скидка 15%.",
+        plan: "План",
+        monthly: "1 месяц — $5",
+        yearly: "12 месяцев — $51 (-15%)",
+        base: "Базовая сумма",
+        discount: "Скидка",
+        total: "Итого",
+        yearlyApplied: "Годовой пакет: скидка 15% применена.",
+        cancel: "Отмена",
+        pay: "Оплатить и продлить",
+      };
+    }
+    if (locale === "uk") {
+      return {
+        sub: "Підписка",
+        active: "Активна",
+        inactive: "Неактивна",
+        validTo: "Діє до",
+        renew: "Продовжити підписку",
+        renewTitle: "Продовження підписки",
+        renewText: "Оберіть план. Ціна: $5 / місяць. Річний план: знижка 15%.",
+        plan: "План",
+        monthly: "1 місяць — $5",
+        yearly: "12 місяців — $51 (-15%)",
+        base: "Базова сума",
+        discount: "Знижка",
+        total: "Разом",
+        yearlyApplied: "Річний пакет: знижку 15% застосовано.",
+        cancel: "Скасувати",
+        pay: "Оплатити і продовжити",
+      };
+    }
+    return {
+      sub: "Subscription",
+      active: "Active",
+      inactive: "Inactive",
+      validTo: "Valid until",
+      renew: "Renew subscription",
+      renewTitle: "Renew subscription",
+      renewText: "Choose plan. Price: $5 / month. Yearly plan: 15% discount.",
+      plan: "Plan",
+      monthly: "1 month — $5",
+      yearly: "12 months — $51 (-15%)",
+      base: "Base amount",
+      discount: "Discount",
+      total: "Total",
+      yearlyApplied: "Yearly package: 15% discount applied.",
+      cancel: "Cancel",
+      pay: "Pay and renew",
+    };
+  }, [locale]);
 
   const pricing = useMemo(() => {
     const months = plan === "yearly" ? YEAR_MONTHS : 1;
@@ -35,9 +98,9 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
   return (
     <>
       <div className="sub-wrap">
-        <span className={`badge ${active ? "active" : ""}`}>Subscription: {active ? "Active" : "Inactive"}</span>
+        <span className={`badge ${active ? "active" : ""}`}>{txt.sub}: {active ? txt.active : txt.inactive}</span>
         <div className="sub-tooltip">
-          <p>Действует до: {expiresText}</p>
+          <p>{txt.validTo}: {expiresText}</p>
           <button
             type="button"
             className="sub-renew-link"
@@ -45,7 +108,7 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
               setOpen(true);
             }}
           >
-            Продлить подписку
+            {txt.renew}
           </button>
         </div>
       </div>
@@ -53,11 +116,11 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
       {open ? (
         <div className="sub-modal-backdrop" role="presentation" onClick={() => setOpen(false)}>
           <div className="sub-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <h3>Продление подписки</h3>
-            <p className="note">Выберите план. Цена: $5 / месяц. Годовой план: скидка 15%.</p>
+            <h3>{txt.renewTitle}</h3>
+            <p className="note">{txt.renewText}</p>
             <form action="/api/billing/activate" method="post">
               <label className="label" htmlFor="renew-plan">
-                План
+                {txt.plan}
               </label>
               <select
                 id="renew-plan"
@@ -66,23 +129,23 @@ export default function SubscriptionBadgeClient({ active, expiresAt }: Props) {
                 value={plan}
                 onChange={(e) => setPlan(e.target.value === "yearly" ? "yearly" : "monthly")}
               >
-                <option value="monthly">1 месяц — $5</option>
-                <option value="yearly">12 месяцев — $51 (-15%)</option>
+                <option value="monthly">{txt.monthly}</option>
+                <option value="yearly">{txt.yearly}</option>
               </select>
 
               <div className="sub-price-box">
-                <div>Базовая сумма: ${pricing.base.toFixed(2)}</div>
-                <div>Скидка: {pricing.hasDiscount ? "-15%" : "0%"}</div>
-                <div className="sub-total">Итого: ${pricing.total.toFixed(2)}</div>
-                {pricing.hasDiscount ? <div className="sub-discount-note">Годовой пакет: скидка 15% применена.</div> : null}
+                <div>{txt.base}: ${pricing.base.toFixed(2)}</div>
+                <div>{txt.discount}: {pricing.hasDiscount ? "-15%" : "0%"}</div>
+                <div className="sub-total">{txt.total}: ${pricing.total.toFixed(2)}</div>
+                {pricing.hasDiscount ? <div className="sub-discount-note">{txt.yearlyApplied}</div> : null}
               </div>
 
               <div className="sub-modal-actions">
                 <button type="button" className="btn" onClick={() => setOpen(false)}>
-                  Отмена
+                  {txt.cancel}
                 </button>
                 <button type="submit" className="btn primary">
-                  Оплатить и продлить
+                  {txt.pay}
                 </button>
               </div>
             </form>

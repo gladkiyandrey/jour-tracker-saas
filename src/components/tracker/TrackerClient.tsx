@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import styles from "./TrackerClient.module.css";
+import type { Locale } from "@/lib/i18n";
 
 type Variant = "neg" | "pos" | "pos-outline";
 type Entry = { result: -1 | 1; variant: Variant; deposit: number; trades: number };
@@ -24,22 +25,8 @@ type SignalItem = {
 
 type Props = {
   userKey: string;
+  locale: Locale;
 };
-
-const monthNames = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 function formatDateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -73,7 +60,7 @@ function buildPath(
   }
 
   let path = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-  const smoothFactor = 8; // slightly softer bends while preserving overall shape
+  const smoothFactor = 6;
 
   for (let i = 0; i < points.length - 1; i += 1) {
     const p0 = points[i - 1] || points[i];
@@ -82,9 +69,13 @@ function buildPath(
     const p3 = points[i + 2] || p2;
 
     const cp1x = p1.x + (p2.x - p0.x) / smoothFactor;
-    const cp1y = p1.y + (p2.y - p0.y) / smoothFactor;
     const cp2x = p2.x - (p3.x - p1.x) / smoothFactor;
-    const cp2y = p2.y - (p3.y - p1.y) / smoothFactor;
+    const minSegY = Math.min(p1.y, p2.y);
+    const maxSegY = Math.max(p1.y, p2.y);
+    const cp1yRaw = p1.y + (p2.y - p0.y) / smoothFactor;
+    const cp2yRaw = p2.y - (p3.y - p1.y) / smoothFactor;
+    const cp1y = Math.max(minSegY, Math.min(maxSegY, cp1yRaw));
+    const cp2y = Math.max(minSegY, Math.min(maxSegY, cp2yRaw));
 
     path += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
   }
@@ -92,7 +83,7 @@ function buildPath(
   return path;
 }
 
-export default function TrackerClient({ userKey }: Props) {
+export default function TrackerClient({ userKey, locale }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
@@ -166,6 +157,132 @@ export default function TrackerClient({ userKey }: Props) {
     () => `chart-clip-${userKey.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24) || "default"}`,
     [userKey]
   );
+  const ui = useMemo(() => {
+    if (locale === "ru") {
+      return {
+        monthTracker: "Трекер месяца",
+        consistency: "Дисциплина",
+        depositSize: "Размер депозита",
+        tradesPerDay: "Сделок / день",
+        day: "День",
+        type: "Тип",
+        trades: "Сделки",
+        deposit: "Депозит",
+        disciplineScore: "DISCIPLINE SCORE",
+        greenStreak: "GREEN STREAK",
+        redStreak: "RED STREAK",
+        mon: "Пн",
+        tue: "Вт",
+        wed: "Ср",
+        thu: "Чт",
+        fri: "Пт",
+        sat: "Сб",
+        sun: "Вс",
+        aiAdvice: "AI совет по дисциплине",
+        monthlyReview: "Обзор месяца",
+        avgTrades: "Сделок в день (сред.)",
+        bestDay: "Лучший день",
+        worstDay: "Худший день",
+        maxDrawdown: "Макс. просадка",
+        ruleAdherence: "Соблюдение правил",
+        signalizer: "Сигнализатор",
+        creating: "Создание...",
+        shareSequence: "Поделиться серией",
+        copy: "Копировать",
+        daySettings: "Настройки дня",
+        result: "Результат",
+        openedTrades: "Открыто сделок (шт)",
+        noPrevDay: "Прошлого дня нет, введите депозит",
+        autoFromPrev: "Авто из прошлого дня",
+        enterDeposit: "Введите сумму депозита",
+        clearDay: "Очистить день",
+        cancel: "Отмена",
+        save: "Сохранить",
+      };
+    }
+    if (locale === "uk") {
+      return {
+        monthTracker: "Трекер місяця",
+        consistency: "Дисципліна",
+        depositSize: "Розмір депозиту",
+        tradesPerDay: "Угод / день",
+        day: "День",
+        type: "Тип",
+        trades: "Угоди",
+        deposit: "Депозит",
+        disciplineScore: "DISCIPLINE SCORE",
+        greenStreak: "GREEN STREAK",
+        redStreak: "RED STREAK",
+        mon: "Пн",
+        tue: "Вт",
+        wed: "Ср",
+        thu: "Чт",
+        fri: "Пт",
+        sat: "Сб",
+        sun: "Нд",
+        aiAdvice: "AI порада щодо дисципліни",
+        monthlyReview: "Огляд місяця",
+        avgTrades: "Угод на день (серед.)",
+        bestDay: "Найкращий день",
+        worstDay: "Найгірший день",
+        maxDrawdown: "Макс. просадка",
+        ruleAdherence: "Дотримання правил",
+        signalizer: "Сигналізатор",
+        creating: "Створення...",
+        shareSequence: "Поділитися серією",
+        copy: "Копіювати",
+        daySettings: "Налаштування дня",
+        result: "Результат",
+        openedTrades: "Відкрито угод (шт)",
+        noPrevDay: "Попереднього дня немає, введіть депозит",
+        autoFromPrev: "Авто з попереднього дня",
+        enterDeposit: "Введіть суму депозиту",
+        clearDay: "Очистити день",
+        cancel: "Скасувати",
+        save: "Зберегти",
+      };
+    }
+    return {
+      monthTracker: "Monthly Tracker",
+      consistency: "Consistency",
+      depositSize: "Deposit size",
+      tradesPerDay: "Trades / day",
+      day: "Day",
+      type: "Type",
+      trades: "Trades",
+      deposit: "Deposit",
+      disciplineScore: "DISCIPLINE SCORE",
+      greenStreak: "GREEN STREAK",
+      redStreak: "RED STREAK",
+      mon: "Mon",
+      tue: "Tue",
+      wed: "Wed",
+      thu: "Thu",
+      fri: "Fri",
+      sat: "Sat",
+      sun: "Sun",
+      aiAdvice: "AI discipline advice",
+      monthlyReview: "Monthly review",
+      avgTrades: "Avg trades/day",
+      bestDay: "Best day",
+      worstDay: "Worst day",
+      maxDrawdown: "Max drawdown",
+      ruleAdherence: "Rule adherence",
+      signalizer: "Signalizer",
+      creating: "Creating...",
+      shareSequence: "Share sequence",
+      copy: "Copy",
+      daySettings: "Day settings",
+      result: "Result",
+      openedTrades: "Opened trades (count)",
+      noPrevDay: "No previous day found, enter deposit",
+      autoFromPrev: "Auto from previous day",
+      enterDeposit: "Enter deposit amount",
+      clearDay: "Clear day",
+      cancel: "Cancel",
+      save: "Save",
+    };
+  }, [locale]);
 
   const storageKey = `jour-tracker-${userKey}`;
 
@@ -193,7 +310,23 @@ export default function TrackerClient({ userKey }: Props) {
       } catch (error) {
         if (!cancelled) {
           const msg = error instanceof Error ? error.message : "";
-          setSyncError(msg ? `Cloud sync error: ${msg}` : "Cloud sync is temporarily unavailable.");
+          if (msg) {
+            setSyncError(
+              locale === "ru"
+                ? `Ошибка cloud sync: ${msg}`
+                : locale === "uk"
+                  ? `Помилка cloud sync: ${msg}`
+                  : `Cloud sync error: ${msg}`,
+            );
+          } else {
+            setSyncError(
+              locale === "ru"
+                ? "Cloud sync временно недоступен."
+                : locale === "uk"
+                  ? "Cloud sync тимчасово недоступний."
+                  : "Cloud sync is temporarily unavailable.",
+            );
+          }
         }
       }
     };
@@ -202,7 +335,7 @@ export default function TrackerClient({ userKey }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [storageKey, userKey]);
+  }, [locale, storageKey, userKey]);
 
   useEffect(() => {
     try {
@@ -253,25 +386,45 @@ export default function TrackerClient({ userKey }: Props) {
     });
 
     let advice =
-      "Track at least 5 days to unlock a reliable recommendation. Keep entries consistent for a clearer pattern. Fill both result and deposit to improve accuracy.";
+      locale === "ru"
+        ? "Отметьте минимум 5 дней для надежной рекомендации. Заполняйте дни последовательно. Указывайте и результат, и депозит для точности."
+        : locale === "uk"
+          ? "Заповніть мінімум 5 днів для надійної рекомендації. Ведіть записи послідовно. Вказуйте і результат, і депозит для точності."
+          : "Track at least 5 days to unlock a reliable recommendation. Keep entries consistent for a clearer pattern. Fill both result and deposit to improve accuracy.";
     if (total >= 5) {
       if (score >= 75 && greenStreak >= 4) {
         advice =
-          "Strong consistency. Keep the same routine and protect your streak by limiting impulsive entries. Use the same risk per trade to avoid variance spikes. Review only your best setups and repeat what already works.";
+          locale === "ru"
+            ? "Сильная стабильность. Сохраняйте тот же ритм и защищайте серию, ограничивая импульсивные входы. Держите одинаковый риск на сделку и повторяйте рабочие сетапы."
+            : locale === "uk"
+              ? "Сильна стабільність. Зберігайте той самий ритм і захищайте серію, обмежуючи імпульсивні входи. Тримайте однаковий ризик на угоду і повторюйте робочі сетапи."
+              : "Strong consistency. Keep the same routine and protect your streak by limiting impulsive entries. Use the same risk per trade to avoid variance spikes. Review only your best setups and repeat what already works.";
       } else if (redStreak >= 3) {
         advice =
-          "Red streak is growing. Reduce position size for the next sessions and trade only A+ setups. Pause after two consecutive losses to reset execution quality. Focus on one pattern and skip marginal entries this week.";
+          locale === "ru"
+            ? "Красная серия растет. Снизьте размер позиции в ближайших сессиях и торгуйте только A+ сетапы. Сделайте паузу после двух подряд убыточных дней."
+            : locale === "uk"
+              ? "Червона серія зростає. Зменште розмір позиції у найближчих сесіях і торгуйте лише A+ сетапи. Зробіть паузу після двох поспіль збиткових днів."
+              : "Red streak is growing. Reduce position size for the next sessions and trade only A+ setups. Pause after two consecutive losses to reset execution quality. Focus on one pattern and skip marginal entries this week.";
       } else if (score >= 60) {
         advice =
-          "Progress is stable. Focus on avoiding single emotional days that break momentum. Lock your max trades limit before the session starts. Keep a brief post-trade note to catch repeated mistakes early.";
+          locale === "ru"
+            ? "Прогресс стабильный. Избегайте эмоциональных дней, которые ломают импульс. Фиксируйте лимит сделок до начала сессии."
+            : locale === "uk"
+              ? "Прогрес стабільний. Уникайте емоційних днів, які ламають імпульс. Фіксуйте ліміт угод до початку сесії."
+              : "Progress is stable. Focus on avoiding single emotional days that break momentum. Lock your max trades limit before the session starts. Keep a brief post-trade note to catch repeated mistakes early.";
       } else {
         advice =
-          "Discipline is unstable. Use a strict daily checklist and cap risk until score recovers. Reduce frequency and prioritize quality over activity. Aim for three clean sessions in a row before increasing risk.";
+          locale === "ru"
+            ? "Дисциплина нестабильна. Используйте строгий чеклист и лимит риска, пока показатель не восстановится. Снизьте частоту и верните фокус на качество."
+            : locale === "uk"
+              ? "Дисципліна нестабільна. Використовуйте строгий чеклист і ліміт ризику, поки показник не відновиться. Зменшіть частоту і поверніть фокус на якість."
+              : "Discipline is unstable. Use a strict daily checklist and cap risk until score recovers. Reduce frequency and prioritize quality over activity. Aim for three clean sessions in a row before increasing risk.";
       }
     }
 
     return { score, greenStreak, redStreak, advice };
-  }, [sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const signalizer = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -284,8 +437,13 @@ export default function TrackerClient({ userKey }: Props) {
       items.push({
         key: "healthy",
         level: "ok",
-        label: "Monitoring",
-        message: "Need at least 2 filled days to detect risk patterns.",
+        label: locale === "ru" ? "Мониторинг" : locale === "uk" ? "Моніторинг" : "Monitoring",
+        message:
+          locale === "ru"
+            ? "Нужно минимум 2 заполненных дня для обнаружения риск-паттернов."
+            : locale === "uk"
+              ? "Потрібно щонайменше 2 заповнені дні для виявлення ризик-патернів."
+              : "Need at least 2 filled days to detect risk patterns.",
       });
     } else {
       const dayScore = (variant: Variant) => (variant === "neg" ? -1 : variant === "pos-outline" ? 0.5 : 1);
@@ -318,8 +476,13 @@ export default function TrackerClient({ userKey }: Props) {
         items.push({
           key: "critical-tilt",
           level: "critical",
-          label: "Critical Tilt",
-          message: `Red day + ${latest.trades} trades (above x3 baseline) + deposit drop. Stop trading and reset rules now.`,
+          label: locale === "ru" ? "Критический тильт" : locale === "uk" ? "Критичний тільт" : "Critical Tilt",
+          message:
+            locale === "ru"
+              ? `Красный день + ${latest.trades} сделок (выше x3 базовой нормы) + падение депозита. Остановите торговлю и сбросьте режим.`
+              : locale === "uk"
+                ? `Червоний день + ${latest.trades} угод (вище x3 базової норми) + падіння депозиту. Зупиніть торгівлю та скиньте режим.`
+                : `Red day + ${latest.trades} trades (above x3 baseline) + deposit drop. Stop trading and reset rules now.`,
         });
       }
 
@@ -328,8 +491,13 @@ export default function TrackerClient({ userKey }: Props) {
         items.push({
           key: "lucky-profit",
           level: "warn",
-          label: "Lucky Profit",
-          message: "Deposit grew on a red day. Profit is masking rule-breaking behavior.",
+          label: locale === "ru" ? "Лудка в плюс" : locale === "uk" ? "Лудка в плюс" : "Lucky Profit",
+          message:
+            locale === "ru"
+              ? "Депозит вырос в красный день. Профит маскирует нарушение правил."
+              : locale === "uk"
+                ? "Депозит виріс у червоний день. Профіт маскує порушення правил."
+                : "Deposit grew on a red day. Profit is masking rule-breaking behavior.",
         });
       }
 
@@ -351,8 +519,13 @@ export default function TrackerClient({ userKey }: Props) {
         items.push({
           key: "regression",
           level: "warn",
-          label: "Regression",
-          message: "After a long green run, red days increased. Consider a white day for reset.",
+          label: locale === "ru" ? "Регрессия" : locale === "uk" ? "Регресія" : "Regression",
+          message:
+            locale === "ru"
+              ? "После длинной зеленой серии выросло число красных дней. Возьмите белый день для перезапуска."
+              : locale === "uk"
+                ? "Після довгої зеленої серії зросла кількість червоних днів. Візьміть білий день для перезапуску."
+                : "After a long green run, red days increased. Consider a white day for reset.",
         });
       }
 
@@ -368,8 +541,13 @@ export default function TrackerClient({ userKey }: Props) {
         items.push({
           key: "divergence",
           level: "warn",
-          label: "Divergence Risk",
-          message: "Deposit is rising while discipline trend is falling. This often precedes unstable drawdowns.",
+          label: locale === "ru" ? "Риск дивергенции" : locale === "uk" ? "Ризик дивергенції" : "Divergence Risk",
+          message:
+            locale === "ru"
+              ? "Депозит растет, а тренд дисциплины падает. Часто это перед нестабильной просадкой."
+              : locale === "uk"
+                ? "Депозит зростає, а тренд дисципліни падає. Часто це перед нестабільною просадкою."
+                : "Deposit is rising while discipline trend is falling. This often precedes unstable drawdowns.",
         });
       }
 
@@ -377,8 +555,13 @@ export default function TrackerClient({ userKey }: Props) {
         items.push({
           key: "healthy",
           level: "ok",
-          label: "Healthy State",
-          message: "No critical risk pattern detected. Keep execution quality and trade frequency stable.",
+          label: locale === "ru" ? "Стабильное состояние" : locale === "uk" ? "Стабільний стан" : "Healthy State",
+          message:
+            locale === "ru"
+              ? "Критичных риск-паттернов не обнаружено. Держите стабильное качество исполнения."
+              : locale === "uk"
+                ? "Критичних ризик-патернів не виявлено. Тримайте стабільну якість виконання."
+                : "No critical risk pattern detected. Keep execution quality and trade frequency stable.",
         });
       }
     }
@@ -390,19 +573,43 @@ export default function TrackerClient({ userKey }: Props) {
         : "ok";
     const summaryTitle =
       summaryLevel === "critical"
-        ? "High risk detected"
+        ? locale === "ru"
+          ? "Высокий риск"
+          : locale === "uk"
+            ? "Високий ризик"
+            : "High risk detected"
         : summaryLevel === "warn"
-          ? "Risk signal active"
-          : "System stable";
+          ? locale === "ru"
+            ? "Риск-сигнал активен"
+            : locale === "uk"
+              ? "Ризик-сигнал активний"
+              : "Risk signal active"
+          : locale === "ru"
+            ? "Система стабильна"
+            : locale === "uk"
+              ? "Система стабільна"
+              : "System stable";
     const summaryMessage =
       summaryLevel === "critical"
-        ? "Execution risk is elevated right now. Reduce activity and follow strict limits."
+        ? locale === "ru"
+          ? "Сейчас риск исполнения повышен. Снизьте активность и вернитесь к жестким лимитам."
+          : locale === "uk"
+            ? "Зараз ризик виконання підвищений. Зменшіть активність і поверніться до жорстких лімітів."
+            : "Execution risk is elevated right now. Reduce activity and follow strict limits."
         : summaryLevel === "warn"
-          ? "Behavioral drift detected. Correct now before it compounds."
-          : "Execution profile is stable this month.";
+          ? locale === "ru"
+            ? "Обнаружен поведенческий сдвиг. Исправьте сейчас, пока он не накопился."
+            : locale === "uk"
+              ? "Виявлено поведінкове відхилення. Виправте зараз, поки не накопичилось."
+              : "Behavioral drift detected. Correct now before it compounds."
+          : locale === "ru"
+            ? "Профиль исполнения в этом месяце стабилен."
+            : locale === "uk"
+              ? "Профіль виконання цього місяця стабільний."
+              : "Execution profile is stable this month.";
 
     return { summaryLevel, summaryTitle, summaryMessage, items };
-  }, [sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const monthlyReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -456,7 +663,8 @@ export default function TrackerClient({ userKey }: Props) {
     const weekdayShort = (dateKey: string) => {
       const date = new Date(`${dateKey}T00:00:00`);
       if (Number.isNaN(date.getTime())) return "";
-      return date.toLocaleDateString("en-US", { weekday: "long" });
+      const weekLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+      return date.toLocaleDateString(weekLocale, { weekday: "long" });
     };
 
     const shortDay = (dateKey: string) => {
@@ -475,7 +683,7 @@ export default function TrackerClient({ userKey }: Props) {
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
       adherence,
     };
-  }, [sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
@@ -523,23 +731,19 @@ export default function TrackerClient({ userKey }: Props) {
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
     const CENTER = 50;
-    const DISPLAY_MIN = 10;
-    const DISPLAY_MAX = 90;
     const normalizeFromBaseline = (values: number[], padding = 0) => {
       if (!values.length) return [];
       const base = values[0];
       const deltas = values.map((value) => value - base);
       const maxAbs = Math.max(1, ...deltas.map((delta) => Math.abs(delta)));
-      const halfRange = (DISPLAY_MAX - DISPLAY_MIN) / 2;
+      const halfRange = 38;
       const scale = maxAbs * (1 + padding);
       return deltas.map((delta) => CENTER + (delta / scale) * halfRange);
     };
     const normalizeToAxis = (values: number[], min: number, max: number) => {
       if (!values.length) return [];
       if (max === min) return values.map(() => CENTER);
-      return values.map(
-        (value) => DISPLAY_MIN + ((value - min) / (max - min)) * (DISPLAY_MAX - DISPLAY_MIN)
-      );
+      return values.map((value) => ((value - min) / (max - min)) * 100);
     };
     const limitLocalSlope = (values: number[], maxStep = 14) => {
       if (values.length < 2) return values;
@@ -565,7 +769,11 @@ export default function TrackerClient({ userKey }: Props) {
       return values.map((value) => anchor + (value - anchor) / scale);
     };
 
-    const normalizedDeposit = normalizeToAxis(depositValues, minDeposit, maxDeposit);
+    const depositRange = Math.max(1, maxDeposit - minDeposit);
+    const depositPad = depositRange * 0.08;
+    const displayMinDeposit = minDeposit - depositPad;
+    const displayMaxDeposit = maxDeposit + depositPad;
+    const normalizedDeposit = normalizeToAxis(depositValues, displayMinDeposit, displayMaxDeposit);
     const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
     const normalizedResultBase = limitLocalSlope(normalizedResultRaw, 14);
     const startDelta =
@@ -602,8 +810,9 @@ export default function TrackerClient({ userKey }: Props) {
     const yTicksLeft = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const ratio = i / 4;
-      const depositAtY = minDeposit + (maxDeposit - minDeposit) * ratio;
-      return { y, label: Math.round(depositAtY).toLocaleString("en-US") };
+      const depositAtY = displayMinDeposit + (displayMaxDeposit - displayMinDeposit) * ratio;
+      const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+      return { y, label: Math.round(depositAtY).toLocaleString(numberLocale) };
     });
 
     return {
@@ -615,13 +824,15 @@ export default function TrackerClient({ userKey }: Props) {
       bounds,
       gridY,
     };
-  }, [sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const variantLabel = (variant: Variant | "none") => {
-    if (variant === "neg") return "Red day (-1)";
-    if (variant === "pos") return "Green day (+1)";
-    if (variant === "pos-outline") return "Green outline (+1)";
-    return "No day type";
+    if (variant === "neg") return locale === "ru" ? "Красный день (-1)" : locale === "uk" ? "Червоний день (-1)" : "Red day (-1)";
+    if (variant === "pos") return locale === "ru" ? "Зеленый день (+1)" : locale === "uk" ? "Зелений день (+1)" : "Green day (+1)";
+    if (variant === "pos-outline") {
+      return locale === "ru" ? "Зеленый контур (+1)" : locale === "uk" ? "Зелений контур (+1)" : "Green outline (+1)";
+    }
+    return locale === "ru" ? "Тип не выбран" : locale === "uk" ? "Тип не обрано" : "No day type";
   };
 
   const getPreviousDayDeposit = (dateKey: string) => {
@@ -672,13 +883,37 @@ export default function TrackerClient({ userKey }: Props) {
 
     if (!hasVariant || !hasDeposit || !hasTrades) {
       if (!hasVariant && !hasDeposit && !hasTrades) {
-        setModalError("Choose day type, enter deposit and trades count.");
+        setModalError(
+          locale === "ru"
+            ? "Выберите тип дня, заполните депозит и количество сделок."
+            : locale === "uk"
+              ? "Оберіть тип дня, заповніть депозит і кількість угод."
+              : "Choose day type, enter deposit and trades count.",
+        );
       } else if (!hasVariant) {
-        setModalError("Choose day type.");
+        setModalError(locale === "ru" ? "Выберите тип дня." : locale === "uk" ? "Оберіть тип дня." : "Choose day type.");
       } else if (!hasDeposit) {
-        setModalError("Enter deposit amount greater than 0.");
+        setModalError(
+          locale === "ru"
+            ? "Введите депозит больше 0."
+            : locale === "uk"
+              ? "Введіть депозит більше 0."
+              : "Enter deposit amount greater than 0.",
+        );
       } else {
-        setModalError(isOutline ? "For outlined green day, trades can be 0 or more." : "Enter trades count greater than 0.");
+        setModalError(
+          isOutline
+            ? locale === "ru"
+              ? "Для дня с белой обводкой сделки могут быть 0 и более."
+              : locale === "uk"
+                ? "Для дня з білою обводкою угоди можуть бути 0 і більше."
+                : "For outlined green day, trades can be 0 or more."
+            : locale === "ru"
+              ? "Введите количество сделок больше 0."
+              : locale === "uk"
+                ? "Введіть кількість угод більше 0."
+                : "Enter trades count greater than 0.",
+        );
       }
       return;
     }
@@ -716,7 +951,13 @@ export default function TrackerClient({ userKey }: Props) {
       }
       setSyncError("");
     } catch {
-      setSyncError("Saved locally, but cloud sync failed. Try again.");
+      setSyncError(
+        locale === "ru"
+          ? "Сохранено локально, но cloud sync не удался. Повторите попытку."
+          : locale === "uk"
+            ? "Збережено локально, але cloud sync не вдався. Спробуйте ще раз."
+            : "Saved locally, but cloud sync failed. Try again.",
+      );
     }
   };
 
@@ -743,7 +984,13 @@ export default function TrackerClient({ userKey }: Props) {
       }
       setSyncError("");
     } catch {
-      setSyncError("Cleared locally, but cloud sync failed. Try again.");
+      setSyncError(
+        locale === "ru"
+          ? "Удалено локально, но cloud sync не удался. Повторите попытку."
+          : locale === "uk"
+            ? "Видалено локально, але cloud sync не вдався. Спробуйте ще раз."
+            : "Cleared locally, but cloud sync failed. Try again.",
+      );
     }
   };
 
@@ -791,6 +1038,15 @@ export default function TrackerClient({ userKey }: Props) {
     return cells;
   }, [viewMonth, viewYear, dayData, selectedDateKey]);
 
+  const monthLabel = useMemo(() => {
+    const date = new Date(viewYear, viewMonth, 1);
+    const title = date.toLocaleDateString(
+      locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US",
+      { month: "long", year: "numeric" },
+    );
+    return title.charAt(0).toUpperCase() + title.slice(1);
+  }, [locale, viewMonth, viewYear]);
+
   const createShare = async () => {
     setShareStatus("");
     setShareLink("");
@@ -827,16 +1083,16 @@ export default function TrackerClient({ userKey }: Props) {
       try {
         if (typeof navigator !== "undefined" && navigator.clipboard) {
           await navigator.clipboard.writeText(payload.url);
-          setShareStatus("Copied. Share it anywhere.");
+          setShareStatus(locale === "ru" ? "Скопировано. Поделитесь ссылкой." : locale === "uk" ? "Скопійовано. Поділіться посиланням." : "Copied. Share it anywhere.");
         } else {
-          setShareStatus("Link ready. Copy manually below.");
+          setShareStatus(locale === "ru" ? "Ссылка готова. Скопируйте ниже." : locale === "uk" ? "Посилання готове. Скопіюйте нижче." : "Link ready. Copy manually below.");
         }
       } catch {
-        setShareStatus("Link ready. Copy manually below.");
+        setShareStatus(locale === "ru" ? "Ссылка готова. Скопируйте ниже." : locale === "uk" ? "Посилання готове. Скопіюйте нижче." : "Link ready. Copy manually below.");
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Неизвестная ошибка";
-      setShareStatus(`Error: ${message}`);
+      const message = error instanceof Error ? error.message : locale === "ru" ? "Неизвестная ошибка" : locale === "uk" ? "Невідома помилка" : "Unknown error";
+      setShareStatus(`${locale === "ru" ? "Ошибка" : locale === "uk" ? "Помилка" : "Error"}: ${message}`);
     } finally {
       setShareLoading(false);
     }
@@ -847,12 +1103,12 @@ export default function TrackerClient({ userKey }: Props) {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(shareLink);
-        setShareStatus("Copied. Share it anywhere.");
+        setShareStatus(locale === "ru" ? "Скопировано. Поделитесь ссылкой." : locale === "uk" ? "Скопійовано. Поділіться посиланням." : "Copied. Share it anywhere.");
         setCopyFlash(true);
         window.setTimeout(() => setCopyFlash(false), 700);
       }
     } catch {
-      setShareStatus("Auto-copy failed. Copy it manually.");
+      setShareStatus(locale === "ru" ? "Автокопирование не удалось. Скопируйте вручную." : locale === "uk" ? "Автокопіювання не вдалося. Скопіюйте вручну." : "Auto-copy failed. Copy it manually.");
     }
   };
 
@@ -874,19 +1130,19 @@ export default function TrackerClient({ userKey }: Props) {
       <div className={styles.tracker}>
         <div className={`${styles.panel} ${styles.mainPanel}`}>
           <div className={styles.head}>
-            <h2>Monthly Tracker</h2>
+            <h2>{ui.monthTracker}</h2>
             {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
           </div>
 
           <div className={styles.legend}>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Consistency
+              <i className={`${styles.legendLine} ${styles.legendYellow}`} /> {ui.consistency}
             </span>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
+              <i className={`${styles.legendLine} ${styles.legendBlue}`} /> {ui.depositSize}
             </span>
             <span className={styles.legendItem}>
-              <i className={`${styles.legendBar} ${styles.legendBarTrades}`} /> Trades / day
+              <i className={`${styles.legendBar} ${styles.legendBarTrades}`} /> {ui.tradesPerDay}
             </span>
           </div>
 
@@ -895,7 +1151,7 @@ export default function TrackerClient({ userKey }: Props) {
               className={styles.chart}
               viewBox="0 0 520 280"
               preserveAspectRatio="none"
-              aria-label="Tracker chart"
+              aria-label={ui.monthTracker}
               onMouseLeave={() => setChartHover(null)}
             >
               <defs>
@@ -968,25 +1224,25 @@ export default function TrackerClient({ userKey }: Props) {
             </svg>
             {chartHover ? (
               <div className={styles.chartTooltip} style={{ left: `${chartHover.x}px`, top: `${chartHover.y}px` }}>
-                <div>Day: {chartHover.day}</div>
-                <div>Type: {variantLabel(chartHover.variant)}</div>
-                <div>Trades: {chartHover.trades}</div>
-                <div>Deposit: {Math.round(chartHover.deposit)}</div>
+                <div>{ui.day}: {chartHover.day}</div>
+                <div>{ui.type}: {variantLabel(chartHover.variant)}</div>
+                <div>{ui.trades}: {chartHover.trades}</div>
+                <div>{ui.deposit}: {Math.round(chartHover.deposit)}</div>
               </div>
             ) : null}
           </div>
 
           <div className={styles.scoreRow}>
             <div className={`${styles.score} ${styles.scoreBlue}`}>
-              <span>DISCIPLINE SCORE</span>
+              <span>{ui.disciplineScore}</span>
               <strong>{stats.score}%</strong>
             </div>
             <div className={`${styles.score} ${styles.scoreGreen}`}>
-              <span>GREEN STREAK</span>
+              <span>{ui.greenStreak}</span>
               <strong>{stats.greenStreak}</strong>
             </div>
             <div className={`${styles.score} ${styles.scoreRed}`}>
-              <span>RED STREAK</span>
+              <span>{ui.redStreak}</span>
               <strong>{stats.redStreak}</strong>
             </div>
           </div>
@@ -1012,7 +1268,7 @@ export default function TrackerClient({ userKey }: Props) {
               >
                 ‹
               </button>
-              <h3>{monthNames[viewMonth]} {viewYear}</h3>
+              <h3>{monthLabel}</h3>
               <button
                 type="button"
                 className={styles.arrow}
@@ -1032,13 +1288,13 @@ export default function TrackerClient({ userKey }: Props) {
             </div>
 
             <div className={styles.weekdays}>
-              <span>Mon</span>
-              <span>Tue</span>
-              <span>Wed</span>
-              <span>Thu</span>
-              <span>Fri</span>
-              <span>Sat</span>
-              <span>Sun</span>
+              <span>{ui.mon}</span>
+              <span>{ui.tue}</span>
+              <span>{ui.wed}</span>
+              <span>{ui.thu}</span>
+              <span>{ui.fri}</span>
+              <span>{ui.sat}</span>
+              <span>{ui.sun}</span>
             </div>
 
             <div className={styles.calendarGrid}>
@@ -1065,7 +1321,7 @@ export default function TrackerClient({ userKey }: Props) {
 
           <div className={`${styles.panel} ${styles.ai}`}>
             <h4>
-              <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
+              <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
             </h4>
             <p>{stats.advice}</p>
           </div>
@@ -1075,26 +1331,26 @@ export default function TrackerClient({ userKey }: Props) {
 
       <div className={styles.monthlyRow}>
         <div className={`${styles.panel} ${styles.weekly}`}>
-          <h4>Monthly review</h4>
+          <h4>{ui.monthlyReview}</h4>
           <div className={styles.weeklyGrid}>
             <div className={styles.weeklyItem}>
-              <span>Avg trades/day</span>
+              <span>{ui.avgTrades}</span>
               <strong>{monthlyReview.avgTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>Best day</span>
+              <span>{ui.bestDay}</span>
               <strong>{monthlyReview.bestDay}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>Worst day</span>
+              <span>{ui.worstDay}</span>
               <strong>{monthlyReview.worstDay}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>Max drawdown</span>
+              <span>{ui.maxDrawdown}</span>
               <strong>{monthlyReview.maxDrawdown}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>Rule adherence</span>
+              <span>{ui.ruleAdherence}</span>
               <strong>{monthlyReview.adherence}</strong>
             </div>
           </div>
@@ -1109,7 +1365,7 @@ export default function TrackerClient({ userKey }: Props) {
                 : styles.signalOk
           }`}
         >
-          <h4>Signalizer</h4>
+          <h4>{ui.signalizer}</h4>
           <p className={styles.signalSummary}>
             <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
           </p>
@@ -1142,7 +1398,7 @@ export default function TrackerClient({ userKey }: Props) {
         <div className={styles.shareBar}>
           <div className={styles.shareInline}>
             <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-              {shareLoading ? "Creating..." : "Share sequence"}
+              {shareLoading ? ui.creating : ui.shareSequence}
             </button>
             <span className={styles.shareStatus}>{shareStatus}</span>
           </div>
@@ -1150,7 +1406,7 @@ export default function TrackerClient({ userKey }: Props) {
             <div className={styles.shareManualRow}>
               <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
               <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
-                Copy
+                {ui.copy}
               </button>
             </div>
           ) : null}
@@ -1160,11 +1416,11 @@ export default function TrackerClient({ userKey }: Props) {
       {modalOpen ? (
         <div className={styles.modalBackdrop} onClick={closeModal} role="presentation">
           <div className={styles.modal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <h3>Day settings</h3>
+            <h3>{ui.daySettings}</h3>
             <p className={styles.modalDate}>{selectedDateKey}</p>
 
             <label className={styles.field}>
-              <span>Result</span>
+              <span>{ui.result}</span>
               <div className={styles.colorOptions}>
                 <label className={styles.colorOption}>
                   <input
@@ -1212,7 +1468,7 @@ export default function TrackerClient({ userKey }: Props) {
             </label>
 
             <label className={styles.field}>
-              <span>Deposit size</span>
+              <span>{ui.depositSize}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -1220,9 +1476,9 @@ export default function TrackerClient({ userKey }: Props) {
                 placeholder={
                   modalVariant === "pos-outline"
                     ? outlineNeedsManualDeposit
-                      ? "No previous day found, enter deposit"
-                      : "Auto from previous day"
-                    : "Enter deposit amount"
+                      ? ui.noPrevDay
+                      : ui.autoFromPrev
+                    : ui.enterDeposit
                 }
                 value={modalDeposit}
                 readOnly={modalVariant === "pos-outline" && !outlineNeedsManualDeposit}
@@ -1235,7 +1491,7 @@ export default function TrackerClient({ userKey }: Props) {
             </label>
 
             <label className={styles.field}>
-              <span>Opened trades (count)</span>
+              <span>{ui.openedTrades}</span>
               <input
                 type="text"
                 inputMode="numeric"
@@ -1255,14 +1511,14 @@ export default function TrackerClient({ userKey }: Props) {
 
             <div className={styles.actions}>
               <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
-                Clear day
+                {ui.clearDay}
               </button>
               <div className={styles.actionsRight}>
                 <button className="btn" type="button" onClick={closeModal}>
-                  Cancel
+                  {ui.cancel}
                 </button>
                 <button className="btn primary" type="button" onClick={saveDay}>
-                  Save
+                  {ui.save}
                 </button>
               </div>
             </div>

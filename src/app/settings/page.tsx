@@ -2,8 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
 import SettingsClient from "@/components/settings/SettingsClient";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 export default async function SettingsPage() {
+  const locale = await getLocaleFromCookies();
+  const m = t(locale);
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
@@ -12,17 +16,18 @@ export default async function SettingsPage() {
   return (
     <main className="site dashboard">
       <header className="topbar">
-        <div className="logo logo-light">Consist settings</div>
+        <div className="logo logo-light">{m.appName} · {m.settings}</div>
         <nav className="nav">
+          <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/app">
-            Back to app
+            {m.navBackToApp}
           </Link>
         </nav>
       </header>
       <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>
-        Account: {user.email}
+        {m.account}: {user.email}
       </p>
-      <SettingsClient userKey={user.id} />
+      <SettingsClient userKey={user.id} locale={locale} />
     </main>
   );
 }

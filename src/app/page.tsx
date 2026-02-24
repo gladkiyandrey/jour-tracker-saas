@@ -1,25 +1,30 @@
 import Link from "next/link";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const locale = await getLocaleFromCookies();
+  const m = t(locale);
+
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">Consist</div>
+        <div className="logo">{m.appName}</div>
         <nav className="nav">
+          <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/login">
-            Login
+            {m.navLogin}
           </Link>
           <Link className="btn primary" href="/pricing">
-            Get Access
+            {m.homeGetAccess}
           </Link>
         </nav>
       </header>
 
       <section className="hero card">
-        <h1>Build discipline. Track consistency. Trade with structure.</h1>
+        <h1>{m.homeTitle}</h1>
         <p>
-          Consist is a subscription SaaS for traders. Users log in, manage their personal calendar,
-          and keep access only with an active crypto subscription.
+          {m.homeText}
         </p>
       </section>
 
@@ -38,7 +43,7 @@ export default function HomePage() {
         </article>
       </section>
 
-      <p className="footer-note">Next step: connect Supabase + crypto payment provider webhooks.</p>
+      <p className="footer-note">{m.homeFooter}</p>
     </main>
   );
 }

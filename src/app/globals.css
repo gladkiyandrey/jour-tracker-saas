@@ -66,6 +66,33 @@ a {
 .nav {
   display: flex;
   gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #d7e1ff;
+}
+
+.lang-switch select {
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #eaf0ff;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.lang-switch option {
+  color: #111;
 }
 
 .btn {

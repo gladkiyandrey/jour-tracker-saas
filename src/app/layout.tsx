@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CustomCursor from "@/components/ui/CustomCursor";
+import { getLocaleFromCookies } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "Consist",
@@ -8,9 +9,10 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://consist.online"),
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocaleFromCookies();
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
         <CustomCursor />
         {children}

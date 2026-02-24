@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 type PricingPageProps = {
   searchParams?: Promise<{ expired?: string; error?: string }>;
 };
 
 export default async function PricingPage({ searchParams }: PricingPageProps) {
+  const locale = await getLocaleFromCookies();
+  const m = t(locale);
   const params = (await searchParams) ?? {};
   const user = await getCurrentUser();
   let expired = params.expired === "1";
@@ -25,41 +29,41 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">Consist</div>
+        <div className="logo">{m.appName}</div>
         <nav className="nav">
+          <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/">
-            Home
+            {m.navHome}
           </Link>
           <Link className="btn" href="/login">
-            Login
+            {m.navLogin}
           </Link>
         </nav>
       </header>
 
       <section className="card form-wrap">
-        <h1>Crypto Subscription</h1>
+        <h1>{m.pricingTitle}</h1>
         {expired ? (
           <div className="warning-box">
-            Подписка истекла {expiredAt ? `(до ${new Date(expiredAt).toLocaleDateString("ru-RU")})` : ""}. Чтобы продолжить работу,
-            оплатите тариф.
+            {m.subExpired} {expiredAt ? `(${new Date(expiredAt).toLocaleDateString(locale === "uk" ? "uk-UA" : locale === "ru" ? "ru-RU" : "en-US")})` : ""}.
           </div>
         ) : null}
-        {params.error === "activate_failed" ? <div className="warning-box">Не удалось активировать подписку. Попробуйте снова.</div> : null}
+        {params.error === "activate_failed" ? <div className="warning-box">{m.activateFailed}</div> : null}
         <p className="note">
-          This page is wired for a mock activation. Replace with Coinbase Commerce/NOWPayments checkout.
+          {m.pricingText}
         </p>
 
         <form action="/api/billing/activate" method="post">
           <label className="label" htmlFor="plan">
-            Plan
+            {m.plan}
           </label>
           <select className="select" id="plan" name="plan" defaultValue="monthly">
-            <option value="monthly">1 month - $5</option>
-            <option value="yearly">12 months - $51 (-15%)</option>
+            <option value="monthly">{m.monthlyPlan}</option>
+            <option value="yearly">{m.yearlyPlan}</option>
           </select>
 
           <button className="btn primary" type="submit" style={{ marginTop: "18px", width: "100%" }}>
-            Activate (Mock)
+            {m.activateMock}
           </button>
         </form>
       </section>

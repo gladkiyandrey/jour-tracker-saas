@@ -82,6 +82,41 @@
   color: #9fecc1;
 }
 
+.pushBox {
+  margin-top: 10px;
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  border-radius: 10px;
+  background: rgba(13, 19, 34, 0.75);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.pushHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.pushHead span {
+  color: #9ea9cc;
+  font-size: 11px;
+}
+
+.pushActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pushMsg {
+  margin: 0;
+  font-size: 12px;
+  color: #bdd4ff;
+}
+
 .tips {
   border: 1px solid rgba(120, 136, 190, 0.28);
   border-radius: 12px;

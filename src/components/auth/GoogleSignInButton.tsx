@@ -2,7 +2,11 @@
 
 import { getSupabaseBrowser } from "@/lib/supabase/client";
 
-export default function GoogleSignInButton() {
+type Props = {
+  label?: string;
+};
+
+export default function GoogleSignInButton({ label = "Sign in with Google" }: Props) {
   const onClick = async () => {
     const supabase = getSupabaseBrowser();
     await supabase.auth.signInWithOAuth({
@@ -18,7 +22,7 @@ export default function GoogleSignInButton() {
       <span className="google-mark" aria-hidden>
         G
       </span>
-      <span>Sign in with Google</span>
+      <span>{label}</span>
     </button>
   );
 }
