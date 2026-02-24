@@ -89,6 +89,39 @@ a {
   position: relative;
 }
 
+.lang-minimal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.lang-minimal-item {
+  border: 0;
+  background: transparent;
+  color: #9eabd2;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 0;
+  min-height: 20px;
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+
+.lang-minimal-item:hover {
+  color: #d8e4ff;
+}
+
+.lang-minimal-item.is-active {
+  color: #f3f7ff;
+}
+
+.lang-minimal-item:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .lang-switch-trigger {
   border: 1px solid rgba(120, 136, 190, 0.35);
   background: linear-gradient(180deg, rgba(24, 32, 58, 0.96), rgba(15, 21, 39, 0.96));
@@ -233,6 +266,23 @@ a {
 
 .btn.primary:hover {
   box-shadow: 0 12px 26px rgba(89, 132, 255, 0.38);
+}
+
+.btn-nav-plain {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #d3ddfb;
+  padding: 6px 8px;
+  min-height: 34px;
+}
+
+.btn-nav-plain:hover {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: #f0f4ff;
+  transform: none;
 }
 
 .logout-form {

@@ -6,9 +6,10 @@ import type { Locale } from "@/lib/i18n";
 
 type Props = {
   locale: Locale;
+  minimal?: boolean;
 };
 
-export default function LanguageSwitcher({ locale }: Props) {
+export default function LanguageSwitcher({ locale, minimal = false }: Props) {
   const router = useRouter();
   const [value, setValue] = useState<Locale>(locale);
   const [open, setOpen] = useState(false);
@@ -57,6 +58,24 @@ export default function LanguageSwitcher({ locale }: Props) {
   };
 
   const order: Locale[] = ["en", "ru", "uk"];
+
+  if (minimal) {
+    return (
+      <div className="lang-minimal" role="group" aria-label="Language">
+        {order.map((item) => (
+          <button
+            key={item}
+            type="button"
+            className={`lang-minimal-item ${value === item ? "is-active" : ""}`}
+            onClick={() => onChange(item)}
+            disabled={loading}
+          >
+            {item.toUpperCase()}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={`lang-switch ${open ? "is-open" : ""}`} ref={rootRef}>
