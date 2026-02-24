@@ -477,6 +477,19 @@ export default function TrackerClient({ userKey }: Props) {
     };
   }, [sortedEntries, viewMonth, viewYear]);
 
+  const quickStats = useMemo(() => {
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const filledDays = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix)).length;
+    return [
+      { label: "Discipline", value: `${stats.score}%` },
+      { label: "Avg trades/day", value: monthlyReview.avgTrades },
+      { label: "Max drawdown", value: monthlyReview.maxDrawdown },
+      { label: "Rule adherence", value: monthlyReview.adherence },
+      { label: "Green streak", value: String(stats.greenStreak) },
+      { label: "Filled days", value: String(filledDays) },
+    ];
+  }, [monthlyReview.adherence, monthlyReview.avgTrades, monthlyReview.maxDrawdown, sortedEntries, stats.greenStreak, stats.score, viewMonth, viewYear]);
+
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
     const gridY = [28, 76, 124, 172, 220];
@@ -856,6 +869,28 @@ export default function TrackerClient({ userKey }: Props) {
     }
   };
 
+  const copyMonthlyReport = async () => {
+    const report = [
+      `Consist monthly report: ${monthNames[viewMonth]} ${viewYear}`,
+      `Discipline score: ${stats.score}%`,
+      `Green streak: ${stats.greenStreak}`,
+      `Red streak: ${stats.redStreak}`,
+      `Avg trades/day: ${monthlyReview.avgTrades}`,
+      `Max drawdown: ${monthlyReview.maxDrawdown}`,
+      `Rule adherence: ${monthlyReview.adherence}`,
+      `Best day: ${monthlyReview.bestDay}`,
+      `Worst day: ${monthlyReview.worstDay}`,
+    ].join("\n");
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        await navigator.clipboard.writeText(report);
+        setShareStatus("Report copied.");
+      }
+    } catch {
+      setShareStatus("Copy failed. Try again.");
+    }
+  };
+
   const outlinePreviousDeposit = selectedDateKey ? getPreviousDayDeposit(selectedDateKey) : 0;
   const outlineNeedsManualDeposit = modalVariant === "pos-outline" && outlinePreviousDeposit <= 0;
 
@@ -993,8 +1028,7 @@ export default function TrackerClient({ userKey }: Props) {
 
         </div>
 
-        <div className={styles.side}>
-          <div className={styles.panel}>
+        <div className={styles.panel} id="calendar">
             <div className={styles.calendarHead}>
               <button
                 type="button"
@@ -1061,8 +1095,9 @@ export default function TrackerClient({ userKey }: Props) {
                 );
               })}
             </div>
-          </div>
+        </div>
 
+        <div className={styles.rail}>
           <div className={`${styles.panel} ${styles.ai}`}>
             <h4>
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> AI discipline advice
@@ -1070,10 +1105,81 @@ export default function TrackerClient({ userKey }: Props) {
             <p>{stats.advice}</p>
           </div>
 
+          <div
+            id="signals"
+            className={`${styles.panel} ${styles.signalizer} ${
+              signalizer.summaryLevel === "critical"
+                ? styles.signalCritical
+                : signalizer.summaryLevel === "warn"
+                  ? styles.signalWarn
+                  : styles.signalOk
+            }`}
+          >
+            <h4>Signalizer</h4>
+            <p className={styles.signalSummary}>
+              <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+            </p>
+            <div className={styles.signalList}>
+              {signalizer.items.map((item) => (
+                <div key={item.key} className={styles.signalItem}>
+                  <span
+                    className={`${styles.signalBadge} ${
+                      item.level === "critical"
+                        ? styles.signalBadgeCritical
+                        : item.level === "warn"
+                          ? styles.signalBadgeWarn
+                          : styles.signalBadgeOk
+                    }`}
+                  >
+                    {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                  </span>
+                  <div className={styles.signalText}>
+                    <strong>{item.label}</strong>
+                    <p>{item.message}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={`${styles.panel} ${styles.quickStats}`}>
+            <h4>Quick stats</h4>
+            <div className={styles.quickStatsGrid}>
+              {quickStats.map((item) => (
+                <div key={item.label} className={styles.quickStatItem}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className={`${styles.panel} ${styles.railCta}`}>
+            <h4>Share / report</h4>
+            <div className={styles.shareBar}>
+              <div className={styles.shareInline}>
+                <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
+                  {shareLoading ? "Creating..." : "Share sequence"}
+                </button>
+                <button className="btn" type="button" onClick={copyMonthlyReport}>
+                  Copy report
+                </button>
+              </div>
+              <span className={styles.shareStatus}>{shareStatus}</span>
+              {shareLink ? (
+                <div className={styles.shareManualRow}>
+                  <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
+                  <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
+                    Copy
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className={styles.monthlyRow}>
+      <div className={styles.monthlyRow} id="review">
         <div className={`${styles.panel} ${styles.weekly}`}>
           <h4>Monthly review</h4>
           <div className={styles.weeklyGrid}>
@@ -1098,62 +1204,6 @@ export default function TrackerClient({ userKey }: Props) {
               <strong>{monthlyReview.adherence}</strong>
             </div>
           </div>
-        </div>
-
-        <div
-          className={`${styles.panel} ${styles.signalizer} ${
-            signalizer.summaryLevel === "critical"
-              ? styles.signalCritical
-              : signalizer.summaryLevel === "warn"
-                ? styles.signalWarn
-                : styles.signalOk
-          }`}
-        >
-          <h4>Signalizer</h4>
-          <p className={styles.signalSummary}>
-            <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-          </p>
-          <div className={styles.signalList}>
-            {signalizer.items.map((item) => (
-              <div key={item.key} className={styles.signalItem}>
-                <span
-                  className={`${styles.signalBadge} ${
-                    item.level === "critical"
-                      ? styles.signalBadgeCritical
-                      : item.level === "warn"
-                        ? styles.signalBadgeWarn
-                        : styles.signalBadgeOk
-                  }`}
-                >
-                  {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                </span>
-                <div className={styles.signalText}>
-                  <strong>{item.label}</strong>
-                  <p>{item.message}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.shareRow}>
-        <div />
-        <div className={styles.shareBar}>
-          <div className={styles.shareInline}>
-            <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-              {shareLoading ? "Creating..." : "Share sequence"}
-            </button>
-            <span className={styles.shareStatus}>{shareStatus}</span>
-          </div>
-          {shareLink ? (
-            <div className={styles.shareManualRow}>
-              <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
-              <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
-                Copy
-              </button>
-            </div>
-          ) : null}
         </div>
       </div>
 

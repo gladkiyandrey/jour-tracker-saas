@@ -7,9 +7,9 @@
 .tracker {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: 1.35fr 0.85fr;
+  grid-template-columns: 1.2fr 0.8fr 0.62fr;
   gap: 16px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .mainPanel {
@@ -199,12 +199,6 @@
   margin-bottom: 6px;
 }
 
-.shareRow {
-  margin-top: 12px;
-  display: grid;
-  gap: 8px;
-}
-
 .shareInfo {
   margin: 0;
   color: #9ec1ff;
@@ -241,17 +235,10 @@
 }
 
 .shareBar {
-  margin-top: 6px;
+  margin-top: 8px;
   padding: 0;
   border: 0;
   background: transparent;
-}
-
-.shareRow {
-  margin-top: 6px;
-  display: grid;
-  grid-template-columns: 1.35fr 0.85fr;
-  gap: 16px;
 }
 
 .shareManualRow {
@@ -342,9 +329,9 @@
   color: #ff9ab0;
 }
 
-.side {
+.rail {
   display: grid;
-  grid-template-rows: auto auto;
+  align-content: start;
   gap: 16px;
 }
 
@@ -466,6 +453,39 @@
   line-height: 1.55;
 }
 
+.quickStats h4,
+.railCta h4 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.quickStatsGrid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quickStatItem {
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  border-radius: 10px;
+  background: rgba(19, 27, 46, 0.78);
+  padding: 8px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.quickStatItem span {
+  color: #9ea9cc;
+  font-size: 11px;
+}
+
+.quickStatItem strong {
+  color: #eff4ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .signalizer {
   padding: 14px 16px;
   border-radius: 12px;
@@ -574,8 +594,6 @@
 
 .monthlyRow {
   margin-top: 16px;
-  display: grid;
-  gap: 12px;
 }
 
 .weekly h4 {
@@ -755,15 +773,13 @@
 
 @media (max-width: 1024px) {
   .tracker {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
 
-  .shareRow {
-    grid-template-columns: 1fr;
-  }
-
-  .shareRow > :first-child {
-    display: none;
+  .rail {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -814,6 +830,10 @@
     grid-template-columns: 1fr;
   }
 
+  .quickStatsGrid {
+    grid-template-columns: 1fr;
+  }
+
   .actions {
     flex-wrap: wrap;
   }
@@ -826,11 +846,8 @@
 
 @media (max-width: 480px) {
   .tracker {
+    grid-template-columns: 1fr;
     margin-top: 10px;
-    gap: 12px;
-  }
-
-  .shareRow {
     gap: 12px;
   }
 
