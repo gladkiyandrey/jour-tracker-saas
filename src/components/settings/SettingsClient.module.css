@@ -1,0 +1,110 @@
+.wrap {
+  margin-top: 12px;
+  display: grid;
+  gap: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.card {
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(28, 36, 57, 0.94), rgba(16, 22, 36, 0.96));
+  padding: 14px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.card p {
+  margin: 6px 0 0;
+  color: #9ea9cc;
+  font-size: 12px;
+}
+
+.row {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: #d6def9;
+}
+
+.input,
+.select {
+  width: 100%;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid rgba(121, 133, 173, 0.58);
+  background: rgba(13, 18, 31, 0.88);
+  color: #f5f7ff;
+  padding: 0 10px;
+  font-size: 13px;
+}
+
+.switch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  border-radius: 10px;
+  background: rgba(19, 27, 46, 0.78);
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.switch input {
+  width: 16px;
+  height: 16px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.saved {
+  margin: 0;
+  font-size: 12px;
+  color: #9fecc1;
+}
+
+.tips {
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(24, 31, 52, 0.9), rgba(14, 20, 35, 0.94));
+  padding: 14px;
+}
+
+.tips h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.tips ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: #d8e1ff;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

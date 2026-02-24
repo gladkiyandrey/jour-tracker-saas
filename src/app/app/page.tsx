@@ -48,6 +48,18 @@ export default async function DashboardPage() {
               Admin
             </Link>
           ) : null}
+          <Link className="btn settings-icon-btn" href="/settings" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.2 4.2-.96-.56a7.84 7.84 0 0 0-.1-1.21l.88-.67a1.1 1.1 0 0 0 .27-1.43l-1.3-2.26a1.1 1.1 0 0 0-1.37-.48l-1 .4a8.21 8.21 0 0 0-1.05-.61l-.15-1.08A1.1 1.1 0 0 0 14.33 4h-2.66a1.1 1.1 0 0 0-1.09.92l-.15 1.08c-.36.15-.71.35-1.05.6l-1-.39a1.1 1.1 0 0 0-1.37.48L5.7 8.95a1.1 1.1 0 0 0 .27 1.43l.88.67c-.05.4-.08.8-.1 1.2l-.96.57a1.1 1.1 0 0 0-.5 1.35l.87 2.46a1.1 1.1 0 0 0 1.27.72l1.06-.22c.3.29.62.55.98.77l.03 1.08A1.1 1.1 0 0 0 10.6 20h2.8a1.1 1.1 0 0 0 1.09-1.02l.03-1.08c.35-.22.68-.48.98-.77l1.06.22a1.1 1.1 0 0 0 1.27-.72l.87-2.46a1.1 1.1 0 0 0-.5-1.35Z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
           <form action="/api/auth/logout" method="post" className="logout-form">
             <button className="btn logout-icon-btn" type="submit" aria-label="Logout" title="Logout">
               <svg viewBox="0 0 24 24" aria-hidden="true">
