@@ -197,6 +197,50 @@
   background: linear-gradient(90deg, #476ef5 0%, #5f95ff 100%);
 }
 
+.verifyCard {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(121, 145, 228, 0.3);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(17, 25, 45, 0.84), rgba(11, 16, 31, 0.9));
+  padding: 12px;
+}
+
+.verifyText {
+  display: grid;
+  gap: 8px;
+}
+
+.verifyText h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #f4f8ff;
+}
+
+.verifyText p {
+  margin: 0;
+  color: #b8c5ed;
+  font-size: 13px;
+}
+
+.verifyText a {
+  color: #8fb4ff;
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.qrImage {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid rgba(130, 149, 214, 0.42);
+  padding: 6px;
+}
+
 @media (max-width: 768px) {
   .stats {
     grid-template-columns: 1fr;
@@ -208,5 +252,10 @@
 
   .chart {
     height: 240px;
+  }
+
+  .verifyCard {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

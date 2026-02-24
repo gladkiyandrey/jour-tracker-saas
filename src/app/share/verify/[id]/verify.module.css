@@ -1,0 +1,102 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 14px;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(34, 92, 255, 0.3) 0, rgba(34, 92, 255, 0) 40%),
+    radial-gradient(circle at 80% 90%, rgba(255, 201, 71, 0.24) 0, rgba(255, 201, 71, 0) 45%),
+    #070b16;
+}
+
+.card {
+  width: min(840px, 100%);
+  border-radius: 18px;
+  border: 1px solid rgba(117, 137, 202, 0.38);
+  background: linear-gradient(180deg, rgba(24, 33, 61, 0.94), rgba(10, 15, 29, 0.97));
+  padding: 24px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  border: 1px solid rgba(63, 217, 138, 0.45);
+  background: rgba(16, 63, 46, 0.24);
+  color: #b0ffd8;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 12px;
+}
+
+.card h1 {
+  margin: 14px 0 0;
+  color: #f4f8ff;
+}
+
+.sub {
+  margin: 8px 0 0;
+  color: #b8c5ed;
+}
+
+.grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.item {
+  border: 1px solid rgba(117, 137, 202, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(14, 21, 39, 0.86);
+}
+
+.item span {
+  display: block;
+  color: #c5d1f8;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.item strong {
+  display: block;
+  margin-top: 6px;
+  color: #f4f8ff;
+  font-size: 20px;
+}
+
+.actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(121, 145, 228, 0.42);
+  padding: 0 14px;
+  color: #e7eeff;
+  text-decoration: none;
+  background: rgba(15, 22, 40, 0.78);
+}
+
+.actions .primary {
+  border-color: transparent;
+  background: linear-gradient(90deg, #476ef5 0%, #5f95ff 100%);
+  color: #f8fbff;
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

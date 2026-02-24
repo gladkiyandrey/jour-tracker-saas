@@ -56,6 +56,9 @@ export default async function Image({ params }: { params: Promise<{ id: string }
     "December",
   ];
   const activeDays = snapshot.days.length;
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://consist.online").replace(/\/$/, "");
+  const verifyUrl = `${appUrl}/share/verify/${snapshot.id}`;
+  const qrUrl = `${appUrl}/api/share/qr/${snapshot.id}`;
 
   return new ImageResponse(
     (
@@ -95,16 +98,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        <div
-          style={{
-            marginTop: 8,
-            display: "flex",
-            alignItems: "center",
-            gap: 20,
-            fontSize: 20,
-            color: "#d9e2ff",
-          }}
-        >
+        <div style={{ marginTop: 8, display: "flex", alignItems: "center", gap: 20, fontSize: 20, color: "#d9e2ff" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 28, height: 0, borderTop: "4px solid #ffd24a", borderRadius: 999 }} />
             Consistency
@@ -116,31 +110,52 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ marginLeft: "auto", color: "#b8c7f5" }}>Auto-generated from journal data</div>
         </div>
 
-        <div
-          style={{
-            width: "100%",
-            height: 250,
-            borderRadius: 14,
-            border: "1px solid rgba(123,141,204,0.35)",
-            background: "rgba(12,17,30,0.85)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg width="1100" height="230" viewBox="0 0 520 280">
-            <path d={snapshot.chartYellow} fill="none" stroke="rgba(255,210,74,0.72)" strokeWidth="5" strokeLinecap="round" />
-            <path d={snapshot.chartBlue} fill="none" stroke="rgba(47,131,255,0.72)" strokeWidth="5" strokeLinecap="round" />
-            <path d={snapshot.chartYellow} fill="none" stroke="#ffd24a" strokeWidth="3" strokeLinecap="round" />
-            <path d={snapshot.chartBlue} fill="none" stroke="#2f83ff" strokeWidth="3" strokeLinecap="round" />
-          </svg>
+        <div style={{ width: "100%", height: 250, display: "flex", alignItems: "stretch", gap: 14 }}>
+          <div
+            style={{
+              flex: 1,
+              borderRadius: 14,
+              border: "1px solid rgba(123,141,204,0.35)",
+              background: "rgba(12,17,30,0.85)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg width="950" height="230" viewBox="0 0 520 280">
+              <path d={snapshot.chartYellow} fill="none" stroke="rgba(255,210,74,0.72)" strokeWidth="5" strokeLinecap="round" />
+              <path d={snapshot.chartBlue} fill="none" stroke="rgba(47,131,255,0.72)" strokeWidth="5" strokeLinecap="round" />
+              <path d={snapshot.chartYellow} fill="none" stroke="#ffd24a" strokeWidth="3" strokeLinecap="round" />
+              <path d={snapshot.chartBlue} fill="none" stroke="#2f83ff" strokeWidth="3" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div
+            style={{
+              width: 220,
+              borderRadius: 14,
+              border: "1px solid rgba(123,141,204,0.35)",
+              background: "rgba(12,17,30,0.85)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              color: "#d9e2ff",
+              fontSize: 17,
+            }}
+          >
+            <div>Scan to verify</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={qrUrl} alt="QR code to verify share" width={124} height={124} style={{ borderRadius: 8, background: "#ffffff", padding: 4 }} />
+            <div style={{ color: "#aebfe9", fontSize: 13 }}>share/verify/{snapshot.id}</div>
+          </div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: "#d9e2ff" }}>
           <div>
             Score {snapshot.score}% · Green streak {snapshot.greenStreak} · Red streak {snapshot.redStreak}
           </div>
-          <div>Build your own score on consist.online</div>
+          <div>{verifyUrl}</div>
         </div>
       </div>
     ),

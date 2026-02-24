@@ -87,6 +87,8 @@ export default async function SharePage({ params }: { params: Promise<Params> })
   const { id } = await params;
   const snapshot = await getShareSnapshot(id);
   if (!snapshot) notFound();
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://consist.online").replace(/\/$/, "");
+  const verifyUrl = `${appUrl}/share/verify/${snapshot.id}`;
   const activeDays = snapshot.days.length;
   const greenDays = snapshot.days.filter((d) => d.variant !== "neg").length;
   const redDays = snapshot.days.filter((d) => d.variant === "neg").length;
@@ -159,6 +161,24 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           </span>
           <Link href="/login">Build your own score</Link>
         </div>
+
+        <section className={styles.verifyCard}>
+          <div className={styles.verifyText}>
+            <h2>Verified snapshot</h2>
+            <p>Scan the QR code to open the verification page for this shared result.</p>
+            <a href={verifyUrl} target="_blank" rel="noreferrer">
+              {verifyUrl}
+            </a>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className={styles.qrImage}
+            src={`/api/share/qr/${snapshot.id}`}
+            alt={`Verification QR for share ${snapshot.id}`}
+            width={160}
+            height={160}
+          />
+        </section>
       </section>
     </main>
   );

@@ -16,6 +16,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       id,
       url: `${origin}/s/${id}`,
+      verifyUrl: `${origin}/share/verify/${id}`,
+      qrUrl: `${origin}/api/share/qr/${id}`,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed";
