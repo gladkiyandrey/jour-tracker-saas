@@ -196,6 +196,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
         autoFromPrev: "Авто из прошлого дня",
         enterDeposit: "Введите сумму депозита",
         clearDay: "Очистить день",
+        dayGuideTitle: "Как отмечать день",
+        dayGuideGreen: "Зеленый — торговал по плану (PnL может быть и плюс, и минус).",
+        dayGuideRed: "Красный — нарушил правила (даже если день был в профит).",
+        dayGuideOutline: "Зеленый с обводкой — осознанно пропустил торговлю по правилам.",
+        depositGuideTitle: "Какой депозит вводить",
+        depositGuideText: "Вводи общий баланс аккаунта на конец дня, а не прибыль/убыток за день.",
+        depositGuideHint: "Пример: вчера 10000, сегодня +120 → вводишь 10120.",
         cancel: "Отмена",
         save: "Сохранить",
       };
@@ -238,6 +245,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
         autoFromPrev: "Авто з попереднього дня",
         enterDeposit: "Введіть суму депозиту",
         clearDay: "Очистити день",
+        dayGuideTitle: "Як позначати день",
+        dayGuideGreen: "Зелений — торгував за планом (PnL може бути і плюс, і мінус).",
+        dayGuideRed: "Червоний — порушив правила (навіть якщо день був у плюс).",
+        dayGuideOutline: "Зелений з обводкою — свідомо пропустив торгівлю за правилами.",
+        depositGuideTitle: "Який депозит вводити",
+        depositGuideText: "Вводь загальний баланс акаунта на кінець дня, а не прибуток/збиток за день.",
+        depositGuideHint: "Приклад: вчора 10000, сьогодні +120 → вводиш 10120.",
         cancel: "Скасувати",
         save: "Зберегти",
       };
@@ -279,6 +293,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
       autoFromPrev: "Auto from previous day",
       enterDeposit: "Enter deposit amount",
       clearDay: "Clear day",
+      dayGuideTitle: "How to mark the day",
+      dayGuideGreen: "Green — you followed your plan (PnL can be positive or negative).",
+      dayGuideRed: "Red — you broke your rules (even if the day ended in profit).",
+      dayGuideOutline: "Green with white outline — intentional no-trade day by your rules.",
+      depositGuideTitle: "What to enter as deposit",
+      depositGuideText: "Enter your total account balance at end of day, not daily PnL.",
+      depositGuideHint: "Example: yesterday 10000, today +120 → enter 10120.",
       cancel: "Cancel",
       save: "Save",
     };
@@ -1466,6 +1487,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </label>
               </div>
             </label>
+            <div className={styles.modalHintBox}>
+              <p className={styles.modalHintTitle}>{ui.dayGuideTitle}</p>
+              <ul className={styles.modalHintList}>
+                <li>{ui.dayGuideGreen}</li>
+                <li>{ui.dayGuideRed}</li>
+                <li>{ui.dayGuideOutline}</li>
+              </ul>
+            </div>
 
             <label className={styles.field}>
               <span>{ui.depositSize}</span>
@@ -1489,6 +1518,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 }}
               />
             </label>
+            <div className={styles.modalHintBox}>
+              <p className={styles.modalHintTitle}>{ui.depositGuideTitle}</p>
+              <p className={styles.modalHintText}>{ui.depositGuideText}</p>
+              <p className={styles.modalHintExample}>{ui.depositGuideHint}</p>
+            </div>
 
             <label className={styles.field}>
               <span>{ui.openedTrades}</span>
