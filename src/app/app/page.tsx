@@ -59,16 +59,19 @@ export default async function DashboardPage() {
         <div className="logo">{m.appName}</div>
       </div>
       <header className="topbar">
-        <div className="logo logo-light">{m.appName}</div>
-        <nav className="nav">
-          <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} />
+        <div className="topbar-left">
+          <div className="logo logo-light">{m.appName}</div>
+        </div>
+        <nav className="topbar-center">
           <Link className="btn btn-nav-plain" href="/">
             {m.navHome}
           </Link>
           <Link className="btn btn-nav-plain" href="/pricing">
             {m.navPricing}
           </Link>
-          <LanguageSwitcher locale={locale} minimal />
+        </nav>
+        <nav className="topbar-right">
+          <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} mode="icon" />
           <details className="user-menu">
             <summary className="user-menu-summary top-trigger">
               {user.avatarUrl ? (
@@ -106,6 +109,7 @@ export default async function DashboardPage() {
               </form>
             </div>
           </details>
+          <LanguageSwitcher locale={locale} compact />
         </nav>
       </header>
       <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>

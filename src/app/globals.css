@@ -54,6 +54,24 @@ a {
   padding: 12px 0 18px;
 }
 
+.topbar-left,
+.topbar-center,
+.topbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-center {
+  gap: 12px;
+  justify-content: center;
+  flex: 1;
+}
+
+.topbar-right {
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .logo {
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -137,6 +155,13 @@ a {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
 
+.lang-switch-trigger.compact {
+  min-width: 66px;
+  padding: 7px 10px;
+  justify-content: center;
+  gap: 6px;
+}
+
 .lang-switch-trigger:hover {
   border-color: rgba(170, 186, 244, 0.62);
   box-shadow: 0 8px 22px rgba(43, 77, 168, 0.22);
@@ -163,6 +188,12 @@ a {
   font-weight: 700;
   letter-spacing: 0.03em;
   color: #eaf1ff;
+}
+
+.lang-switch-trigger.compact .lang-chip {
+  min-width: 28px;
+  height: 20px;
+  font-size: 10px;
 }
 
 .lang-name {
@@ -667,6 +698,41 @@ a {
   padding-right: 2px;
 }
 
+.sub-wrap-icon {
+  padding-right: 0;
+}
+
+.sub-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 136, 190, 0.28);
+  background: rgba(18, 24, 46, 0.56);
+  color: #a9b9e9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: default;
+}
+
+.sub-icon-btn.active {
+  border-color: rgba(63, 217, 138, 0.34);
+  color: #9fecc1;
+  background: rgba(16, 63, 46, 0.28);
+}
+
+.sub-icon-btn.inactive {
+  border-color: rgba(255, 140, 140, 0.3);
+  color: #f1bac6;
+  background: rgba(70, 23, 33, 0.24);
+}
+
+.sub-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .sub-wrap .badge {
   cursor: default;
 }
@@ -903,7 +969,17 @@ a {
   .topbar {
     flex-direction: column;
     gap: 10px;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .topbar-center {
+    justify-content: flex-start;
+    order: 3;
+  }
+
+  .topbar-right {
+    justify-content: flex-start;
+    order: 2;
   }
 
   .grid {
@@ -934,6 +1010,12 @@ a {
   .lang-switch-trigger {
     min-height: 46px;
     min-width: 120px;
+  }
+
+  .lang-switch-trigger.compact {
+    min-width: 62px;
+    min-height: 42px;
+    padding: 6px 8px;
   }
 
   .user-avatar {

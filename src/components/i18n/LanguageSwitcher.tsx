@@ -7,9 +7,10 @@ import type { Locale } from "@/lib/i18n";
 type Props = {
   locale: Locale;
   minimal?: boolean;
+  compact?: boolean;
 };
 
-export default function LanguageSwitcher({ locale, minimal = false }: Props) {
+export default function LanguageSwitcher({ locale, minimal = false, compact = false }: Props) {
   const router = useRouter();
   const [value, setValue] = useState<Locale>(locale);
   const [open, setOpen] = useState(false);
@@ -81,7 +82,7 @@ export default function LanguageSwitcher({ locale, minimal = false }: Props) {
     <div className={`lang-switch ${open ? "is-open" : ""}`} ref={rootRef}>
       <button
         type="button"
-        className="lang-switch-trigger top-trigger"
+        className={`lang-switch-trigger top-trigger ${compact ? "compact" : ""}`}
         aria-label="Change language"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -89,7 +90,7 @@ export default function LanguageSwitcher({ locale, minimal = false }: Props) {
         onClick={() => setOpen((prev) => !prev)}
       >
         <span className="lang-chip">{value.toUpperCase()}</span>
-        <span className="lang-name">{labels[value]}</span>
+        {!compact ? <span className="lang-name">{labels[value]}</span> : null}
         <span className="lang-caret" aria-hidden="true">
           ▾
         </span>

@@ -7,7 +7,7 @@ type Props = {
   active: boolean;
   expiresAt: string | null;
   locale: Locale;
-  mode?: "badge" | "panel";
+  mode?: "badge" | "panel" | "icon";
 };
 
 const MONTHLY_PRICE = 5;
@@ -97,7 +97,34 @@ export default function SubscriptionBadgeClient({ active, expiresAt, locale, mod
   }, [plan]);
 
   const mainUi =
-    mode === "panel" ? (
+    mode === "icon" ? (
+      <div className="sub-wrap sub-wrap-icon">
+        <button type="button" className={`sub-icon-btn ${active ? "active" : "inactive"}`} aria-label={txt.sub}>
+          <svg viewBox="0 0 20 20" aria-hidden="true">
+            <path
+              d="M10 2.6l6 2.4v4.3c0 4.3-2.6 6.7-6 8.1-3.4-1.4-6-3.8-6-8.1V5l6-2.4z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            />
+            <path d="M7.4 10.2l1.8 1.8 3.4-3.4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div className="sub-tooltip">
+          <p>{txt.sub}: {active ? txt.active : txt.inactive}</p>
+          <p>{txt.validTo}: {expiresText}</p>
+          <button
+            type="button"
+            className="sub-renew-link"
+            onClick={() => {
+              setOpen(true);
+            }}
+          >
+            {txt.renew}
+          </button>
+        </div>
+      </div>
+    ) : mode === "panel" ? (
       <div className="sub-panel-inline">
         <span className={`user-sub-chip ${active ? "active" : "inactive"}`}>
           {txt.sub}: {active ? txt.active : txt.inactive}
