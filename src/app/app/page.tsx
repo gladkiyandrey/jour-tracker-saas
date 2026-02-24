@@ -48,9 +48,26 @@ export default async function DashboardPage() {
               Admin
             </Link>
           ) : null}
-          <form action="/api/auth/logout" method="post">
-            <button className="btn" type="submit">
-              Logout
+          <form action="/api/auth/logout" method="post" className="logout-form">
+            <button className="btn logout-icon-btn" type="submit" aria-label="Logout" title="Logout">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M13 5V3a1 1 0 0 0-1-1H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h7a1 1 0 0 0 1-1v-2"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 12h11M17 7l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </button>
           </form>
         </nav>

@@ -93,6 +93,24 @@ a {
   box-shadow: 0 10px 24px rgba(89, 132, 255, 0.35);
 }
 
+.logout-form {
+  margin: 0;
+}
+
+.logout-icon-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .card {
   border: 1px solid var(--border);
   background: linear-gradient(180deg, rgba(31, 40, 72, 0.92), rgba(18, 25, 47, 0.92));
