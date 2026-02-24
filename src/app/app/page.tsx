@@ -52,19 +52,6 @@ export default async function DashboardPage() {
         ? "Особистий акаунт"
         : "Personal Account";
 
-  const subShort =
-    locale === "ru"
-      ? sub.active
-        ? "Подписка: активна"
-        : "Подписка: неактивна"
-      : locale === "uk"
-        ? sub.active
-          ? "Підписка: активна"
-          : "Підписка: неактивна"
-        : sub.active
-          ? "Subscription: active"
-          : "Subscription: inactive";
-
   return (
     <main className="site dashboard">
       <div className="top-logo-bar">
@@ -74,6 +61,7 @@ export default async function DashboardPage() {
       <header className="topbar">
         <div className="logo logo-light">{m.appName}</div>
         <nav className="nav">
+          <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} />
           <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/">
             {m.navHome}
@@ -82,7 +70,7 @@ export default async function DashboardPage() {
             {m.navPricing}
           </Link>
           <details className="user-menu">
-            <summary className="user-menu-summary">
+            <summary className="user-menu-summary top-trigger">
               {user.avatarUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img className="user-avatar user-avatar-image" src={user.avatarUrl} alt={displayName} />
@@ -92,14 +80,12 @@ export default async function DashboardPage() {
               <span className="user-meta">
                 <strong>{displayName}</strong>
                 <small>{roleLabel}</small>
-                <span className={`user-sub-chip ${sub.active ? "active" : "inactive"}`}>{subShort}</span>
               </span>
               <svg className="user-chevron" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </summary>
             <div className="user-menu-panel">
-              <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} mode="panel" />
               <Link className="user-menu-link" href="/settings">
                 {m.settings}
               </Link>
@@ -110,6 +96,11 @@ export default async function DashboardPage() {
               ) : null}
               <form action="/api/auth/logout" method="post">
                 <button className="user-menu-link user-menu-logout" type="submit">
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path d="M12 4h4v12h-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                    <path d="M8 6l-4 4 4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M4 10h10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                  </svg>
                   {m.logout}
                 </button>
               </form>

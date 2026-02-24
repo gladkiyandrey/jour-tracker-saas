@@ -71,18 +71,32 @@ a {
   justify-content: flex-end;
 }
 
+.top-trigger {
+  min-height: 50px;
+  border: 1px solid rgba(120, 136, 190, 0.35);
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(24, 32, 58, 0.96), rgba(15, 21, 39, 0.96));
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.top-trigger:hover {
+  border-color: rgba(170, 186, 244, 0.62);
+  box-shadow: 0 8px 22px rgba(43, 77, 168, 0.22);
+  transform: translateY(-1px);
+}
+
 .lang-switch {
   position: relative;
 }
 
 .lang-switch-trigger {
-  border: 1px solid var(--border);
-  background: linear-gradient(180deg, rgba(26, 34, 63, 0.95), rgba(15, 21, 40, 0.95));
+  border: 1px solid rgba(120, 136, 190, 0.35);
+  background: linear-gradient(180deg, rgba(24, 32, 58, 0.96), rgba(15, 21, 39, 0.96));
   color: #eaf0ff;
-  border-radius: 999px;
+  border-radius: 14px;
   padding: 8px 12px;
   min-height: 40px;
-  min-width: 132px;
+  min-width: 140px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -381,6 +395,14 @@ a {
   background: rgba(84, 110, 177, 0.16);
 }
 
+.user-menu-link svg {
+  width: 15px;
+  height: 15px;
+  margin-right: 8px;
+  color: currentColor;
+  flex-shrink: 0;
+}
+
 .user-menu-logout {
   color: #ffd2dc;
 }
@@ -557,16 +579,32 @@ a {
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  border: 1px solid var(--border);
-  padding: 7px 12px;
+  gap: 6px;
+  border: 1px solid rgba(120, 136, 190, 0.35);
+  background: linear-gradient(180deg, rgba(24, 32, 58, 0.96), rgba(15, 21, 39, 0.96));
+  padding: 7px 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .badge.active {
   border-color: rgba(63, 217, 138, 0.55);
   color: #b0ffd8;
+  background: linear-gradient(180deg, rgba(17, 67, 49, 0.95), rgba(14, 34, 27, 0.95));
+}
+
+.sub-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.sub-wrap .badge {
+  cursor: default;
 }
 
 .warning-box {
@@ -698,11 +736,6 @@ a {
   color: var(--text);
 }
 
-.sub-wrap {
-  position: relative;
-  display: inline-flex;
-}
-
 .sub-tooltip {
   position: absolute;
   top: calc(100% + 8px);
@@ -832,6 +865,11 @@ a {
   .user-menu-summary {
     min-height: 46px;
     padding: 6px 8px;
+  }
+
+  .lang-switch-trigger {
+    min-height: 46px;
+    min-width: 120px;
   }
 
   .user-avatar {

@@ -62,7 +62,7 @@ export default function LanguageSwitcher({ locale }: Props) {
     <div className={`lang-switch ${open ? "is-open" : ""}`} ref={rootRef}>
       <button
         type="button"
-        className="lang-switch-trigger"
+        className="lang-switch-trigger top-trigger"
         aria-label="Change language"
         aria-haspopup="menu"
         aria-expanded={open}
