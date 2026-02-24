@@ -125,6 +125,7 @@ a {
 }
 
 .settings-icon-btn,
+.admin-icon-btn,
 .logout-icon-btn {
   width: 42px;
   height: 42px;
@@ -135,6 +136,7 @@ a {
 }
 
 .settings-icon-btn svg,
+.admin-icon-btn svg,
 .logout-icon-btn svg {
   width: 18px;
   height: 18px;

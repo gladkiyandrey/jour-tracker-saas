@@ -49,8 +49,17 @@ export default async function DashboardPage() {
             {m.navPricing}
           </Link>
           {admin ? (
-            <Link className="btn" href="/admin">
-              {m.navAdmin}
+            <Link className="btn admin-icon-btn" href="/admin" aria-label={m.navAdmin} title={m.navAdmin}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20a7 7 0 0 1 14 0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
             </Link>
           ) : null}
           <Link className="btn settings-icon-btn" href="/settings" aria-label={m.settings} title={m.settings}>
