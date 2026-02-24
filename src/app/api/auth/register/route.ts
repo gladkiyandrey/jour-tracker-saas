@@ -44,7 +44,7 @@ export async function POST(req: Request) {
 
     const res = NextResponse.redirect(new URL("/pricing", req.url), 303);
     setAuthCookies(res, { userId, email: userEmail, accessToken, refreshToken });
-    await syncSubscriptionCookies(res, userId);
+    await syncSubscriptionCookies(res, userId, userEmail);
     return res;
   } catch (e) {
     const message = e instanceof Error ? e.message.toLowerCase() : "";

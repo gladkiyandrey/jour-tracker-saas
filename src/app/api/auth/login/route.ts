@@ -25,12 +25,12 @@ export async function POST(req: Request) {
 
     const res = NextResponse.redirect(new URL("/pricing", req.url), 303);
     setAuthCookies(res, { userId, email: userEmail, accessToken, refreshToken });
-    const sub = await syncSubscriptionCookies(res, userId);
+    const sub = await syncSubscriptionCookies(res, userId, userEmail);
     if (!sub.active) return res;
 
     const activeRes = NextResponse.redirect(new URL("/app", req.url), 303);
     setAuthCookies(activeRes, { userId, email: userEmail, accessToken, refreshToken });
-    await syncSubscriptionCookies(activeRes, userId);
+    await syncSubscriptionCookies(activeRes, userId, userEmail);
     return activeRes;
   } catch {
     return NextResponse.redirect(new URL("/login?error=auth_unavailable", req.url), 303);

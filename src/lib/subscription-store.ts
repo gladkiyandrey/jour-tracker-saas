@@ -135,6 +135,81 @@ export async function resolveUserByTarget(targetRaw: string) {
   throw new Error("User not found by email");
 }
 
+export async function upsertPendingSubscriptionGrantByEmail(args: {
+  targetEmail: string;
+  grantedByUserId: string;
+  days: 1 | 7 | 30;
+  reason: string;
+}) {
+  const { targetEmail, grantedByUserId, days, reason } = args;
+  const email = targetEmail.trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    throw new Error("Target email is invalid");
+  }
+
+  const supabase = getSupabaseAdmin();
+  const nowIso = new Date().toISOString();
+  const { error } = await supabase.from("pending_subscription_grants").upsert(
+    {
+      email,
+      granted_by_user_id: grantedByUserId,
+      days,
+      reason,
+      updated_at: nowIso,
+    },
+    { onConflict: "email" },
+  );
+
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("relation") || msg.includes("does not exist")) {
+      throw new Error("Table pending_subscription_grants is missing. Run supabase SQL migration first.");
+    }
+    throw new Error(`Failed to save pending grant: ${error.message}`);
+  }
+}
+
+export async function applyPendingSubscriptionGrantForUser(args: { userId: string; email?: string | null }) {
+  const { userId } = args;
+  const email = (args.email ?? "").trim().toLowerCase();
+  if (!userId || !email) {
+    return { applied: false as const };
+  }
+
+  const supabase = getSupabaseAdmin();
+  const { data: pending, error } = await supabase
+    .from("pending_subscription_grants")
+    .select("email,days,reason,granted_by_user_id")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("relation") || msg.includes("does not exist")) {
+      return { applied: false as const };
+    }
+    throw new Error(`Failed to read pending grant: ${error.message}`);
+  }
+
+  if (!pending) {
+    return { applied: false as const };
+  }
+
+  await grantTrialSubscription({
+    targetUserId: userId,
+    grantedByUserId: pending.granted_by_user_id,
+    days: pending.days as 1 | 7 | 30,
+    reason: pending.reason ?? "pending grant auto-applied",
+  });
+
+  const { error: deleteErr } = await supabase.from("pending_subscription_grants").delete().eq("email", email);
+  if (deleteErr) {
+    throw new Error(`Grant applied, but failed to delete pending row: ${deleteErr.message}`);
+  }
+
+  return { applied: true as const };
+}
+
 export async function grantTrialSubscription(args: {
   targetUserId: string;
   grantedByUserId: string;

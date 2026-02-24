@@ -55,6 +55,18 @@ create table if not exists public.subscription_grants (
 create index if not exists idx_subscription_grants_target_created on public.subscription_grants (target_user_id, created_at desc);
 create index if not exists idx_subscription_grants_admin_created on public.subscription_grants (granted_by_user_id, created_at desc);
 
+create table if not exists public.pending_subscription_grants (
+  email text primary key,
+  granted_by_user_id uuid not null references auth.users(id) on delete cascade,
+  days integer not null check (days in (1, 7, 30)),
+  reason text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists idx_pending_subscription_grants_admin_created
+  on public.pending_subscription_grants (granted_by_user_id, created_at desc);
+
 alter table public.tracker_entries enable row level security;
 alter table public.user_subscriptions enable row level security;
 

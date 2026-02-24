@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
-import { grantTrialSubscription, resolveUserByTarget } from "@/lib/subscription-store";
+import { grantTrialSubscription, resolveUserByTarget, upsertPendingSubscriptionGrantByEmail } from "@/lib/subscription-store";
 
 function redirectWith(url: URL, params: Record<string, string>) {
   Object.entries(params).forEach(([key, value]) => {
@@ -35,7 +35,30 @@ export async function POST(req: Request) {
       return redirectWith(redirectUrl, { grantError: "Заполните пользователя и срок доступа" });
     }
 
-    const resolved = await resolveUserByTarget(target);
+    let resolved: { userId: string; email: string } | null = null;
+    try {
+      resolved = await resolveUserByTarget(target);
+    } catch (resolveError) {
+      const isEmailTarget = target.includes("@");
+      if (!isEmailTarget) {
+        throw resolveError;
+      }
+
+      await upsertPendingSubscriptionGrantByEmail({
+        targetEmail: target,
+        grantedByUserId: current.id,
+        days,
+        reason,
+      });
+      return redirectWith(redirectUrl, {
+        grantOk: `Пользователь ${target.toLowerCase()} еще не зарегистрирован. Доступ ${days} дн. сохранен и применится автоматически после регистрации.`,
+      });
+    }
+
+    if (!resolved) {
+      throw new Error("User resolve failed");
+    }
+
     const result = await grantTrialSubscription({
       targetUserId: resolved.userId,
       grantedByUserId: current.id,

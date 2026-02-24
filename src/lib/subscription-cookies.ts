@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { SUB_EXPIRES_COOKIE, SUB_STATUS_COOKIE } from "@/lib/auth";
-import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
+import { applyPendingSubscriptionGrantForUser, getSubscriptionStateFromDb } from "@/lib/subscription-store";
 
-export async function syncSubscriptionCookies(res: NextResponse, userId: string) {
+export async function syncSubscriptionCookies(res: NextResponse, userId: string, email?: string | null) {
   try {
+    await applyPendingSubscriptionGrantForUser({ userId, email });
     const sub = await getSubscriptionStateFromDb(userId);
     if (sub.active && sub.expiresAt) {
       const maxAge = Math.max(1, Math.floor((Date.parse(sub.expiresAt) - Date.now()) / 1000));
@@ -31,4 +32,3 @@ export async function syncSubscriptionCookies(res: NextResponse, userId: string)
   res.cookies.delete(SUB_EXPIRES_COOKIE);
   return { active: false as const };
 }
-

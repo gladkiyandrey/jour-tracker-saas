@@ -2,6 +2,7 @@
 alter table if exists public.share_snapshots enable row level security;
 alter table if exists public.push_subscriptions enable row level security;
 alter table if exists public.subscription_grants enable row level security;
+alter table if exists public.pending_subscription_grants enable row level security;
 
 -- share_snapshots: owner can read/insert/update/delete own rows
 drop policy if exists "share_select_own" on public.share_snapshots;
@@ -66,5 +67,9 @@ create policy "push_delete_own"
   using (auth.uid() = user_id);
 
 -- subscription_grants:
+-- No authenticated client policies on purpose.
+-- Access is done by backend via service role key only.
+
+-- pending_subscription_grants:
 -- No authenticated client policies on purpose.
 -- Access is done by backend via service role key only.

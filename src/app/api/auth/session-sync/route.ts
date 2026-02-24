@@ -23,7 +23,7 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ ok: true });
   setAuthCookies(res, { userId, email, accessToken, refreshToken });
-  const sub = await syncSubscriptionCookies(res, userId);
+  const sub = await syncSubscriptionCookies(res, userId, email);
   res.headers.set("x-sub-active", sub.active ? "1" : "0");
   return res;
 }
