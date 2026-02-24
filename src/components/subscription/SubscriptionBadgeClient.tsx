@@ -7,6 +7,7 @@ type Props = {
   active: boolean;
   expiresAt: string | null;
   locale: Locale;
+  mode?: "badge" | "panel";
 };
 
 const MONTHLY_PRICE = 5;
@@ -14,7 +15,7 @@ const YEAR_MONTHS = 12;
 const YEAR_DISCOUNT = 0.15;
 type PlanType = "monthly" | "yearly";
 
-export default function SubscriptionBadgeClient({ active, expiresAt, locale }: Props) {
+export default function SubscriptionBadgeClient({ active, expiresAt, locale, mode = "badge" }: Props) {
   const [open, setOpen] = useState(false);
   const [plan, setPlan] = useState<PlanType>("monthly");
 
@@ -95,8 +96,24 @@ export default function SubscriptionBadgeClient({ active, expiresAt, locale }: P
     return { base, discount, total, hasDiscount, months };
   }, [plan]);
 
-  return (
-    <>
+  const mainUi =
+    mode === "panel" ? (
+      <div className="sub-panel-inline">
+        <span className={`user-sub-chip ${active ? "active" : "inactive"}`}>
+          {txt.sub}: {active ? txt.active : txt.inactive}
+        </span>
+        <p className="sub-panel-exp">{txt.validTo}: {expiresText}</p>
+        <button
+          type="button"
+          className="sub-renew-link sub-renew-link-inline"
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          {txt.renew}
+        </button>
+      </div>
+    ) : (
       <div className="sub-wrap">
         <span className={`badge ${active ? "active" : ""}`}>{txt.sub}: {active ? txt.active : txt.inactive}</span>
         <div className="sub-tooltip">
@@ -112,7 +129,11 @@ export default function SubscriptionBadgeClient({ active, expiresAt, locale }: P
           </button>
         </div>
       </div>
+    );
 
+  return (
+    <>
+      {mainUi}
       {open ? (
         <div className="sub-modal-backdrop" role="presentation" onClick={() => setOpen(false)}>
           <div className="sub-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>

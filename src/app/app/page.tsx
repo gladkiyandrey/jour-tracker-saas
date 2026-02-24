@@ -52,6 +52,19 @@ export default async function DashboardPage() {
         ? "Особистий акаунт"
         : "Personal Account";
 
+  const subShort =
+    locale === "ru"
+      ? sub.active
+        ? "Подписка: активна"
+        : "Подписка: неактивна"
+      : locale === "uk"
+        ? sub.active
+          ? "Підписка: активна"
+          : "Підписка: неактивна"
+        : sub.active
+          ? "Subscription: active"
+          : "Subscription: inactive";
+
   return (
     <main className="site dashboard">
       <div className="top-logo-bar">
@@ -61,9 +74,6 @@ export default async function DashboardPage() {
       <header className="topbar">
         <div className="logo logo-light">{m.appName}</div>
         <nav className="nav">
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} />
-          </div>
           <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/">
             {m.navHome}
@@ -82,12 +92,14 @@ export default async function DashboardPage() {
               <span className="user-meta">
                 <strong>{displayName}</strong>
                 <small>{roleLabel}</small>
+                <span className={`user-sub-chip ${sub.active ? "active" : "inactive"}`}>{subShort}</span>
               </span>
               <svg className="user-chevron" viewBox="0 0 20 20" aria-hidden="true">
                 <path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </summary>
             <div className="user-menu-panel">
+              <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} mode="panel" />
               <Link className="user-menu-link" href="/settings">
                 {m.settings}
               </Link>

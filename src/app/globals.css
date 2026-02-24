@@ -274,7 +274,7 @@ a {
 .user-meta {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   line-height: 1.15;
   min-width: 0;
 }
@@ -291,6 +291,32 @@ a {
 .user-meta small {
   font-size: 11px;
   color: #9ea9cc;
+}
+
+.user-sub-chip {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.user-sub-chip.active {
+  border-color: rgba(63, 217, 138, 0.55);
+  color: #b0ffd8;
+  background: rgba(27, 98, 68, 0.22);
+}
+
+.user-sub-chip.inactive {
+  border-color: rgba(255, 140, 140, 0.55);
+  color: #ffd0d0;
+  background: rgba(100, 35, 43, 0.22);
 }
 
 .user-chevron {
@@ -317,6 +343,22 @@ a {
   display: grid;
   gap: 4px;
   z-index: 35;
+}
+
+.sub-panel-inline {
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.sub-panel-exp {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.sub-renew-link-inline {
+  margin-top: 8px;
 }
 
 .user-menu-link {
@@ -804,6 +846,11 @@ a {
 
   .user-meta small {
     font-size: 10px;
+  }
+
+  .user-sub-chip {
+    font-size: 9px;
+    padding: 0 7px;
   }
 }
 
