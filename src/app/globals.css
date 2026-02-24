@@ -829,6 +829,44 @@ a {
   color: #c7dbff;
 }
 
+.admin-grant {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(110px, 0.5fr) minmax(180px, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.admin-grant-target,
+.admin-grant-days,
+.admin-grant-reason {
+  margin-top: 0;
+}
+
+.admin-grant-days {
+  min-width: 110px;
+}
+
+.admin-grant-ok,
+.admin-grant-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.admin-grant-ok {
+  color: #9fecc1;
+}
+
+.admin-grant-error {
+  color: #ffb7c5;
+}
+
+.admin-divider {
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
 .admin-user-card h1 {
   margin: 0;
   font-size: 26px;
@@ -995,6 +1033,10 @@ a {
   }
 
   .admin-user-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-grant {
     grid-template-columns: 1fr;
   }
 

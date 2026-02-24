@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
-import { listSubscriptionsForAdmin } from "@/lib/subscription-store";
+import { listSubscriptionGrantsForAdmin, listSubscriptionsForAdmin } from "@/lib/subscription-store";
 
 function fmtDate(value: string | null) {
   if (!value) return "-";
@@ -12,7 +12,7 @@ function fmtDate(value: string | null) {
 }
 
 type PageProps = {
-  searchParams?: Promise<{ q?: string }> | { q?: string };
+  searchParams?: Promise<{ q?: string; grantOk?: string; grantError?: string }> | { q?: string; grantOk?: string; grantError?: string };
 };
 
 export default async function AdminSubscriptionsPage({ searchParams }: PageProps) {
@@ -26,7 +26,9 @@ export default async function AdminSubscriptionsPage({ searchParams }: PageProps
 
   const params = searchParams ? await searchParams : {};
   const q = String(params?.q ?? "").trim().toLowerCase();
-  const rows = await listSubscriptionsForAdmin(500);
+  const grantOk = String(params?.grantOk ?? "").trim();
+  const grantError = String(params?.grantError ?? "").trim();
+  const [rows, grants] = await Promise.all([listSubscriptionsForAdmin(500), listSubscriptionGrantsForAdmin(50)]);
   const filtered = q ? rows.filter((row) => row.email.includes(q) || row.userId.toLowerCase().includes(q)) : rows;
 
   return (
@@ -41,6 +43,28 @@ export default async function AdminSubscriptionsPage({ searchParams }: PageProps
       </header>
 
       <section className="card" style={{ overflowX: "auto" }}>
+        <h2 style={{ margin: 0, fontSize: "20px" }}>Выдать бесплатный доступ</h2>
+        <p className="note" style={{ marginTop: "6px", marginBottom: 0 }}>
+          Укажи email или user_id, срок и причину. Подписка продлится от текущей даты окончания (или от сейчас, если уже истекла).
+        </p>
+        <form className="admin-grant" action="/api/admin/subscriptions/grant" method="post">
+          <input className="input admin-grant-target" type="text" name="target" placeholder="email или user_id" required />
+          <select className="select admin-grant-days" name="days" defaultValue="7" required>
+            <option value="1">1 day</option>
+            <option value="7">7 days</option>
+            <option value="30">30 days</option>
+          </select>
+          <input className="input admin-grant-reason" type="text" name="reason" placeholder="Причина (friend / trial / support)" />
+          <button className="btn primary" type="submit">
+            Grant access
+          </button>
+        </form>
+        {grantOk ? <p className="admin-grant-ok">{grantOk}</p> : null}
+        {grantError ? <p className="admin-grant-error">{grantError}</p> : null}
+
+        <hr className="admin-divider" />
+
+        <h2 style={{ marginTop: 0, marginBottom: "8px", fontSize: "20px" }}>Подписки пользователей</h2>
         <div className="note" style={{ marginTop: 0 }}>
           Показывает: кто оплатил, когда оплатил и когда подписка заканчивается.
         </div>
@@ -111,6 +135,45 @@ export default async function AdminSubscriptionsPage({ searchParams }: PageProps
             {filtered.length === 0 ? (
               <tr>
                 <td colSpan={6}>Ничего не найдено по запросу.</td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+
+        <hr className="admin-divider" />
+
+        <h2 style={{ marginTop: 0, marginBottom: "8px", fontSize: "20px" }}>Последние выдачи trial</h2>
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Кому</th>
+              <th>Кто выдал</th>
+              <th>Срок</th>
+              <th>Причина</th>
+              <th>Новый expires_at</th>
+              <th>Когда выдано</th>
+            </tr>
+          </thead>
+          <tbody>
+            {grants.map((row) => (
+              <tr key={row.id}>
+                <td>
+                  <div>{row.targetEmail}</div>
+                  <div className="admin-sub-id">{row.targetUserId}</div>
+                </td>
+                <td>
+                  <div>{row.grantedByEmail}</div>
+                  <div className="admin-sub-id">{row.grantedByUserId}</div>
+                </td>
+                <td>{row.days} дн.</td>
+                <td>{row.reason || "-"}</td>
+                <td>{fmtDate(row.expiresAtAfter)}</td>
+                <td>{fmtDate(row.createdAt)}</td>
+              </tr>
+            ))}
+            {grants.length === 0 ? (
+              <tr>
+                <td colSpan={6}>Журнал выдач пока пустой (или не создана таблица subscription_grants).</td>
               </tr>
             ) : null}
           </tbody>
