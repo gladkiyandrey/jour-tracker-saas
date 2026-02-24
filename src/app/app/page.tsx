@@ -28,6 +28,29 @@ export default async function DashboardPage() {
     }
   }
   const userKey = user.id;
+  const nameFromEmail = email.split("@")[0] || "User";
+  const fallbackName = nameFromEmail
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+    .trim();
+  const displayName = (user.displayName || fallbackName).trim();
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "U";
+  const roleLabel = admin
+    ? locale === "ru"
+      ? "Админ"
+      : locale === "uk"
+        ? "Адмін"
+        : "Admin"
+    : locale === "ru"
+      ? "Личный аккаунт"
+      : locale === "uk"
+        ? "Особистий акаунт"
+        : "Personal Account";
 
   return (
     <main className="site dashboard">
@@ -48,54 +71,38 @@ export default async function DashboardPage() {
           <Link className="btn" href="/pricing">
             {m.navPricing}
           </Link>
-          {admin ? (
-            <Link className="btn admin-icon-btn" href="/admin" aria-label={m.navAdmin} title={m.navAdmin}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 20a7 7 0 0 1 14 0"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+          <details className="user-menu">
+            <summary className="user-menu-summary">
+              {user.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img className="user-avatar user-avatar-image" src={user.avatarUrl} alt={displayName} />
+              ) : (
+                <span className="user-avatar">{initials}</span>
+              )}
+              <span className="user-meta">
+                <strong>{displayName}</strong>
+                <small>{roleLabel}</small>
+              </span>
+              <svg className="user-chevron" viewBox="0 0 20 20" aria-hidden="true">
+                <path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            </Link>
-          ) : null}
-          <Link className="btn settings-icon-btn" href="/settings" aria-label={m.settings} title={m.settings}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M4 6h7M14 6h6M4 12h3M10 12h10M4 18h11M18 18h2M11 4v4M7 10v4M15 16v4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.9"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-          <form action="/api/auth/logout" method="post" className="logout-form">
-            <button className="btn logout-icon-btn" type="submit" aria-label={m.logout} title={m.logout}>
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M13 5V3a1 1 0 0 0-1-1H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h7a1 1 0 0 0 1-1v-2"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M10 12h11M17 7l5 5-5 5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
-          </form>
+            </summary>
+            <div className="user-menu-panel">
+              <Link className="user-menu-link" href="/settings">
+                {m.settings}
+              </Link>
+              {admin ? (
+                <Link className="user-menu-link" href="/admin">
+                  {m.navAdmin}
+                </Link>
+              ) : null}
+              <form action="/api/auth/logout" method="post">
+                <button className="user-menu-link user-menu-logout" type="submit">
+                  {m.logout}
+                </button>
+              </form>
+            </div>
+          </details>
         </nav>
       </header>
       <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>

@@ -5,6 +5,8 @@ import { getSupabasePublic } from "@/lib/supabase/server";
 export type CurrentUser = {
   id: string;
   email: string;
+  displayName?: string;
+  avatarUrl?: string;
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -21,7 +23,18 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
     if (error || !userId || !email) return null;
 
-    return { id: userId, email };
+    const meta = data.user?.user_metadata as Record<string, unknown> | undefined;
+    const fromMeta =
+      (typeof meta?.full_name === "string" && meta.full_name.trim()) ||
+      (typeof meta?.name === "string" && meta.name.trim()) ||
+      (typeof meta?.preferred_username === "string" && meta.preferred_username.trim()) ||
+      undefined;
+    const avatarUrl =
+      (typeof meta?.avatar_url === "string" && meta.avatar_url.trim()) ||
+      (typeof meta?.picture === "string" && meta.picture.trim()) ||
+      undefined;
+
+    return { id: userId, email, displayName: fromMeta, avatarUrl };
   } catch {
     return null;
   }
