@@ -70,10 +70,6 @@ export default async function DashboardPage() {
 
   return (
     <main className="site dashboard">
-      <div className="top-logo-bar">
-        <div className="logo-mark" />
-        <div className="logo">{m.appName}</div>
-      </div>
       <header className="topbar">
         <div className="topbar-left">
           <div className="logo logo-light">{m.appName}</div>
