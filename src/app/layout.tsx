@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import CustomCursor from "@/components/ui/CustomCursor";
 import { getLocaleFromCookies } from "@/lib/i18n";
 
@@ -16,6 +17,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body>
         <CustomCursor />
         {children}
+        <Analytics />
       </body>
     </html>
   );
