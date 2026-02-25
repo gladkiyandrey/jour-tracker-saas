@@ -186,6 +186,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "Сумма PnL красных",
         redDamageShare: "Доля урона красных",
         maxDrawdown: "Макс. просадка",
+        totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
+        avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
+        greenPnlSumHint: "Суммарный результат системных дней (зеленый и зеленый с обводкой), рассчитанный по изменению депозита.",
+        redPnlSumHint: "Суммарный результат дней с нарушением дисциплины (красные дни), по изменению депозита.",
+        redDamageShareHint: "Сколько процентов прибыли зеленых дней съели убытки красных дней. Чем ниже, тем лучше.",
+        maxDrawdownHint: "Максимальная просадка депозита от локального пика внутри месяца.",
         signalizer: "Сигнализатор",
         creating: "Создание...",
         shareSequence: "Поделиться серией",
@@ -237,6 +243,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "Сума PnL червоних",
         redDamageShare: "Частка втрат червоних",
         maxDrawdown: "Макс. просадка",
+        totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
+        avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
+        greenPnlSumHint: "Сумарний результат системних днів (зелений і зелений з обводкою), розрахований за зміною депозиту.",
+        redPnlSumHint: "Сумарний результат днів з порушенням дисципліни (червоні дні), за зміною депозиту.",
+        redDamageShareHint: "Який відсоток прибутку зелених днів зʼїли збитки червоних днів. Чим менше, тим краще.",
+        maxDrawdownHint: "Максимальна просадка депозиту від локального піка всередині місяця.",
         signalizer: "Сигналізатор",
         creating: "Створення...",
         shareSequence: "Поділитися серією",
@@ -287,6 +299,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redPnlSum: "Red PnL sum",
       redDamageShare: "Red Damage Share",
       maxDrawdown: "Max drawdown",
+      totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
+      avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
+      greenPnlSumHint: "Combined result of disciplined days (green and outlined green), based on deposit changes.",
+      redPnlSumHint: "Combined result of undisciplined days (red), based on deposit changes.",
+      redDamageShareHint: "What percent of green-day profits was eaten by red-day losses. Lower is better.",
+      maxDrawdownHint: "Maximum deposit drop from a local peak within the month.",
       signalizer: "Signalizer",
       creating: "Creating...",
       shareSequence: "Share sequence",
@@ -1377,27 +1395,63 @@ export default function TrackerClient({ userKey, locale }: Props) {
           <h4>{ui.monthlyReview}</h4>
           <div className={styles.weeklyGrid}>
             <div className={styles.weeklyItem}>
-              <span>{ui.totalTrades}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.totalTrades}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.totalTradesHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.totalTradesHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.totalTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.avgTrades}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.avgTrades}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.avgTradesHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.avgTradesHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.avgTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.greenPnlSum}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.greenPnlSum}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.greenPnlSumHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.greenPnlSumHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.greenPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.redPnlSum}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.redPnlSum}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.redPnlSumHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.redPnlSumHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.redPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.redDamageShare}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.redDamageShare}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.redDamageShareHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.redDamageShareHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.redDamageShare}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.maxDrawdown}</span>
+              <div className={styles.metricLabel}>
+                <span>{ui.maxDrawdown}</span>
+                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.maxDrawdownHint}>
+                  ?
+                  <span className={styles.metricTooltip}>{ui.maxDrawdownHint}</span>
+                </span>
+              </div>
               <strong>{monthlyReview.maxDrawdown}</strong>
             </div>
           </div>
