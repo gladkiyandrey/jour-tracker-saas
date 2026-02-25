@@ -112,9 +112,6 @@ export default async function DashboardPage() {
           <LanguageSwitcher locale={locale} compact />
         </nav>
       </header>
-      <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>
-        {m.signedInAs}: {email}
-      </p>
       <TrackerClient userKey={userKey} locale={locale} />
     </main>
   );
