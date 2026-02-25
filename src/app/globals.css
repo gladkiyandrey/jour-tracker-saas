@@ -156,10 +156,17 @@ a {
 }
 
 .lang-switch-trigger.compact {
-  min-width: 66px;
-  padding: 7px 10px;
+  min-width: auto;
+  height: 30px;
+  min-height: 30px;
+  padding: 0 2px;
   justify-content: center;
   gap: 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #e7ecff;
 }
 
 .lang-switch-trigger:hover {
@@ -196,6 +203,14 @@ a {
   font-size: 10px;
 }
 
+.lang-switch-trigger.compact:hover {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  color: #f3f7ff;
+}
+
 .lang-name {
   font-size: 13px;
   font-weight: 500;
@@ -207,6 +222,18 @@ a {
   font-size: 13px;
   color: #aebbe2;
   transition: transform 0.2s ease;
+}
+
+.lang-switch-trigger.compact .lang-caret {
+  margin-left: 0;
+  font-size: 15px;
+  color: #e7ecff;
+}
+
+.lang-globe {
+  width: 18px;
+  height: 18px;
+  color: currentColor;
 }
 
 .lang-switch.is-open .lang-caret {
@@ -1055,9 +1082,11 @@ a {
   }
 
   .lang-switch-trigger.compact {
-    min-width: 62px;
-    min-height: 42px;
-    padding: 6px 8px;
+    min-width: auto;
+    min-height: 34px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
   }
 
   .user-avatar {

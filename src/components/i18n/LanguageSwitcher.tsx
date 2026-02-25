@@ -86,10 +86,18 @@ export default function LanguageSwitcher({ locale, minimal = false, compact = fa
         aria-label="Change language"
         aria-haspopup="menu"
         aria-expanded={open}
+        title={labels[value]}
         disabled={loading}
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className="lang-chip">{value.toUpperCase()}</span>
+        {compact ? (
+          <svg className="lang-globe" viewBox="0 0 20 20" aria-hidden="true">
+            <circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" strokeWidth="1.7" />
+            <path d="M2.9 10h14.2M10 2.75c2.4 2.1 2.4 12.4 0 14.5M10 2.75c-2.4 2.1-2.4 12.4 0 14.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        ) : (
+          <span className="lang-chip">{value.toUpperCase()}</span>
+        )}
         {!compact ? <span className="lang-name">{labels[value]}</span> : null}
         <span className="lang-caret" aria-hidden="true">
           ▾
