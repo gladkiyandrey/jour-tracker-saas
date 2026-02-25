@@ -4,7 +4,7 @@ import { getSubscriptionState } from "@/lib/auth";
 import { getCurrentUserFromSessionCookies } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
-import TrackerClient from "@/components/tracker/TrackerClient";
+import DashboardTrackerLoader from "@/components/tracker/DashboardTrackerLoader";
 import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
@@ -128,7 +128,7 @@ export default async function DashboardPage() {
           <LanguageSwitcher locale={locale} compact />
         </nav>
       </header>
-      <TrackerClient userKey={userKey} locale={locale} />
+      <DashboardTrackerLoader userKey={userKey} locale={locale} />
     </main>
   );
 }
