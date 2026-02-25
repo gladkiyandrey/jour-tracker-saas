@@ -9,19 +9,35 @@ import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadge
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 
+const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("timeout"));
+    }, timeoutMs);
+
+    promise
+      .then((value) => resolve(value))
+      .catch((error) => reject(error))
+      .finally(() => clearTimeout(timer));
+  });
+}
+
 export default async function DashboardPage() {
   const locale = await getLocaleFromCookies();
   const m = t(locale);
+  const cookieSub = await getSubscriptionState();
   const user = await getCurrentUser();
   if (!user) {
     redirect("/login");
   }
   const email = user.email;
   const admin = isAdminEmail(email);
-  let sub = await getSubscriptionState();
+  let sub = cookieSub;
   if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
-      const dbSub = await getSubscriptionStateFromDb(user.id);
+      const dbSub = await withTimeout(getSubscriptionStateFromDb(user.id), SUBSCRIPTION_DB_TIMEOUT_MS);
       sub = { active: dbSub.active, expiresAt: dbSub.expiresAt };
     } catch {
       // fallback to cookie state
