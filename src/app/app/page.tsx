@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSubscriptionState } from "@/lib/auth";
-import { getCurrentUser } from "@/lib/current-user";
+import { getCurrentUserFromSessionCookies } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import TrackerClient from "@/components/tracker/TrackerClient";
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
   const locale = await getLocaleFromCookies();
   const m = t(locale);
   const cookieSub = await getSubscriptionState();
-  const user = await getCurrentUser();
+  const user = await getCurrentUserFromSessionCookies();
   if (!user) {
     redirect("/login");
   }
