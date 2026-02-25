@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { ACCESS_TOKEN_COOKIE, AUTH_COOKIE, AUTH_EMAIL_COOKIE } from "@/lib/auth";
+import { ACCESS_TOKEN_COOKIE, AUTH_AVATAR_COOKIE, AUTH_COOKIE, AUTH_EMAIL_COOKIE, AUTH_NAME_COOKIE } from "@/lib/auth";
 import { getSupabasePublic } from "@/lib/supabase/server";
 
 export type CurrentUser = {
@@ -46,12 +46,19 @@ export async function getCurrentUserFromSessionCookies(): Promise<CurrentUser | 
     const accessToken = store.get(ACCESS_TOKEN_COOKIE)?.value;
     const userId = store.get(AUTH_COOKIE)?.value;
     const email = store.get(AUTH_EMAIL_COOKIE)?.value?.toLowerCase();
+    const displayName = store.get(AUTH_NAME_COOKIE)?.value?.trim();
+    const avatarUrl = store.get(AUTH_AVATAR_COOKIE)?.value?.trim();
 
     if (!accessToken || !userId || !email) {
       return null;
     }
 
-    return { id: userId, email };
+    return {
+      id: userId,
+      email,
+      displayName: displayName || undefined,
+      avatarUrl: avatarUrl || undefined,
+    };
   } catch {
     return null;
   }

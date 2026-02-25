@@ -16,13 +16,23 @@ export async function POST(req: Request) {
   const { data, error } = await supabase.auth.getUser(accessToken);
   const userId = data.user?.id;
   const email = data.user?.email?.toLowerCase();
+  const meta = data.user?.user_metadata as Record<string, unknown> | undefined;
+  const displayName =
+    (typeof meta?.full_name === "string" && meta.full_name.trim()) ||
+    (typeof meta?.name === "string" && meta.name.trim()) ||
+    (typeof meta?.preferred_username === "string" && meta.preferred_username.trim()) ||
+    undefined;
+  const avatarUrl =
+    (typeof meta?.avatar_url === "string" && meta.avatar_url.trim()) ||
+    (typeof meta?.picture === "string" && meta.picture.trim()) ||
+    undefined;
 
   if (error || !userId || !email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const res = NextResponse.json({ ok: true });
-  setAuthCookies(res, { userId, email, accessToken, refreshToken });
+  setAuthCookies(res, { userId, email, accessToken, refreshToken, displayName, avatarUrl });
   const sub = await syncSubscriptionCookies(res, userId, email);
   res.headers.set("x-sub-active", sub.active ? "1" : "0");
   return res;

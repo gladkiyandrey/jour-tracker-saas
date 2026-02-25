@@ -20,6 +20,16 @@ export async function POST(req: Request) {
     const userEmail = data.user?.email?.toLowerCase();
     const accessToken = data.session?.access_token;
     const refreshToken = data.session?.refresh_token;
+    const meta = data.user?.user_metadata as Record<string, unknown> | undefined;
+    const displayName =
+      (typeof meta?.full_name === "string" && meta.full_name.trim()) ||
+      (typeof meta?.name === "string" && meta.name.trim()) ||
+      (typeof meta?.preferred_username === "string" && meta.preferred_username.trim()) ||
+      undefined;
+    const avatarUrl =
+      (typeof meta?.avatar_url === "string" && meta.avatar_url.trim()) ||
+      (typeof meta?.picture === "string" && meta.picture.trim()) ||
+      undefined;
     if (error || !userId || !userEmail) {
       const reason =
         errorText.includes("already registered") || errorText.includes("already been registered")
@@ -43,7 +53,7 @@ export async function POST(req: Request) {
     }
 
     const res = NextResponse.redirect(new URL("/pricing", req.url), 303);
-    setAuthCookies(res, { userId, email: userEmail, accessToken, refreshToken });
+    setAuthCookies(res, { userId, email: userEmail, accessToken, refreshToken, displayName, avatarUrl });
     await syncSubscriptionCookies(res, userId, userEmail);
     return res;
   } catch (e) {

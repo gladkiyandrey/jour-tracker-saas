@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 
 export const AUTH_COOKIE = "jour_user_id";
 export const AUTH_EMAIL_COOKIE = "jour_user_email";
+export const AUTH_NAME_COOKIE = "jour_user_name";
+export const AUTH_AVATAR_COOKIE = "jour_user_avatar";
 export const ACCESS_TOKEN_COOKIE = "jour_access_token";
 export const REFRESH_TOKEN_COOKIE = "jour_refresh_token";
 export const SUB_STATUS_COOKIE = "jour_subscription_status";
