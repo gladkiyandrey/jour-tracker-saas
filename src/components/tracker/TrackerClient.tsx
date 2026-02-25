@@ -1335,7 +1335,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
     });
 
     const ticks = visible.map((v, index) => {
-      const x = bounds.left + (width * index) / steps;
+      // Keep day labels strictly centered under bars.
+      const x = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
       return { x, label: String(v.day) };
     });
 
