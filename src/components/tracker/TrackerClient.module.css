@@ -586,7 +586,13 @@
 .monthlyRow {
   margin-top: 16px;
   display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
   gap: 12px;
+  align-items: start;
+}
+
+.monthlySpacer {
+  min-height: 1px;
 }
 
 .weekly h4 {
@@ -908,6 +914,14 @@
 @media (max-width: 1024px) {
   .tracker {
     grid-template-columns: 1fr;
+  }
+
+  .monthlyRow {
+    grid-template-columns: 1fr;
+  }
+
+  .monthlySpacer {
+    display: none;
   }
 
   .shareRow {
