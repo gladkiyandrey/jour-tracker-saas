@@ -1099,15 +1099,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const formatSignedUsd = (value: number) => {
       const sign = value >= 0 ? "+" : "-";
       const rounded = Math.round(Math.abs(value));
-      return `${sign}$${rounded.toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}`;
+      return `${sign}${rounded.toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$`;
     };
 
     if (!values.length) {
       return {
         totalTrades: "0",
         avgTrades: "0.0",
-        greenPnlSum: "$0",
-        redPnlSum: "$0",
+        greenPnlSum: "0$",
+        redPnlSum: "0$",
         redDamageShare: "0%",
         maxDrawdown: "0.0%",
       };
