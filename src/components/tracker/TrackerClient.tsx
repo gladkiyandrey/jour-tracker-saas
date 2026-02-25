@@ -17,7 +17,7 @@ type ChartHover = {
 };
 type SignalLevel = "ok" | "warn" | "critical";
 type SignalItem = {
-  key: "critical-tilt" | "lucky-profit" | "regression" | "divergence" | "healthy";
+  key: string;
   level: SignalLevel;
   label: string;
   message: string;
@@ -477,32 +477,67 @@ export default function TrackerClient({ userKey, locale }: Props) {
       .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
 
+    const t = (ru: string, uk: string, en: string) => (locale === "ru" ? ru : locale === "uk" ? uk : en);
     const items: SignalItem[] = [];
+    const dedupe = new Set<string>();
+    const addSignal = (key: string, level: SignalLevel, label: string, message: string) => {
+      if (dedupe.has(key)) return;
+      dedupe.add(key);
+      items.push({ key, level, label, message });
+    };
+
+    const classifyTrend = (deltaPct: number, flatThresholdPct = 0.35) => {
+      if (deltaPct > flatThresholdPct) return "up" as const;
+      if (deltaPct < -flatThresholdPct) return "down" as const;
+      return "flat" as const;
+    };
+
     if (monthItems.length < 2) {
-      items.push({
-        key: "healthy",
-        level: "ok",
-        label: locale === "ru" ? "Мониторинг" : locale === "uk" ? "Моніторинг" : "Monitoring",
-        message:
-          locale === "ru"
-            ? "Нужно минимум 2 заполненных дня для обнаружения риск-паттернов."
-            : locale === "uk"
-              ? "Потрібно щонайменше 2 заповнені дні для виявлення ризик-патернів."
-              : "Need at least 2 filled days to detect risk patterns.",
-      });
+      addSignal(
+        "monitoring",
+        "ok",
+        t("Мониторинг", "Моніторинг", "Monitoring"),
+        t(
+          "Нужно минимум 2 заполненных дня для обнаружения риск-паттернов.",
+          "Потрібно щонайменше 2 заповнені дні для виявлення ризик-патернів.",
+          "Need at least 2 filled days to detect risk patterns.",
+        ),
+      );
     } else {
-      const dayScore = (variant: Variant) => (variant === "neg" ? -1 : variant === "pos-outline" ? 0.5 : 1);
+      const dayScore = (variant: Variant) => (variant === "neg" ? -1 : 1);
       const cumulative = monthItems.reduce<number[]>((acc, day) => {
         const prev = acc.length ? acc[acc.length - 1] : 0;
         acc.push(prev + dayScore(day.variant));
         return acc;
       }, []);
+      const dayDeltas = monthItems.map((day, index) => {
+        if (index === 0) return 0;
+        const prev = Number(monthItems[index - 1].deposit) || 0;
+        const curr = Number(day.deposit) || 0;
+        return curr - prev;
+      });
 
       const latest = monthItems[monthItems.length - 1];
       const previous = monthItems[monthItems.length - 2];
       const latestDeposit = Number(latest.deposit) || 0;
       const previousDeposit = Number(previous.deposit) || 0;
       const depositDelta = latestDeposit - previousDeposit;
+      const latestDelta = dayDeltas[dayDeltas.length - 1] ?? 0;
+      const totalDays = monthItems.length;
+      const redDays = monthItems.filter((d) => d.variant === "neg").length;
+      const greenDays = monthItems.filter((d) => d.variant !== "neg").length;
+      const skipDays = monthItems.filter((d) => d.variant === "pos-outline").length;
+      const disciplinePct = redDays + greenDays > 0 ? (greenDays / (greenDays + redDays)) * 100 : 0;
+
+      const firstDeposit = Number(monthItems[0].deposit) || 0;
+      const bDeltaPct = firstDeposit > 0 ? ((latestDeposit - firstDeposit) / firstDeposit) * 100 : 0;
+      const bTrend = classifyTrend(bDeltaPct, 0.35);
+
+      const dWindow = Math.min(5, cumulative.length);
+      const dStart = cumulative[cumulative.length - dWindow] ?? cumulative[0] ?? 0;
+      const dEnd = cumulative[cumulative.length - 1] ?? 0;
+      const dDelta = dEnd - dStart;
+      const dTrend = dDelta > 0.5 ? "up" : dDelta < -0.5 ? "down" : "flat";
 
       const greenTrades = monthItems
         .filter((day) => day.variant !== "neg")
@@ -513,37 +548,175 @@ export default function TrackerClient({ userKey, locale }: Props) {
         baselineSource.length > 0
           ? baselineSource.reduce((sum, trades) => sum + trades, 0) / baselineSource.length
           : 1;
+      const avgTradesAll = fallbackTrades.reduce((sum, value) => sum + value, 0) / Math.max(fallbackTrades.length, 1);
+      const avgTradesRed =
+        monthItems.filter((d) => d.variant === "neg").reduce((sum, d) => sum + (Number(d.trades) || 0), 0) /
+        Math.max(redDays, 1);
+      const avgTradesGreen =
+        monthItems.filter((d) => d.variant !== "neg").reduce((sum, d) => sum + (Number(d.trades) || 0), 0) /
+        Math.max(greenDays, 1);
+      const overtradeThreshold = baselineTrades * 1.5;
       const severeTiltThreshold = Math.max(3, Math.ceil(baselineTrades * 3));
+      const lowTradesThreshold = Math.max(1, baselineTrades * 0.5);
+
+      const recent5 = monthItems.slice(-5);
+      const recent3 = monthItems.slice(-3);
+      const recent3TradesHigh = recent3.length === 3 && recent3.every((d) => (Number(d.trades) || 0) > overtradeThreshold);
+      const recent3DisciplineDown =
+        recent3.length === 3 &&
+        recent3.every((d, idx) => idx === 0 || dayScore(d.variant) < dayScore(recent3[idx - 1].variant));
+      const recentRedCount = recent3.filter((day) => day.variant === "neg").length;
+      const recentSkipCount = recent5.filter((day) => day.variant === "pos-outline").length;
+
+      const greenProfitOnly = monthItems.reduce((acc, day, idx) => {
+        if (idx === 0 || day.variant === "neg") return acc;
+        return acc + Math.max(dayDeltas[idx] ?? 0, 0);
+      }, 0);
+      const redLossOnly = monthItems.reduce((acc, day, idx) => {
+        if (idx === 0 || day.variant !== "neg") return acc;
+        return acc + Math.abs(Math.min(dayDeltas[idx] ?? 0, 0));
+      }, 0);
+      const redDamageShare = greenProfitOnly > 0 ? (redLossOnly / greenProfitOnly) * 100 : 0;
+
+      // I. Matrix B × D
+      if (bTrend === "up" && dTrend === "up") {
+        addSignal(
+          "pro-growth",
+          "ok",
+          t("Рост по системе", "Ріст за системою", "Pro Growth"),
+          t(
+            "Депозит и дисциплина растут одновременно. Не увеличивайте риск, удерживайте текущий ритм.",
+            "Депозит і дисципліна зростають одночасно. Не підвищуйте ризик, зберігайте поточний ритм.",
+            "Deposit and discipline are rising together. Keep risk stable and preserve your current routine.",
+          ),
+        );
+      }
+      if (bTrend === "up" && dTrend === "down") {
+        addSignal(
+          "euphoria",
+          "warn",
+          t("Эйфория", "Ейфорія", "Euphoria"),
+          t(
+            "Депозит растет, но дисциплина падает. Это опасный рост: сократите риск и лимит сделок.",
+            "Депозит зростає, але дисципліна падає. Це небезпечне зростання: зменште ризик і ліміт угод.",
+            "Deposit is growing while discipline is dropping. This is dangerous growth: cut risk and trade count.",
+          ),
+        );
+      }
+      if (bTrend === "down" && dTrend === "up") {
+        addSignal(
+          "system-test",
+          "ok",
+          t("Тест системы", "Тест системи", "System Test"),
+          t(
+            "Рынок сложный, но поведение правильное. Не меняйте ТС, сохраняйте процесс.",
+            "Ринок складний, але поведінка правильна. Не змінюйте ТС, зберігайте процес.",
+            "Market is difficult but behavior is correct. Do not change the strategy, keep execution quality.",
+          ),
+        );
+      }
+      if (bTrend === "down" && dTrend === "down") {
+        addSignal(
+          "tilt-zone",
+          "critical",
+          t("Зона тильта", "Зона тільту", "Tilt Zone"),
+          t(
+            "И депозит, и дисциплина в снижении. Сделайте паузу и вернитесь с жестким лимитом на сделки.",
+            "І депозит, і дисципліна знижуються. Зробіть паузу та поверніться з жорстким лімітом угод.",
+            "Both deposit and discipline are falling. Pause and resume only with strict trade limits.",
+          ),
+        );
+      }
+      if (bTrend === "flat" && dTrend === "down") {
+        addSignal(
+          "drift",
+          "warn",
+          t("Дрейф поведения", "Дрейф поведінки", "Drift"),
+          t(
+            "Результат в боковике, а дисциплина ухудшается. Ограничьте активность и уберите лишние входы.",
+            "Результат у боковику, а дисципліна погіршується. Обмежте активність і приберіть зайві входи.",
+            "Results are flat but discipline is getting worse. Reduce activity and cut marginal entries.",
+          ),
+        );
+      }
+      if (bTrend === "flat" && dTrend === "up") {
+        addSignal(
+          "pre-breakout",
+          "ok",
+          t("Подготовка к росту", "Підготовка до росту", "Pre Breakout"),
+          t(
+            "Качество исполнения растет в боковике. Обычно это база для следующего этапа роста.",
+            "Якість виконання зростає у боковику. Зазвичай це база для наступного етапу росту.",
+            "Execution quality is improving during flat performance. This is often a base before growth.",
+          ),
+        );
+      }
 
       const isCriticalTilt =
         latest.variant === "neg" && latest.trades >= severeTiltThreshold && depositDelta < 0;
       if (isCriticalTilt) {
-        items.push({
-          key: "critical-tilt",
-          level: "critical",
-          label: locale === "ru" ? "Критический тильт" : locale === "uk" ? "Критичний тільт" : "Critical Tilt",
-          message:
-            locale === "ru"
-              ? `Красный день + ${latest.trades} сделок (выше x3 базовой нормы) + падение депозита. Остановите торговлю и сбросьте режим.`
-              : locale === "uk"
-                ? `Червоний день + ${latest.trades} угод (вище x3 базової норми) + падіння депозиту. Зупиніть торгівлю та скиньте режим.`
-                : `Red day + ${latest.trades} trades (above x3 baseline) + deposit drop. Stop trading and reset rules now.`,
-        });
+        addSignal(
+          "critical-tilt",
+          "critical",
+          t("Критический тильт", "Критичний тільт", "Critical Tilt"),
+          t(
+            `Красный день + ${latest.trades} сделок (выше x3 базовой нормы) + падение депозита. Остановите торговлю и сбросьте режим.`,
+            `Червоний день + ${latest.trades} угод (вище x3 базової норми) + падіння депозиту. Зупиніть торгівлю та скиньте режим.`,
+            `Red day + ${latest.trades} trades (above x3 baseline) + deposit drop. Stop trading and reset rules now.`,
+          ),
+        );
       }
 
       const isLuckyProfit = latest.variant === "neg" && depositDelta > 0;
       if (isLuckyProfit) {
-        items.push({
-          key: "lucky-profit",
-          level: "warn",
-          label: locale === "ru" ? "Лудка в плюс" : locale === "uk" ? "Лудка в плюс" : "Lucky Profit",
-          message:
-            locale === "ru"
-              ? "Депозит вырос в красный день. Профит маскирует нарушение правил."
-              : locale === "uk"
-                ? "Депозит виріс у червоний день. Профіт маскує порушення правил."
-                : "Deposit grew on a red day. Profit is masking rule-breaking behavior.",
-        });
+        addSignal(
+          "lucky-profit",
+          "warn",
+          t("Лудка в плюс", "Лудка в плюс", "Lucky Profit"),
+          t(
+            "Депозит вырос в красный день. Профит маскирует нарушение правил.",
+            "Депозит виріс у червоному дні. Профіт маскує порушення правил.",
+            "Deposit grew on a red day. Profit is masking rule-breaking behavior.",
+          ),
+        );
+      }
+
+      // II. Divergences
+      if (recent3DisciplineDown && depositDelta >= 0) {
+        addSignal(
+          "pre-drawdown",
+          "warn",
+          t("Предпросадка", "Передпросадка", "Pre Drawdown"),
+          t(
+            "Дисциплина падает несколько дней подряд, пока депозит еще держится. Обычно это ранний риск просадки.",
+            "Дисципліна падає кілька днів поспіль, поки депозит ще тримається. Це ранній ризик просадки.",
+            "Discipline has dropped for several days while balance still holds. This often leads to drawdown soon.",
+          ),
+        );
+      }
+      if (bTrend === "up" && redDays > 0) {
+        addSignal(
+          "false-confidence",
+          "warn",
+          t("Ложная уверенность", "Хибна впевненість", "False Confidence"),
+          t(
+            "Есть красные дни при росте депозита. Прибыль может быть случайной и укреплять плохую привычку.",
+            "Є червоні дні при зростанні депозиту. Прибуток може бути випадковим і закріплювати погану звичку.",
+            "There are red days during balance growth. Profit may be random and reinforce bad habits.",
+          ),
+        );
+      }
+      if (greenProfitOnly > 0 && redLossOnly > greenProfitOnly * 0.3) {
+        addSignal(
+          "self-sabotage",
+          "warn",
+          t("Самосаботаж", "Самосаботаж", "Self Sabotage"),
+          t(
+            "Нарушения заметно съедают прибыль системных дней. Введите жесткий лимит сделок.",
+            "Порушення помітно зʼїдають прибуток системних днів. Введіть жорсткий ліміт угод.",
+            "Rule-breaking is eating a large share of system profits. Use a strict daily trade cap.",
+          ),
+        );
       }
 
       const prefix = monthItems.slice(0, Math.max(0, monthItems.length - 3));
@@ -557,21 +730,18 @@ export default function TrackerClient({ userKey, locale }: Props) {
         currentGreenRun += 1;
         if (currentGreenRun > longestGreenRun) longestGreenRun = currentGreenRun;
       });
-      const recent = monthItems.slice(-3);
-      const recentRedCount = recent.filter((day) => day.variant === "neg").length;
       const isRegression = longestGreenRun >= 4 && recentRedCount >= 2;
       if (isRegression) {
-        items.push({
-          key: "regression",
-          level: "warn",
-          label: locale === "ru" ? "Регрессия" : locale === "uk" ? "Регресія" : "Regression",
-          message:
-            locale === "ru"
-              ? "После длинной зеленой серии выросло число красных дней. Возьмите белый день для перезапуска."
-              : locale === "uk"
-                ? "Після довгої зеленої серії зросла кількість червоних днів. Візьміть білий день для перезапуску."
-                : "After a long green run, red days increased. Consider a white day for reset.",
-        });
+        addSignal(
+          "regression",
+          "warn",
+          t("Регрессия", "Регресія", "Regression"),
+          t(
+            "После длинной зеленой серии выросло число красных дней. Возьмите белый день для перезапуска.",
+            "Після довгої зеленої серії зросла кількість червоних днів. Візьміть білий день для перезапуску.",
+            "After a long green run, red days increased. Consider a white day for reset.",
+          ),
+        );
       }
 
       const trendWindowSize = Math.min(6, monthItems.length);
@@ -583,37 +753,300 @@ export default function TrackerClient({ userKey, locale }: Props) {
         cumulative[cumulative.length - 1] - (trendStartIndex > 0 ? cumulative[trendStartIndex - 1] : 0);
       const isDivergence = trendDepositChange > 0 && trendDisciplineChange < 0;
       if (isDivergence) {
-        items.push({
-          key: "divergence",
-          level: "warn",
-          label: locale === "ru" ? "Риск дивергенции" : locale === "uk" ? "Ризик дивергенції" : "Divergence Risk",
-          message:
-            locale === "ru"
-              ? "Депозит растет, а тренд дисциплины падает. Часто это перед нестабильной просадкой."
-              : locale === "uk"
-                ? "Депозит зростає, а тренд дисципліни падає. Часто це перед нестабільною просадкою."
-                : "Deposit is rising while discipline trend is falling. This often precedes unstable drawdowns.",
-        });
+        addSignal(
+          "divergence",
+          "warn",
+          t("Риск дивергенции", "Ризик дивергенції", "Divergence Risk"),
+          t(
+            "Депозит растет, а тренд дисциплины падает. Часто это перед нестабильной просадкой.",
+            "Депозит зростає, а тренд дисципліни падає. Часто це перед нестабільною просадкою.",
+            "Deposit is rising while discipline trend is falling. This often precedes unstable drawdowns.",
+          ),
+        );
+      }
+
+      // III. Day streaks
+      if (longestGreenRun >= 4) {
+        addSignal(
+          "green-streak",
+          "ok",
+          t("Зеленая серия", "Зелена серія", "Green Streak"),
+          t(
+            "Сильная серия системных дней. Следите за эйфорией и не ускоряйтесь.",
+            "Сильна серія системних днів. Слідкуйте за ейфорією та не прискорюйтесь.",
+            "Strong run of disciplined days. Guard against euphoria and avoid over-acceleration.",
+          ),
+        );
+      }
+      if (recentRedCount >= 2) {
+        addSignal(
+          "red-streak",
+          "critical",
+          t("Красная серия", "Червона серія", "Red Streak"),
+          t(
+            "Несколько красных дней подряд — признак потери контроля. Нужна пауза и перезапуск лимитов.",
+            "Кілька червоних днів поспіль — ознака втрати контролю. Потрібна пауза і перезапуск лімітів.",
+            "Multiple red days in a row indicate loss of control. Pause and reset your limits.",
+          ),
+        );
+      }
+      const prevGreenRun = (() => {
+        let run = 0;
+        for (let i = monthItems.length - 2; i >= 0; i -= 1) {
+          if (monthItems[i].variant === "neg") break;
+          run += 1;
+        }
+        return run;
+      })();
+      if (latest.variant === "neg" && prevGreenRun >= 3) {
+        addSignal(
+          "switch-g2r",
+          "warn",
+          t("Слом серии", "Злам серії", "Switch G→R"),
+          t(
+            "После зеленой серии пришел красный день. Это типичный сбой после уверенности.",
+            "Після зеленої серії прийшов червоний день. Це типовий збій після впевненості.",
+            "A red day after a green streak often indicates a confidence slip.",
+          ),
+        );
+      }
+      const prevRedRun = (() => {
+        let run = 0;
+        for (let i = monthItems.length - 2; i >= 0; i -= 1) {
+          if (monthItems[i].variant !== "neg") break;
+          run += 1;
+        }
+        return run;
+      })();
+      if (latest.variant !== "neg" && prevRedRun >= 2) {
+        addSignal(
+          "switch-r2g",
+          "ok",
+          t("Возврат контроля", "Повернення контролю", "Switch R→G"),
+          t(
+            "После красной серии день закрыт по плану. Сохраняйте тот же темп и не ускоряйтесь.",
+            "Після червоної серії день закрито за планом. Зберігайте той самий темп і не прискорюйтесь.",
+            "A disciplined day after a red streak means control is returning. Keep the same pace.",
+          ),
+        );
+      }
+
+      // IV. Trades / day rhythm
+      if (recent3TradesHigh) {
+        addSignal(
+          "overtrading",
+          "warn",
+          t("Овертрейдинг", "Овертрейдинг", "Overtrading"),
+          t(
+            "Три дня подряд активность выше нормы. Введите жесткий лимит сделок на день.",
+            "Три дні поспіль активність вище норми. Введіть жорсткий ліміт угод на день.",
+            "Activity has been above baseline for 3 straight days. Apply a strict daily trade cap.",
+          ),
+        );
+      }
+      if (latest.variant === "neg" && latest.trades > overtradeThreshold && previous.variant === "neg") {
+        addSignal(
+          "tilt-spike",
+          "critical",
+          t("Всплеск тильта", "Сплеск тільту", "Tilt Spike"),
+          t(
+            "После красного дня сделки резко выросли — это попытка отбиться. Нужна блокировка до следующего дня.",
+            "Після червоного дня угоди різко зросли — це спроба відігратись. Потрібне блокування до наступного дня.",
+            "Trade count spiked after a red day, likely revenge trading. Block trading until next day.",
+          ),
+        );
+      }
+      if (previous.variant !== "neg" && latest.trades > overtradeThreshold && latest.variant !== "neg") {
+        addSignal(
+          "ego-spike",
+          "warn",
+          t("Эго-всплеск", "Его-сплеск", "Ego Spike"),
+          t(
+            "После успешного дня активность выросла слишком резко. Снижайте риск и держите темп.",
+            "Після успішного дня активність зросла занадто різко. Знижуйте ризик і тримайте темп.",
+            "Activity jumped too hard after a good day. Reduce risk and return to baseline pace.",
+          ),
+        );
+      }
+      if (bTrend === "down" && (latest.trades || 0) < lowTradesThreshold) {
+        addSignal(
+          "freeze",
+          "warn",
+          t("Фриз", "Фриз", "Freeze"),
+          t(
+            "Депозит снижается при слишком низкой активности. Вернитесь к базовому ритму и минимальному риску.",
+            "Депозит знижується при занадто низькій активності. Поверніться до базового ритму і мінімального ризику.",
+            "Balance is falling while activity is too low. Return to your base routine with minimal risk.",
+          ),
+        );
+      }
+
+      // V. Skip-day logic (pos-outline)
+      if (skipDays >= 2 && dTrend === "up") {
+        addSignal(
+          "smart-filter",
+          "ok",
+          t("Умная фильтрация", "Розумна фільтрація", "Smart Filter"),
+          t(
+            "Пропуски рынка помогают сохранять дисциплину. Это признак качественного отбора сетапов.",
+            "Пропуски ринку допомагають зберігати дисципліну. Це ознака якісного відбору сетапів.",
+            "No-trade days are supporting discipline. This is a sign of quality setup filtering.",
+          ),
+        );
+      }
+      if (recentSkipCount >= 2 && dTrend === "down" && bTrend === "down") {
+        addSignal(
+          "avoidance",
+          "warn",
+          t("Избегание", "Уникання", "Avoidance"),
+          t(
+            "Много пропусков на фоне падения дисциплины и депозита. Похоже на уход от решений, а не фильтрацию.",
+            "Багато пропусків на фоні падіння дисципліни й депозиту. Це більше схоже на уникання, а не фільтрацію.",
+            "Many skip days with falling discipline and balance suggest avoidance, not smart filtering.",
+          ),
+        );
+      }
+      if (recentSkipCount >= 2 && latest.trades > overtradeThreshold && latest.variant === "neg") {
+        addSignal(
+          "fomo-return",
+          "warn",
+          t("FOMO-возврат", "FOMO-повернення", "FOMO Return"),
+          t(
+            "После пропусков произошел эмоциональный возврат с высоким числом сделок. Ограничьте активность.",
+            "Після пропусків стався емоційний повернення з високою кількістю угод. Обмежте активність.",
+            "After skip days, trading returned with emotional overactivity. Cap trade count immediately.",
+          ),
+        );
+      }
+
+      // VI. Day × result
+      if (latest.variant !== "neg" && latestDelta < 0) {
+        addSignal(
+          "disciplined-loss",
+          "ok",
+          t("Системный минус", "Системний мінус", "Disciplined Loss"),
+          t(
+            "Убыточный, но дисциплинированный день — нормальная часть системы.",
+            "Збитковий, але дисциплінований день — нормальна частина системи.",
+            "A losing but disciplined day is a normal part of a robust strategy.",
+          ),
+        );
+      }
+      if (latest.variant === "neg" && latestDelta > 0) {
+        addSignal(
+          "chaotic-win",
+          "warn",
+          t("Хаотичный плюс", "Хаотичний плюс", "Chaotic Win"),
+          t(
+            "Профит в красный день — опасное подкрепление плохой привычки.",
+            "Профіт у червоний день — небезпечне підкріплення поганої звички.",
+            "Profit on a red day reinforces bad behavior. Treat it as a warning, not success.",
+          ),
+        );
+      }
+      if (latest.variant === "neg" && latestDelta < 0) {
+        addSignal(
+          "chaotic-loss",
+          "critical",
+          t("Хаотичный минус", "Хаотичний мінус", "Chaotic Loss"),
+          t(
+            "Нарушение дисциплины и убыток в одном дне. Нужен немедленный откат к базовым лимитам.",
+            "Порушення дисципліни та збиток в одному дні. Потрібен негайний відкат до базових лімітів.",
+            "Rule-breaking and loss in one day. Immediately reset to strict baseline limits.",
+          ),
+        );
+      }
+
+      // VII. Critical thresholds
+      if (disciplinePct < 60) {
+        addSignal(
+          "discipline-crisis",
+          "critical",
+          t("Кризис дисциплины", "Криза дисципліни", "Discipline Crisis"),
+          t(
+            "Дисциплина ниже 60%. Торгуйте только в ограниченном режиме до восстановления показателя.",
+            "Дисципліна нижче 60%. Торгуйте лише в обмеженому режимі до відновлення показника.",
+            "Discipline is below 60%. Use restricted mode until the metric recovers.",
+          ),
+        );
+      }
+      if (redDamageShare > 50) {
+        addSignal(
+          "red-cost",
+          "warn",
+          t("Высокая цена красных дней", "Висока ціна червоних днів", "High Red-Day Cost"),
+          t(
+            "Красные дни съедают более 50% прибыли зеленых. Снижайте риск и частоту.",
+            "Червоні дні зʼїдають понад 50% прибутку зелених. Знижуйте ризик і частоту.",
+            "Red days are eating more than 50% of green-day profits. Reduce risk and frequency.",
+          ),
+        );
+      }
+      if (avgTradesRed > avgTradesGreen && redDays >= 2 && greenDays >= 2) {
+        addSignal(
+          "trade-imbalance",
+          "warn",
+          t("Дисбаланс сделок", "Дисбаланс угод", "Trade Imbalance"),
+          t(
+            "В красные дни сделок больше, чем в зеленые. Это признак эмоционального давления.",
+            "У червоні дні угод більше, ніж у зелені. Це ознака емоційного тиску.",
+            "You trade more on red days than green days. This is an emotional-pressure pattern.",
+          ),
+        );
+      }
+
+      // VIII. Ideal patterns
+      if (avgTradesAll <= 2 && disciplinePct >= 80 && bTrend !== "down") {
+        addSignal(
+          "low-t-high-d",
+          "ok",
+          t("Проф-режим", "Проф-режим", "Low T / High D"),
+          t(
+            "Низкая частота при высокой дисциплине. Профиль близок к профессиональному режиму.",
+            "Низька частота при високій дисципліні. Профіль близький до професійного режиму.",
+            "Low frequency with high discipline. This profile is close to pro execution mode.",
+          ),
+        );
+      }
+      const tradeVariance = (() => {
+        const m = avgTradesAll;
+        const variance = fallbackTrades.reduce((acc, value) => acc + (value - m) ** 2, 0) / Math.max(fallbackTrades.length, 1);
+        return Math.sqrt(variance);
+      })();
+      if (tradeVariance <= 1.2 && disciplinePct >= 70 && bTrend === "up") {
+        addSignal(
+          "stable-rhythm",
+          "ok",
+          t("Стабильный ритм", "Стабільний ритм", "Stable Rhythm"),
+          t(
+            "Частота сделок и дисциплина стабильны, депозит растет. Это оптимальный рабочий цикл.",
+            "Частота угод і дисципліна стабільні, депозит зростає. Це оптимальний робочий цикл.",
+            "Trade cadence and discipline are stable while balance is rising. This is an optimal cycle.",
+          ),
+        );
       }
 
       if (!items.length) {
-        items.push({
-          key: "healthy",
-          level: "ok",
-          label: locale === "ru" ? "Стабильное состояние" : locale === "uk" ? "Стабільний стан" : "Healthy State",
-          message:
-            locale === "ru"
-              ? "Критичных риск-паттернов не обнаружено. Держите стабильное качество исполнения."
-              : locale === "uk"
-                ? "Критичних ризик-патернів не виявлено. Тримайте стабільну якість виконання."
-                : "No critical risk pattern detected. Keep execution quality and trade frequency stable.",
-        });
+        addSignal(
+          "healthy",
+          "ok",
+          t("Стабильное состояние", "Стабільний стан", "Healthy State"),
+          t(
+            "Критичных риск-паттернов не обнаружено. Держите стабильное качество исполнения.",
+            "Критичних ризик-патернів не виявлено. Тримайте стабільну якість виконання.",
+            "No critical risk pattern detected. Keep execution quality and trade frequency stable.",
+          ),
+        );
       }
     }
 
-    const summaryLevel: SignalLevel = items.some((item) => item.level === "critical")
+    const byPriority = { critical: 0, warn: 1, ok: 2 } as const;
+    items.sort((a, b) => byPriority[a.level] - byPriority[b.level]);
+    const visibleItems = items.slice(0, 8);
+
+    const summaryLevel: SignalLevel = visibleItems.some((item) => item.level === "critical")
       ? "critical"
-      : items.some((item) => item.level === "warn")
+      : visibleItems.some((item) => item.level === "warn")
         ? "warn"
         : "ok";
     const summaryTitle =
@@ -653,7 +1086,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               ? "Профіль виконання цього місяця стабільний."
               : "Execution profile is stable this month.";
 
-    return { summaryLevel, summaryTitle, summaryMessage, items };
+    return { summaryLevel, summaryTitle, summaryMessage, items: visibleItems };
   }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const monthlyReview = useMemo(() => {
