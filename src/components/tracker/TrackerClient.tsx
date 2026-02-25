@@ -1466,7 +1466,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <p className={styles.modalDate}>{selectedDateKey}</p>
 
             <label className={styles.field}>
-              <span>{ui.result}</span>
+              <div className={styles.fieldHeader}>
+                <span>{ui.result}</span>
+                <details className={styles.inlineHelp}>
+                  <summary aria-label={ui.dayGuideTitle}>?</summary>
+                  <div className={styles.inlineHelpBody}>
+                    <p className={styles.inlineHelpTitle}>{ui.dayGuideTitle}</p>
+                    <ul className={styles.inlineHelpList}>
+                      <li>{ui.dayGuideGreen}</li>
+                      <li>{ui.dayGuideRed}</li>
+                      <li>{ui.dayGuideOutline}</li>
+                    </ul>
+                  </div>
+                </details>
+              </div>
               <div className={styles.colorOptions}>
                 <label className={styles.colorOption}>
                   <input
@@ -1512,17 +1525,19 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </label>
               </div>
             </label>
-            <div className={styles.modalHintBox}>
-              <p className={styles.modalHintTitle}>{ui.dayGuideTitle}</p>
-              <ul className={styles.modalHintList}>
-                <li>{ui.dayGuideGreen}</li>
-                <li>{ui.dayGuideRed}</li>
-                <li>{ui.dayGuideOutline}</li>
-              </ul>
-            </div>
 
             <label className={styles.field}>
-              <span>{ui.depositSize}</span>
+              <div className={styles.fieldHeader}>
+                <span>{ui.depositSize}</span>
+                <details className={styles.inlineHelp}>
+                  <summary aria-label={ui.depositGuideTitle}>?</summary>
+                  <div className={styles.inlineHelpBody}>
+                    <p className={styles.inlineHelpTitle}>{ui.depositGuideTitle}</p>
+                    <p className={styles.inlineHelpText}>{ui.depositGuideText}</p>
+                    <p className={styles.inlineHelpExample}>{ui.depositGuideHint}</p>
+                  </div>
+                </details>
+              </div>
               <input
                 type="text"
                 inputMode="numeric"
@@ -1543,11 +1558,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 }}
               />
             </label>
-            <div className={styles.modalHintBox}>
-              <p className={styles.modalHintTitle}>{ui.depositGuideTitle}</p>
-              <p className={styles.modalHintText}>{ui.depositGuideText}</p>
-              <p className={styles.modalHintExample}>{ui.depositGuideHint}</p>
-            </div>
 
             <label className={styles.field}>
               <span>{ui.openedTrades}</span>

@@ -665,6 +665,18 @@
   margin-bottom: 8px;
 }
 
+.fieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.fieldHeader span {
+  margin-bottom: 0;
+}
+
 .field input,
 .field select {
   width: 100%;
@@ -677,15 +689,50 @@
   font-size: 14px;
 }
 
-.modalHintBox {
-  margin: -4px 0 2px;
-  border: 1px solid rgba(121, 133, 173, 0.36);
+.inlineHelp {
+  position: relative;
+}
+
+.inlineHelp summary {
+  list-style: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(121, 133, 173, 0.58);
+  color: #dce5ff;
+  background: rgba(16, 23, 40, 0.86);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+}
+
+.inlineHelp summary::-webkit-details-marker {
+  display: none;
+}
+
+.inlineHelp[open] summary {
+  border-color: rgba(99, 147, 255, 0.85);
+  color: #ffffff;
+}
+
+.inlineHelpBody {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 5;
+  width: min(280px, 72vw);
+  border: 1px solid rgba(121, 133, 173, 0.42);
   border-radius: 10px;
-  background: linear-gradient(180deg, rgba(21, 28, 47, 0.8), rgba(14, 20, 36, 0.84));
+  background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
+  box-shadow: 0 12px 30px rgba(2, 5, 14, 0.5);
   padding: 10px 12px;
 }
 
-.modalHintTitle {
+.inlineHelpTitle {
   margin: 0;
   color: #edf2ff;
   font-size: 12px;
@@ -693,7 +740,7 @@
   letter-spacing: 0.01em;
 }
 
-.modalHintList {
+.inlineHelpList {
   margin: 8px 0 0;
   padding: 0;
   list-style: none;
@@ -701,20 +748,20 @@
   gap: 4px;
 }
 
-.modalHintList li {
+.inlineHelpList li {
   color: #b9c7ee;
   font-size: 11px;
   line-height: 1.4;
 }
 
-.modalHintText {
+.inlineHelpText {
   margin: 8px 0 0;
   color: #b9c7ee;
   font-size: 11px;
   line-height: 1.4;
 }
 
-.modalHintExample {
+.inlineHelpExample {
   margin: 6px 0 0;
   color: #dce6ff;
   font-size: 11px;
@@ -878,8 +925,8 @@
     justify-content: flex-end;
   }
 
-  .modalHintBox {
-    padding: 9px 10px;
+  .inlineHelpBody {
+    width: min(260px, 78vw);
   }
 }
 
