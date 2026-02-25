@@ -180,11 +180,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sun: "Вс",
         aiAdvice: "AI совет по дисциплине",
         monthlyReview: "Обзор месяца",
+        totalTrades: "Сделок за месяц",
         avgTrades: "Сделок в день (сред.)",
-        bestDay: "Лучший день",
-        worstDay: "Худший день",
+        greenPnlSum: "Сумма PnL зеленых",
+        redPnlSum: "Сумма PnL красных",
+        redDamageShare: "Доля урона красных",
         maxDrawdown: "Макс. просадка",
-        ruleAdherence: "Соблюдение правил",
         signalizer: "Сигнализатор",
         creating: "Создание...",
         shareSequence: "Поделиться серией",
@@ -230,11 +231,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sun: "Нд",
         aiAdvice: "AI порада щодо дисципліни",
         monthlyReview: "Огляд місяця",
+        totalTrades: "Угод за місяць",
         avgTrades: "Угод на день (серед.)",
-        bestDay: "Найкращий день",
-        worstDay: "Найгірший день",
+        greenPnlSum: "Сума PnL зелених",
+        redPnlSum: "Сума PnL червоних",
+        redDamageShare: "Частка втрат червоних",
         maxDrawdown: "Макс. просадка",
-        ruleAdherence: "Дотримання правил",
         signalizer: "Сигналізатор",
         creating: "Створення...",
         shareSequence: "Поділитися серією",
@@ -279,11 +281,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sun: "Sun",
       aiAdvice: "AI discipline advice",
       monthlyReview: "Monthly review",
+      totalTrades: "Total trades (month)",
       avgTrades: "Avg trades/day",
-      bestDay: "Best day",
-      worstDay: "Worst day",
+      greenPnlSum: "Green PnL sum",
+      redPnlSum: "Red PnL sum",
+      redDamageShare: "Red Damage Share",
       maxDrawdown: "Max drawdown",
-      ruleAdherence: "Rule adherence",
       signalizer: "Signalizer",
       creating: "Creating...",
       shareSequence: "Share sequence",
@@ -642,19 +645,25 @@ export default function TrackerClient({ userKey, locale }: Props) {
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
     const values = monthItems;
 
+    const formatSignedUsd = (value: number) => {
+      const sign = value >= 0 ? "+" : "-";
+      const rounded = Math.round(Math.abs(value));
+      return `${sign}$${rounded.toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}`;
+    };
+
     if (!values.length) {
       return {
+        totalTrades: "0",
         avgTrades: "0.0",
-        bestDay: "-",
-        worstDay: "-",
+        greenPnlSum: "$0",
+        redPnlSum: "$0",
+        redDamageShare: "0%",
         maxDrawdown: "0.0%",
-        adherence: "0%",
       };
     }
 
-    const avgTrades = (
-      values.reduce((acc, day) => acc + (Number(day.trades) || 0), 0) / values.length
-    ).toFixed(1);
+    const totalTradesCount = values.reduce((acc, day) => acc + (Number(day.trades) || 0), 0);
+    const avgTrades = (totalTradesCount / values.length).toFixed(1);
 
     let peak = Number(values[0].deposit) || 0;
     let maxDrawdownPct = 0;
@@ -668,44 +677,32 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     const deltas = values.map((day, index) => {
-      if (index === 0) return { day: day.dateKey, delta: 0 };
+      if (index === 0) return { day: day.dateKey, delta: 0, variant: day.variant };
       const prev = Number(values[index - 1].deposit) || 0;
       const curr = Number(day.deposit) || 0;
-      return { day: day.dateKey, delta: curr - prev };
+      return { day: day.dateKey, delta: curr - prev, variant: day.variant };
     });
-    const best = deltas.reduce((a, b) => (b.delta > a.delta ? b : a), deltas[0]);
-    const worst = deltas.reduce((a, b) => (b.delta < a.delta ? b : a), deltas[0]);
 
-    const adherentDays = values.filter((day) => {
-      const isOutline = day.variant === "pos-outline";
-      const trades = Number(day.trades) || 0;
-      const withinTradeLimit = isOutline ? trades === 0 : trades <= 2;
-      return day.variant !== "neg" && withinTradeLimit;
-    }).length;
-    const adherence = `${Math.round((adherentDays / values.length) * 100)}%`;
+    const greenPnl = deltas
+      .filter((day) => day.variant === "pos" || day.variant === "pos-outline")
+      .reduce((acc, day) => acc + day.delta, 0);
+    const redPnl = deltas.filter((day) => day.variant === "neg").reduce((acc, day) => acc + day.delta, 0);
 
-    const weekdayShort = (dateKey: string) => {
-      const date = new Date(`${dateKey}T00:00:00`);
-      if (Number.isNaN(date.getTime())) return "";
-      const weekLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
-      return date.toLocaleDateString(weekLocale, { weekday: "long" });
-    };
-
-    const shortDay = (dateKey: string) => {
-      const d = Number(dateKey.slice(-2));
-      return Number.isFinite(d) ? `${d}` : "-";
-    };
+    const greenProfitOnly = deltas
+      .filter((day) => day.variant === "pos" || day.variant === "pos-outline")
+      .reduce((acc, day) => acc + Math.max(day.delta, 0), 0);
+    const redLossOnly = deltas
+      .filter((day) => day.variant === "neg")
+      .reduce((acc, day) => acc + Math.abs(Math.min(day.delta, 0)), 0);
+    const redDamageShare = greenProfitOnly > 0 ? `${((redLossOnly / greenProfitOnly) * 100).toFixed(1)}%` : "0%";
 
     return {
+      totalTrades: `${totalTradesCount}`,
       avgTrades,
-      bestDay: best
-        ? `${weekdayShort(best.day)} ${shortDay(best.day)} (${best.delta >= 0 ? "+$" : "-$"}${Math.abs(Math.round(best.delta))})`
-        : "-",
-      worstDay: worst
-        ? `${weekdayShort(worst.day)} ${shortDay(worst.day)} (${worst.delta >= 0 ? "+$" : "-$"}${Math.abs(Math.round(worst.delta))})`
-        : "-",
+      greenPnlSum: formatSignedUsd(greenPnl),
+      redPnlSum: formatSignedUsd(redPnl),
+      redDamageShare,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
-      adherence,
     };
   }, [locale, sortedEntries, viewMonth, viewYear]);
 
@@ -1380,24 +1377,28 @@ export default function TrackerClient({ userKey, locale }: Props) {
           <h4>{ui.monthlyReview}</h4>
           <div className={styles.weeklyGrid}>
             <div className={styles.weeklyItem}>
+              <span>{ui.totalTrades}</span>
+              <strong>{monthlyReview.totalTrades}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
               <span>{ui.avgTrades}</span>
               <strong>{monthlyReview.avgTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.bestDay}</span>
-              <strong>{monthlyReview.bestDay}</strong>
+              <span>{ui.greenPnlSum}</span>
+              <strong>{monthlyReview.greenPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
-              <span>{ui.worstDay}</span>
-              <strong>{monthlyReview.worstDay}</strong>
+              <span>{ui.redPnlSum}</span>
+              <strong>{monthlyReview.redPnlSum}</strong>
+            </div>
+            <div className={styles.weeklyItem}>
+              <span>{ui.redDamageShare}</span>
+              <strong>{monthlyReview.redDamageShare}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <span>{ui.maxDrawdown}</span>
               <strong>{monthlyReview.maxDrawdown}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <span>{ui.ruleAdherence}</span>
-              <strong>{monthlyReview.adherence}</strong>
             </div>
           </div>
         </div>
