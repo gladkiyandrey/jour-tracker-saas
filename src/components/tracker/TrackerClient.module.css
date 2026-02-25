@@ -591,10 +591,6 @@
   align-items: start;
 }
 
-.monthlySpacer {
-  min-height: 1px;
-}
-
 .weekly h4 {
   margin: 0;
   font-size: 14px;
@@ -918,10 +914,6 @@
 
   .monthlyRow {
     grid-template-columns: 1fr;
-  }
-
-  .monthlySpacer {
-    display: none;
   }
 
   .shareRow {
