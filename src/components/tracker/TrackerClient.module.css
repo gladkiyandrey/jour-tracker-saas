@@ -417,6 +417,17 @@
   pointer-events: none;
 }
 
+.dayLocked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.dayLocked:hover {
+  transform: none;
+  border-color: rgba(121, 133, 173, 0.34);
+  background: rgba(16, 22, 38, 0.86);
+}
+
 .dayNeg {
   background: rgba(172, 30, 49, 0.58);
   border-color: rgba(255, 106, 131, 0.7);

@@ -203,6 +203,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         depositGuideTitle: "Какой депозит вводить",
         depositGuideText: "Вводи общий баланс аккаунта на конец дня, а не прибыль/убыток за день.",
         depositGuideHint: "Пример: вчера 10000, сегодня +120 → вводишь 10120.",
+        futureDayLocked: "Будущие даты нельзя заполнять.",
         cancel: "Отмена",
         save: "Сохранить",
       };
@@ -252,6 +253,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         depositGuideTitle: "Який депозит вводити",
         depositGuideText: "Вводь загальний баланс акаунта на кінець дня, а не прибуток/збиток за день.",
         depositGuideHint: "Приклад: вчора 10000, сьогодні +120 → вводиш 10120.",
+        futureDayLocked: "Майбутні дати не можна заповнювати.",
         cancel: "Скасувати",
         save: "Зберегти",
       };
@@ -300,6 +302,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       depositGuideTitle: "What to enter as deposit",
       depositGuideText: "Enter your total account balance at end of day, not daily PnL.",
       depositGuideHint: "Example: yesterday 10000, today +120 → enter 10120.",
+      futureDayLocked: "Future dates cannot be filled.",
       cancel: "Cancel",
       save: "Save",
     };
@@ -871,7 +874,18 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return 0;
   };
 
+  const todayKey = useMemo(() => {
+    const nowDate = new Date();
+    return formatDateKey(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+  }, []);
+
+  const isFutureDateKey = (dateKey: string) => dateKey > todayKey;
+
   const openModal = (dateKey: string) => {
+    if (isFutureDateKey(dateKey)) {
+      setSyncError(ui.futureDayLocked);
+      return;
+    }
     setSelectedDateKey(dateKey);
     const current = dayData[dateKey];
     setModalVariant(current?.variant ?? "");
@@ -892,6 +906,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const saveDay = async () => {
     if (!selectedDateKey) return;
+    if (isFutureDateKey(selectedDateKey)) {
+      setModalError(ui.futureDayLocked);
+      return;
+    }
     const isOutline = modalVariant === "pos-outline";
     const previousDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : 0;
     const enteredDeposit = Number(modalDeposit.trim());
@@ -984,6 +1002,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const clearDay = async () => {
     if (!selectedDateKey) return;
+    if (isFutureDateKey(selectedDateKey)) {
+      setModalError(ui.futureDayLocked);
+      return;
+    }
 
     setDayData((prev) => {
       const next = { ...prev };
@@ -1037,7 +1059,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const lastDate = new Date(viewYear, viewMonth + 1, 0).getDate();
     const cells = [] as Array<
       | { kind: "empty" }
-      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean }
+      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean }
     >;
 
     for (let i = 0; i < 42; i += 1) {
@@ -1052,12 +1074,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
           dateKey,
           entry: dayData[dateKey],
           isSelected: dateKey === selectedDateKey,
+          isFuture: dateKey > todayKey,
         });
       }
     }
 
     return cells;
-  }, [viewMonth, viewYear, dayData, selectedDateKey]);
+  }, [viewMonth, viewYear, dayData, selectedDateKey, todayKey]);
 
   const monthLabel = useMemo(() => {
     const date = new Date(viewYear, viewMonth, 1);
@@ -1330,8 +1353,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <button
                     key={cell.dateKey}
                     type="button"
-                    className={renderDayClass(cell.entry, cell.isSelected)}
+                    className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
                     onClick={() => openModal(cell.dateKey)}
+                    disabled={cell.isFuture}
+                    aria-disabled={cell.isFuture}
                   >
                     {cell.day}
                   </button>
