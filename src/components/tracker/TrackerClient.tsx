@@ -22,6 +22,11 @@ type SignalItem = {
   label: string;
   message: string;
 };
+type AdviceSnapshot = {
+  monthKey: string;
+  lastCount: number;
+  advice: string;
+};
 
 type Props = {
   userKey: string;
@@ -153,6 +158,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = localStorage.getItem(`jour-ai-advice-${userKey}`);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Partial<AdviceSnapshot>;
+      if (typeof parsed.monthKey !== "string" || typeof parsed.advice !== "string" || typeof parsed.lastCount !== "number") {
+        return null;
+      }
+      return {
+        monthKey: parsed.monthKey,
+        advice: parsed.advice,
+        lastCount: parsed.lastCount,
+      };
+    } catch {
+      return null;
+    }
+  });
   const chartClipId = useMemo(
     () => `chart-clip-${userKey.replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 24) || "default"}`,
     [userKey]
@@ -430,46 +453,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       }
     });
 
-    let advice =
-      locale === "ru"
-        ? "Отметьте минимум 5 дней для надежной рекомендации. Заполняйте дни последовательно. Указывайте и результат, и депозит для точности."
-        : locale === "uk"
-          ? "Заповніть мінімум 5 днів для надійної рекомендації. Ведіть записи послідовно. Вказуйте і результат, і депозит для точності."
-          : "Track at least 5 days to unlock a reliable recommendation. Keep entries consistent for a clearer pattern. Fill both result and deposit to improve accuracy.";
-    if (total >= 5) {
-      if (score >= 75 && greenStreak >= 4) {
-        advice =
-          locale === "ru"
-            ? "Сильная стабильность. Сохраняйте тот же ритм и защищайте серию, ограничивая импульсивные входы. Держите одинаковый риск на сделку и повторяйте рабочие сетапы."
-            : locale === "uk"
-              ? "Сильна стабільність. Зберігайте той самий ритм і захищайте серію, обмежуючи імпульсивні входи. Тримайте однаковий ризик на угоду і повторюйте робочі сетапи."
-              : "Strong consistency. Keep the same routine and protect your streak by limiting impulsive entries. Use the same risk per trade to avoid variance spikes. Review only your best setups and repeat what already works.";
-      } else if (redStreak >= 3) {
-        advice =
-          locale === "ru"
-            ? "Красная серия растет. Снизьте размер позиции в ближайших сессиях и торгуйте только A+ сетапы. Сделайте паузу после двух подряд убыточных дней."
-            : locale === "uk"
-              ? "Червона серія зростає. Зменште розмір позиції у найближчих сесіях і торгуйте лише A+ сетапи. Зробіть паузу після двох поспіль збиткових днів."
-              : "Red streak is growing. Reduce position size for the next sessions and trade only A+ setups. Pause after two consecutive losses to reset execution quality. Focus on one pattern and skip marginal entries this week.";
-      } else if (score >= 60) {
-        advice =
-          locale === "ru"
-            ? "Прогресс стабильный. Избегайте эмоциональных дней, которые ломают импульс. Фиксируйте лимит сделок до начала сессии."
-            : locale === "uk"
-              ? "Прогрес стабільний. Уникайте емоційних днів, які ламають імпульс. Фіксуйте ліміт угод до початку сесії."
-              : "Progress is stable. Focus on avoiding single emotional days that break momentum. Lock your max trades limit before the session starts. Keep a brief post-trade note to catch repeated mistakes early.";
-      } else {
-        advice =
-          locale === "ru"
-            ? "Дисциплина нестабильна. Используйте строгий чеклист и лимит риска, пока показатель не восстановится. Снизьте частоту и верните фокус на качество."
-            : locale === "uk"
-              ? "Дисципліна нестабільна. Використовуйте строгий чеклист і ліміт ризику, поки показник не відновиться. Зменшіть частоту і поверніть фокус на якість."
-              : "Discipline is unstable. Use a strict daily checklist and cap risk until score recovers. Reduce frequency and prioritize quality over activity. Aim for three clean sessions in a row before increasing risk.";
-      }
-    }
-
-    return { score, greenStreak, redStreak, advice };
-  }, [locale, sortedEntries, viewMonth, viewYear]);
+    return { score, greenStreak, redStreak };
+  }, [sortedEntries, viewMonth, viewYear]);
 
   const signalizer = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -1088,6 +1073,81 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
     return { summaryLevel, summaryTitle, summaryMessage, items: visibleItems };
   }, [locale, sortedEntries, viewMonth, viewYear]);
+
+  const monthFilledCount = useMemo(() => {
+    const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    return sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix)).length;
+  }, [sortedEntries, viewMonth, viewYear]);
+
+  const aiLiveAdvice = useMemo(() => {
+    const summaryAction =
+      signalizer.summaryLevel === "critical"
+        ? locale === "ru"
+          ? "Снизьте активность сразу: только базовые сетапы и лимит сделок."
+          : locale === "uk"
+            ? "Знизьте активність одразу: лише базові сетапи та ліміт угод."
+            : "Reduce activity immediately: only core setups and a hard trades cap."
+        : signalizer.summaryLevel === "warn"
+          ? locale === "ru"
+            ? "Сохраните режим контроля: фиксируйте риск до начала сессии."
+            : locale === "uk"
+              ? "Збережіть режим контролю: фіксуйте ризик до початку сесії."
+              : "Keep control mode: lock risk limits before the session starts."
+          : locale === "ru"
+            ? "Режим стабильный: продолжайте в том же ритме без разгона."
+            : locale === "uk"
+              ? "Режим стабільний: продовжуйте в тому ж ритмі без розгону."
+              : "Execution is stable: keep the same pace without acceleration.";
+
+    const topSignals = signalizer.items.slice(0, 2).map((item) => item.message);
+    const lead =
+      locale === "ru"
+        ? "Совет на основе последних поведенческих факторов."
+        : locale === "uk"
+          ? "Порада на основі останніх поведінкових факторів."
+          : "Advice based on recent behavioral factors.";
+    const tail =
+      locale === "ru"
+        ? "Следующее обновление будет после 3 новых заполненных дней."
+        : locale === "uk"
+          ? "Наступне оновлення буде після 3 нових заповнених днів."
+          : "Next update will be after 3 new filled days.";
+
+    if (!topSignals.length) {
+      return `${lead} ${summaryAction} ${tail}`;
+    }
+    return `${lead} ${topSignals.join(" ")} ${summaryAction} ${tail}`;
+  }, [locale, signalizer.items, signalizer.summaryLevel]);
+
+  useEffect(() => {
+    const monthKey = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}`;
+    const next =
+      !adviceSnapshot ||
+      adviceSnapshot.monthKey !== monthKey ||
+      monthFilledCount < adviceSnapshot.lastCount ||
+      monthFilledCount - adviceSnapshot.lastCount >= 3 ||
+      !adviceSnapshot.advice
+        ? {
+            monthKey,
+            lastCount: monthFilledCount,
+            advice: aiLiveAdvice,
+          }
+        : adviceSnapshot;
+
+    if (
+      !adviceSnapshot ||
+      adviceSnapshot.monthKey !== next.monthKey ||
+      adviceSnapshot.lastCount !== next.lastCount ||
+      adviceSnapshot.advice !== next.advice
+    ) {
+      setAdviceSnapshot(next);
+      try {
+        localStorage.setItem(`jour-ai-advice-${userKey}`, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+    }
+  }, [adviceSnapshot, aiLiveAdvice, monthFilledCount, userKey, viewMonth, viewYear]);
 
   const monthlyReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -1817,7 +1877,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <h4>
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
             </h4>
-            <p>{stats.advice}</p>
+            <p>{adviceSnapshot?.advice || aiLiveAdvice}</p>
           </div>
 
         </div>
