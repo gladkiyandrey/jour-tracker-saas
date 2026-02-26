@@ -1910,7 +1910,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
           </p>
           <div className={styles.signalList}>
-            {signalizer.items.map((item) => (
+            {signalizer.items.slice(0, 4).map((item) => (
               <div key={item.key} className={styles.signalItem}>
                 <span
                   className={`${styles.signalBadge} ${
