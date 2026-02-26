@@ -497,7 +497,7 @@
 .signalSummary {
   margin: 8px 0 0;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: #d6def9;
 }
 
@@ -661,7 +661,8 @@
 
 .weeklyItem span {
   color: #9ea9cc;
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .metricLabel {
@@ -718,8 +719,9 @@
 
 .weeklyItem strong {
   color: #eff4ff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
+  line-height: 1.55;
   text-align: right;
   white-space: nowrap;
   flex: 0 0 auto;
