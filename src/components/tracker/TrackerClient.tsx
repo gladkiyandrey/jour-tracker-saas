@@ -10,7 +10,7 @@ type Entry = { result: -1 | 1; variant: Variant; deposit: number; trades: number
 type ChartHover = {
   x: number;
   y: number;
-  day: number;
+  label: string;
   deposit: number;
   trades: number;
   variant: Variant | "none";
@@ -152,6 +152,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
+  const [trackerView, setTrackerView] = useState<"month" | "year">("month");
   const [reviewMode, setReviewMode] = useState<"month" | "year">("month");
   const [syncError, setSyncError] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
@@ -185,6 +186,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
     if (locale === "ru") {
       return {
         monthTracker: "Трекер месяца",
+        yearTracker: "Трекер года",
+        trackerMonth: "Месяц",
+        trackerYear: "Год",
         consistency: "Дисциплина",
         depositSize: "Размер депозита",
         tradesPerDay: "Сделок / день",
@@ -245,6 +249,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
     if (locale === "uk") {
       return {
         monthTracker: "Трекер місяця",
+        yearTracker: "Трекер року",
+        trackerMonth: "Місяць",
+        trackerYear: "Рік",
         consistency: "Дисципліна",
         depositSize: "Розмір депозиту",
         tradesPerDay: "Угод / день",
@@ -304,6 +311,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
     return {
       monthTracker: "Monthly Tracker",
+      yearTracker: "Yearly Tracker",
+      trackerMonth: "Month",
+      trackerYear: "Year",
       consistency: "Consistency",
       depositSize: "Deposit size",
       tradesPerDay: "Trades / day",
@@ -438,8 +448,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const stats = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const yearPrefix = `${viewYear}-`;
+    const activePrefix = trackerView === "month" ? monthPrefix : yearPrefix;
     const values = sortedEntries
-      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .filter(([dateKey]) => dateKey.startsWith(activePrefix))
       .map(([, value]) => value);
     const greens = values.filter((v) => v.result === 1).length;
     const reds = values.filter((v) => v.result === -1).length;
@@ -464,12 +476,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
     });
 
     return { score, greenStreak, redStreak };
-  }, [sortedEntries, viewMonth, viewYear]);
+  }, [sortedEntries, trackerView, viewMonth, viewYear]);
 
   const signalizer = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const yearPrefix = `${viewYear}-`;
+    const activePrefix = trackerView === "month" ? monthPrefix : yearPrefix;
     const monthItems = sortedEntries
-      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .filter(([dateKey]) => dateKey.startsWith(activePrefix))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
 
     const t = (ru: string, uk: string, en: string) => (locale === "ru" ? ru : locale === "uk" ? uk : en);
@@ -1082,7 +1096,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               : "Execution profile is stable this month.";
 
     return { summaryLevel, summaryTitle, summaryMessage, items: visibleItems };
-  }, [locale, sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const monthFilledCount = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -1234,12 +1248,17 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const TRADE_BAR_UNIT = 12; // fixed px per 1 trade
     const TRADE_BAR_CAP = 8; // visual cap, tooltip still shows real value
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
-    const monthEntries = sortedEntries.filter(([dateKey]) => dateKey.startsWith(monthPrefix));
-    const filledEntries = monthEntries;
+    const yearPrefix = `${viewYear}-`;
+    const activeEntries = sortedEntries.filter(([dateKey]) =>
+      trackerView === "month" ? dateKey.startsWith(monthPrefix) : dateKey.startsWith(yearPrefix),
+    );
+    const filledEntries = activeEntries;
 
     let cumulative = 0;
     const visible: Array<{
       day: number;
+      dateKey: string;
+      label: string;
       cumulative: number;
       deposit: number;
       trades: number;
@@ -1247,8 +1266,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }> = filledEntries.map(([dateKey, entry]) => {
       const dayScore = entry.variant === "neg" ? -1 : entry.variant === "pos-outline" ? 0.5 : 1;
       cumulative += dayScore;
+      const day = Number(dateKey.slice(-2));
       return {
-        day: Number(dateKey.slice(-2)),
+        day,
+        dateKey,
+        label: trackerView === "month" ? String(day) : dateKey.slice(5),
         cumulative,
         deposit: Number(entry.deposit) || 0,
         trades: Number(entry.trades) || 0,
@@ -1261,7 +1283,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return {
         yellow: "",
         blue: "",
-        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; deposit: number; trades: number; variant: Variant | "none" }>,
+        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; label: string; deposit: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
         yTicksLeft: [] as Array<{ y: number; label: string }>,
         bounds,
@@ -1333,7 +1355,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const width = bounds.right - bounds.left;
     const height = bounds.bottom - bounds.top;
     const tradeMaxHeight = Math.min(height, TRADE_BAR_UNIT * TRADE_BAR_CAP);
-    const barWidth = Math.max(4, Math.min(12, width / Math.max(visible.length * 1.8, 1)));
+    const barWidth = trackerView === "year" ? Math.max(1.4, Math.min(8, width / Math.max(visible.length * 1.25, 1))) : Math.max(4, Math.min(12, width / Math.max(visible.length * 1.8, 1)));
     const bars = visible.map((v, index) => {
       const centerX = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
       const x = centerX - barWidth / 2;
@@ -1342,20 +1364,28 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const y = bounds.bottom - h;
       const kind: "zero" | "ok" | "warn" | "hot" =
         v.trades === 0 ? "zero" : v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
-      return { x, y, w: barWidth, h, kind, day: v.day, deposit: v.deposit, trades: v.trades, variant: v.variant };
+      return { x, y, w: barWidth, h, kind, day: v.day, label: v.label, deposit: v.deposit, trades: v.trades, variant: v.variant };
     });
 
-    const ticks = visible.map((v, index) => {
-      // Keep day labels strictly centered under bars.
-      const x = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
-      return { x, label: String(v.day) };
-    });
+    const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+    const ticks =
+      trackerView === "month"
+        ? visible.map((v, index) => {
+            const x = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
+            return { x, label: String(v.day) };
+          })
+        : visible.reduce<Array<{ x: number; label: string }>>((acc, v, index) => {
+            if (!v.dateKey.endsWith("-01")) return acc;
+            const x = bounds.left + barWidth / 2 + ((width - barWidth) * index) / steps;
+            const monthShort = new Date(`${v.dateKey}T00:00:00`).toLocaleDateString(numberLocale, { month: "short" });
+            acc.push({ x, label: monthShort.charAt(0).toUpperCase() + monthShort.slice(1, 3) });
+            return acc;
+          }, []);
 
     const yTicksLeft = Array.from({ length: 5 }, (_, i) => {
       const y = bounds.bottom - (height * i) / 4;
       const ratio = i / 4;
       const depositAtY = displayMinDeposit + (displayMaxDeposit - displayMinDeposit) * ratio;
-      const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
       return { y, label: Math.round(depositAtY).toLocaleString(numberLocale) };
     });
 
@@ -1368,7 +1398,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       bounds,
       gridY,
     };
-  }, [locale, sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const variantLabel = (variant: Variant | "none") => {
     if (variant === "neg") return locale === "ru" ? "Красный день (-1)" : locale === "uk" ? "Червоний день (-1)" : "Red day (-1)";
@@ -1573,10 +1603,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return classes.join(" ");
   };
 
-  const calendarCells = useMemo(() => {
-    const first = new Date(viewYear, viewMonth, 1);
+  const buildMonthCells = (year: number, month: number) => {
+    const first = new Date(year, month, 1);
     const firstDay = (first.getDay() + 6) % 7;
-    const lastDate = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const lastDate = new Date(year, month + 1, 0).getDate();
     const cells = [] as Array<
       | { kind: "empty" }
       | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean }
@@ -1587,7 +1617,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         cells.push({ kind: "empty" });
       } else {
         const day = i - firstDay + 1;
-        const dateKey = formatDateKey(viewYear, viewMonth, day);
+        const dateKey = formatDateKey(year, month, day);
         cells.push({
           kind: "day",
           day,
@@ -1600,7 +1630,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     return cells;
+  };
+
+  const calendarCells = useMemo(() => {
+    return buildMonthCells(viewYear, viewMonth);
   }, [viewMonth, viewYear, dayData, selectedDateKey, todayKey]);
+
+  const yearCalendarMonths = useMemo(() => {
+    const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+    return Array.from({ length: 12 }, (_, month) => {
+      const date = new Date(viewYear, month, 1);
+      const label = date.toLocaleDateString(numberLocale, { month: "long" });
+      return {
+        month,
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        cells: buildMonthCells(viewYear, month),
+      };
+    });
+  }, [locale, viewYear, dayData, selectedDateKey, todayKey]);
 
   const monthLabel = useMemo(() => {
     const date = new Date(viewYear, viewMonth, 1);
@@ -1694,7 +1741,29 @@ export default function TrackerClient({ userKey, locale }: Props) {
       <div className={styles.tracker}>
         <div className={`${styles.panel} ${styles.mainPanel}`}>
           <div className={styles.head}>
-            <h2>{ui.monthTracker}</h2>
+            <div className={styles.trackerHeadRow}>
+              <h2>{trackerView === "month" ? ui.monthTracker : ui.yearTracker}</h2>
+              <div className={styles.trackerScopeToggle} role="tablist" aria-label="Tracker scope">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={trackerView === "month"}
+                  className={`${styles.trackerScopeBtn} ${trackerView === "month" ? styles.trackerScopeBtnActive : ""}`}
+                  onClick={() => setTrackerView("month")}
+                >
+                  {ui.trackerMonth}
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={trackerView === "year"}
+                  className={`${styles.trackerScopeBtn} ${trackerView === "year" ? styles.trackerScopeBtnActive : ""}`}
+                  onClick={() => setTrackerView("year")}
+                >
+                  {ui.trackerYear}
+                </button>
+              </div>
+            </div>
             {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
           </div>
 
@@ -1715,7 +1784,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               className={styles.chart}
               viewBox="0 0 520 280"
               preserveAspectRatio="none"
-              aria-label={ui.monthTracker}
+              aria-label={trackerView === "month" ? ui.monthTracker : ui.yearTracker}
               onMouseLeave={() => setChartHover(null)}
             >
               <defs>
@@ -1764,7 +1833,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                       setChartHover({
                         x: event.clientX - rect.left + 10,
                         y: event.clientY - rect.top - 8,
-                        day: bar.day,
+                        label: bar.label,
                         deposit: bar.deposit,
                         trades: bar.trades,
                         variant: bar.variant,
@@ -1788,7 +1857,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             </svg>
             {chartHover ? (
               <div className={styles.chartTooltip} style={{ left: `${chartHover.x}px`, top: `${chartHover.y}px` }}>
-                <div>{ui.day}: {chartHover.day}</div>
+                <div>{ui.day}: {chartHover.label}</div>
                 <div>{ui.type}: {variantLabel(chartHover.variant)}</div>
                 <div>{ui.trades}: {chartHover.trades}</div>
                 <div>{ui.deposit}: {Math.round(chartHover.deposit)}</div>
@@ -1815,74 +1884,134 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
         <div className={styles.side}>
           <div className={styles.panel}>
-            <div className={styles.calendarHead}>
-              <button
-                type="button"
-                className={styles.arrow}
-                aria-label="Previous month"
-                onClick={() => {
-                  setViewMonth((prev) => {
-                    if (prev === 0) {
-                      setViewYear((y) => y - 1);
-                      return 11;
-                    }
-                    return prev - 1;
-                  });
-                }}
-              >
-                ‹
-              </button>
-              <h3>{monthLabel}</h3>
-              <button
-                type="button"
-                className={styles.arrow}
-                aria-label="Next month"
-                onClick={() => {
-                  setViewMonth((prev) => {
-                    if (prev === 11) {
-                      setViewYear((y) => y + 1);
-                      return 0;
-                    }
-                    return prev + 1;
-                  });
-                }}
-              >
-                ›
-              </button>
-            </div>
-
-            <div className={styles.weekdays}>
-              <span>{ui.mon}</span>
-              <span>{ui.tue}</span>
-              <span>{ui.wed}</span>
-              <span>{ui.thu}</span>
-              <span>{ui.fri}</span>
-              <span>{ui.sat}</span>
-              <span>{ui.sun}</span>
-            </div>
-
-            <div className={styles.calendarGrid}>
-              {calendarCells.map((cell, index) => {
-                if (cell.kind === "empty") {
-                  return (
-                    <button key={`empty-${index}`} className={`${styles.day} ${styles.dayEmpty}`} type="button" />
-                  );
-                }
-
-                return (
+            {trackerView === "month" ? (
+              <>
+                <div className={styles.calendarHead}>
                   <button
-                    key={cell.dateKey}
                     type="button"
-                    className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
-                    onClick={() => openModal(cell.dateKey)}
-                    disabled={cell.isFuture}
-                    aria-disabled={cell.isFuture}
+                    className={styles.arrow}
+                    aria-label="Previous month"
+                    onClick={() => {
+                      setViewMonth((prev) => {
+                        if (prev === 0) {
+                          setViewYear((y) => y - 1);
+                          return 11;
+                        }
+                        return prev - 1;
+                      });
+                    }}
                   >
-                    {cell.day}
+                    ‹
                   </button>
-                );
-              })}
-            </div>
+                  <h3>{monthLabel}</h3>
+                  <button
+                    type="button"
+                    className={styles.arrow}
+                    aria-label="Next month"
+                    onClick={() => {
+                      setViewMonth((prev) => {
+                        if (prev === 11) {
+                          setViewYear((y) => y + 1);
+                          return 0;
+                        }
+                        return prev + 1;
+                      });
+                    }}
+                  >
+                    ›
+                  </button>
+                </div>
+
+                <div className={styles.weekdays}>
+                  <span>{ui.mon}</span>
+                  <span>{ui.tue}</span>
+                  <span>{ui.wed}</span>
+                  <span>{ui.thu}</span>
+                  <span>{ui.fri}</span>
+                  <span>{ui.sat}</span>
+                  <span>{ui.sun}</span>
+                </div>
+
+                <div className={styles.calendarGrid}>
+                  {calendarCells.map((cell, index) => {
+                    if (cell.kind === "empty") {
+                      return (
+                        <button key={`empty-${index}`} className={`${styles.day} ${styles.dayEmpty}`} type="button" />
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={cell.dateKey}
+                        type="button"
+                        className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
+                        onClick={() => openModal(cell.dateKey)}
+                        disabled={cell.isFuture}
+                        aria-disabled={cell.isFuture}
+                      >
+                        {cell.day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.calendarHead}>
+                  <button
+                    type="button"
+                    className={styles.arrow}
+                    aria-label="Previous year"
+                    onClick={() => setViewYear((y) => y - 1)}
+                  >
+                    ‹
+                  </button>
+                  <h3>{viewYear}</h3>
+                  <button
+                    type="button"
+                    className={styles.arrow}
+                    aria-label="Next year"
+                    onClick={() => setViewYear((y) => y + 1)}
+                  >
+                    ›
+                  </button>
+                </div>
+                <div className={styles.yearCalendarGrid}>
+                  {yearCalendarMonths.map((month) => (
+                    <div key={month.month} className={styles.yearMonthCard}>
+                      <h5>{month.label}</h5>
+                      <div className={styles.yearWeekdays}>
+                        <span>{ui.mon}</span>
+                        <span>{ui.tue}</span>
+                        <span>{ui.wed}</span>
+                        <span>{ui.thu}</span>
+                        <span>{ui.fri}</span>
+                        <span>{ui.sat}</span>
+                        <span>{ui.sun}</span>
+                      </div>
+                      <div className={styles.yearMonthDays}>
+                        {month.cells.map((cell, index) =>
+                          cell.kind === "empty" ? (
+                            <button key={`y-empty-${month.month}-${index}`} className={`${styles.yearDay} ${styles.dayEmpty}`} type="button" />
+                          ) : (
+                            <button
+                              key={cell.dateKey}
+                              type="button"
+                              className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
+                              onClick={() => openModal(cell.dateKey)}
+                              disabled={cell.isFuture}
+                              aria-disabled={cell.isFuture}
+                            >
+                              {cell.day}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           <div className={`${styles.panel} ${styles.ai}`}>
