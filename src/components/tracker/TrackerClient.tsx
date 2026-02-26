@@ -160,6 +160,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const [isTouchMode, setIsTouchMode] = useState(false);
+  const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
   const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -440,6 +442,22 @@ export default function TrackerClient({ userKey, locale }: Props) {
       // ignore storage errors
     }
   }, [viewMonth, viewStateKey, viewYear]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(hover: none), (pointer: coarse)");
+    const apply = () => setIsTouchMode(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (!isTouchMode) return;
+    const close = () => setActiveHelpKey(null);
+    window.addEventListener("pointerdown", close);
+    return () => window.removeEventListener("pointerdown", close);
+  }, [isTouchMode]);
 
   const sortedEntries = useMemo(
     () => Object.entries(dayData).sort(([a], [b]) => a.localeCompare(b)),
@@ -1725,6 +1743,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const outlinePreviousDeposit = selectedDateKey ? getPreviousDayDeposit(selectedDateKey) : 0;
   const outlineNeedsManualDeposit = modalVariant === "pos-outline" && outlinePreviousDeposit <= 0;
+  const helpOpen = (key: string) => isTouchMode && activeHelpKey === key;
+
+  const toggleHelp = (key: string) => {
+    if (!isTouchMode) return;
+    setActiveHelpKey((prev) => (prev === key ? null : key));
+  };
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
@@ -2088,60 +2112,108 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.totalTrades}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.totalTradesHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.totalTradesHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-total-trades");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.totalTradesHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-total-trades") ? styles.metricTooltipVisible : ""}`}>{ui.totalTradesHint}</span>
+                </button>
               </div>
               <strong>{periodReview.totalTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.avgTrades}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.avgTradesHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.avgTradesHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-avg-trades");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.avgTradesHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-avg-trades") ? styles.metricTooltipVisible : ""}`}>{ui.avgTradesHint}</span>
+                </button>
               </div>
               <strong>{periodReview.avgTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.greenPnlSum}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.greenPnlSumHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.greenPnlSumHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-green-pnl");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.greenPnlSumHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-green-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.greenPnlSumHint}</span>
+                </button>
               </div>
               <strong>{periodReview.greenPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.redPnlSum}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.redPnlSumHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.redPnlSumHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-red-pnl");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.redPnlSumHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-red-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.redPnlSumHint}</span>
+                </button>
               </div>
               <strong>{periodReview.redPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.redDamageShare}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.redDamageShareHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.redDamageShareHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-red-damage");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.redDamageShareHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-red-damage") ? styles.metricTooltipVisible : ""}`}>{ui.redDamageShareHint}</span>
+                </button>
               </div>
               <strong>{periodReview.redDamageShare}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
                 <span>{ui.maxDrawdown}</span>
-                <span className={styles.metricHelp} tabIndex={0} aria-label={ui.maxDrawdownHint}>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.maxDrawdownHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("review-max-dd");
+                  }}
+                >
                   ?
-                  <span className={styles.metricTooltip}>{ui.maxDrawdownHint}</span>
-                </span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-max-dd") ? styles.metricTooltipVisible : ""}`}>{ui.maxDrawdownHint}</span>
+                </button>
               </div>
               <strong>{periodReview.maxDrawdown}</strong>
             </div>
@@ -2178,17 +2250,26 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <label className={styles.field}>
               <div className={styles.fieldHeader}>
                 <span>{ui.result}</span>
-                <details className={styles.inlineHelp}>
-                  <summary aria-label={ui.dayGuideTitle}>?</summary>
-                  <div className={styles.inlineHelpBody}>
-                    <p className={styles.inlineHelpTitle}>{ui.dayGuideTitle}</p>
-                    <ul className={styles.inlineHelpList}>
-                      <li>{ui.dayGuideGreen}</li>
-                      <li>{ui.dayGuideRed}</li>
-                      <li>{ui.dayGuideOutline}</li>
-                    </ul>
-                  </div>
-                </details>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.dayGuideTitle}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("modal-day-guide");
+                  }}
+                >
+                  ?
+                  <span className={`${styles.metricTooltip} ${helpOpen("modal-day-guide") ? styles.metricTooltipVisible : ""}`}>
+                    <strong>{ui.dayGuideTitle}</strong>
+                    <br />
+                    {ui.dayGuideGreen}
+                    <br />
+                    {ui.dayGuideRed}
+                    <br />
+                    {ui.dayGuideOutline}
+                  </span>
+                </button>
               </div>
               <div className={styles.colorOptions}>
                 <label className={styles.colorOption}>
@@ -2239,14 +2320,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <label className={styles.field}>
               <div className={styles.fieldHeader}>
                 <span>{ui.depositSize}</span>
-                <details className={styles.inlineHelp}>
-                  <summary aria-label={ui.depositGuideTitle}>?</summary>
-                  <div className={styles.inlineHelpBody}>
-                    <p className={styles.inlineHelpTitle}>{ui.depositGuideTitle}</p>
-                    <p className={styles.inlineHelpText}>{ui.depositGuideText}</p>
-                    <p className={styles.inlineHelpExample}>{ui.depositGuideHint}</p>
-                  </div>
-                </details>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.depositGuideTitle}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("modal-deposit-guide");
+                  }}
+                >
+                  ?
+                  <span className={`${styles.metricTooltip} ${helpOpen("modal-deposit-guide") ? styles.metricTooltipVisible : ""}`}>
+                    <strong>{ui.depositGuideTitle}</strong>
+                    <br />
+                    {ui.depositGuideText}
+                    <br />
+                    {ui.depositGuideHint}
+                  </span>
+                </button>
               </div>
               <input
                 type="text"
