@@ -596,6 +596,44 @@
   font-size: 14px;
 }
 
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reviewToggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(121, 133, 173, 0.38);
+  background: rgba(11, 17, 31, 0.66);
+}
+
+.reviewToggleBtn {
+  border: 0;
+  background: transparent;
+  color: #b6c2e4;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: 999px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+
+.reviewToggleBtn:hover {
+  color: #eaf0ff;
+}
+
+.reviewToggleBtnActive {
+  color: #eef4ff;
+  background: rgba(73, 122, 255, 0.34);
+}
+
 .weeklyGrid {
   margin-top: 10px;
   display: grid;
@@ -978,6 +1016,11 @@
 
   .weeklyGrid {
     grid-template-columns: 1fr;
+  }
+
+  .reviewHeader {
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .metricTooltip {

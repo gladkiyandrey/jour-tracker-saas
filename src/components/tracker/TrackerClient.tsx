@@ -152,6 +152,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
+  const [reviewMode, setReviewMode] = useState<"month" | "year">("month");
   const [syncError, setSyncError] = useState("");
   const [shareLoading, setShareLoading] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
@@ -202,7 +203,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Вс",
         aiAdvice: "AI совет по дисциплине",
+        reviewMonth: "Месяц",
+        reviewYear: "Год",
         monthlyReview: "Обзор месяца",
+        yearlyReview: "Обзор года",
         totalTrades: "Сделок за месяц",
         avgTrades: "Сделок в день (сред.)",
         greenPnlSum: "Сумма PnL зеленых",
@@ -259,7 +263,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Нд",
         aiAdvice: "AI порада щодо дисципліни",
+        reviewMonth: "Місяць",
+        reviewYear: "Рік",
         monthlyReview: "Огляд місяця",
+        yearlyReview: "Огляд року",
         totalTrades: "Угод за місяць",
         avgTrades: "Угод на день (серед.)",
         greenPnlSum: "Сума PnL зелених",
@@ -315,7 +322,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sat: "Sat",
       sun: "Sun",
       aiAdvice: "AI discipline advice",
+      reviewMonth: "Month",
+      reviewYear: "Year",
       monthlyReview: "Monthly review",
+      yearlyReview: "Yearly review",
       totalTrades: "Total trades (month)",
       avgTrades: "Avg trades/day",
       greenPnlSum: "Green PnL sum",
@@ -1149,12 +1159,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   }, [adviceSnapshot, aiLiveAdvice, monthFilledCount, userKey, viewMonth, viewYear]);
 
-  const monthlyReview = useMemo(() => {
+  const periodReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
-    const monthItems = sortedEntries
-      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+    const yearPrefix = `${viewYear}-`;
+    const periodItems = sortedEntries
+      .filter(([dateKey]) => (reviewMode === "month" ? dateKey.startsWith(monthPrefix) : dateKey.startsWith(yearPrefix)))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
-    const values = monthItems;
+    const values = periodItems;
 
     const formatSignedUsd = (value: number) => {
       const sign = value >= 0 ? "+" : "-";
@@ -1215,7 +1226,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redDamageShare,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
     };
-  }, [locale, sortedEntries, viewMonth, viewYear]);
+  }, [locale, reviewMode, sortedEntries, viewMonth, viewYear]);
 
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
@@ -1886,7 +1897,29 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
       <div className={styles.monthlyRow}>
         <div className={`${styles.panel} ${styles.weekly}`}>
-          <h4>{ui.monthlyReview}</h4>
+          <div className={styles.reviewHeader}>
+            <h4>{reviewMode === "month" ? ui.monthlyReview : ui.yearlyReview}</h4>
+            <div className={styles.reviewToggle} role="tablist" aria-label="Review mode">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={reviewMode === "month"}
+                className={`${styles.reviewToggleBtn} ${reviewMode === "month" ? styles.reviewToggleBtnActive : ""}`}
+                onClick={() => setReviewMode("month")}
+              >
+                {ui.reviewMonth}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={reviewMode === "year"}
+                className={`${styles.reviewToggleBtn} ${reviewMode === "year" ? styles.reviewToggleBtnActive : ""}`}
+                onClick={() => setReviewMode("year")}
+              >
+                {ui.reviewYear}
+              </button>
+            </div>
+          </div>
           <div className={styles.weeklyGrid}>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1896,7 +1929,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.totalTradesHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.totalTrades}</strong>
+              <strong>{periodReview.totalTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1906,7 +1939,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.avgTradesHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.avgTrades}</strong>
+              <strong>{periodReview.avgTrades}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1916,7 +1949,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.greenPnlSumHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.greenPnlSum}</strong>
+              <strong>{periodReview.greenPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1926,7 +1959,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.redPnlSumHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.redPnlSum}</strong>
+              <strong>{periodReview.redPnlSum}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1936,7 +1969,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.redDamageShareHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.redDamageShare}</strong>
+              <strong>{periodReview.redDamageShare}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
@@ -1946,7 +1979,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <span className={styles.metricTooltip}>{ui.maxDrawdownHint}</span>
                 </span>
               </div>
-              <strong>{monthlyReview.maxDrawdown}</strong>
+              <strong>{periodReview.maxDrawdown}</strong>
             </div>
           </div>
         </div>
