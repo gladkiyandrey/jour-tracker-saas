@@ -1,61 +1,35 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getSubscriptionState } from "@/lib/auth";
 import { getCurrentUserFromSessionCookies } from "@/lib/current-user";
-import { isAdminEmail } from "@/lib/admin-auth";
-import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
-import DashboardTrackerLoader from "@/components/tracker/DashboardTrackerLoader";
-import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
+import { isAdminEmail } from "@/lib/admin-auth";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import PremarketJournalClient from "@/components/journal/PremarketJournalClient";
 
-const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
-  return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error("timeout"));
-    }, timeoutMs);
-
-    promise
-      .then((value) => resolve(value))
-      .catch((error) => reject(error))
-      .finally(() => clearTimeout(timer));
-  });
-}
-
-export default async function DashboardPage() {
+export default async function JournalPage() {
   const locale = await getLocaleFromCookies();
   const m = t(locale);
-  const cookieSub = await getSubscriptionState();
   const user = await getCurrentUserFromSessionCookies();
+
   if (!user) {
     redirect("/login");
   }
+
   const email = user.email;
   const admin = isAdminEmail(email);
-  let sub = cookieSub;
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    try {
-      const dbSub = await withTimeout(getSubscriptionStateFromDb(user.id), SUBSCRIPTION_DB_TIMEOUT_MS);
-      sub = { active: dbSub.active, expiresAt: dbSub.expiresAt };
-    } catch {
-      // fallback to cookie state
-    }
-  }
-  const userKey = user.id;
   const nameFromEmail = email.split("@")[0] || "User";
   const fallbackName = nameFromEmail
     .replace(/[._-]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .trim();
   const displayName = (user.displayName || fallbackName).trim();
-  const initials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "U";
+  const initials =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "U";
   const roleLabel = admin
     ? locale === "ru"
       ? "Админ"
@@ -75,10 +49,10 @@ export default async function DashboardPage() {
           <div className="logo logo-light">{m.appName}</div>
         </div>
         <nav className="topbar-center">
-          <Link className="btn btn-nav-plain" href="/">
+          <Link className="btn btn-nav-plain" href="/app">
             {m.navHome}
           </Link>
-          <Link className="btn btn-nav-plain" href="/journal">
+          <Link className="btn btn-nav-plain" href="/journal" aria-current="page">
             {m.navJournal}
           </Link>
           <Link className="btn btn-nav-plain" href="/pricing">
@@ -86,7 +60,6 @@ export default async function DashboardPage() {
           </Link>
         </nav>
         <nav className="topbar-right">
-          <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} mode="icon" />
           <details className="user-menu">
             <summary className="user-menu-summary top-trigger">
               {user.avatarUrl ? (
@@ -127,7 +100,8 @@ export default async function DashboardPage() {
           <LanguageSwitcher locale={locale} compact />
         </nav>
       </header>
-      <DashboardTrackerLoader userKey={userKey} locale={locale} />
+
+      <PremarketJournalClient locale={locale} />
     </main>
   );
 }

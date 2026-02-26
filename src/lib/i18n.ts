@@ -24,6 +24,7 @@ type Dict = {
   appName: string;
   navHome: string;
   navPricing: string;
+  navJournal: string;
   navLogin: string;
   navAdmin: string;
   navBackToApp: string;
@@ -57,6 +58,7 @@ export const messages: Record<Locale, Dict> = {
     appName: "Consist",
     navHome: "Home",
     navPricing: "Pricing",
+    navJournal: "Journal",
     navLogin: "Login",
     navAdmin: "Admin",
     navBackToApp: "Back to app",
@@ -89,6 +91,7 @@ export const messages: Record<Locale, Dict> = {
     appName: "Consist",
     navHome: "Главная",
     navPricing: "Тариф",
+    navJournal: "Журнал",
     navLogin: "Вход",
     navAdmin: "Админ",
     navBackToApp: "Назад в приложение",
@@ -121,6 +124,7 @@ export const messages: Record<Locale, Dict> = {
     appName: "Consist",
     navHome: "Головна",
     navPricing: "Тариф",
+    navJournal: "Журнал",
     navLogin: "Вхід",
     navAdmin: "Адмін",
     navBackToApp: "Назад у застосунок",
