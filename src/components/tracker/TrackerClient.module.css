@@ -362,11 +362,16 @@
 .arrow {
   width: 34px;
   height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border: 1px solid rgba(203, 211, 243, 0.36);
   border-radius: 50%;
   background: transparent;
   color: #f3f6ff;
   font-size: 20px;
+  line-height: 1;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
