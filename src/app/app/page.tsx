@@ -78,9 +78,6 @@ export default async function DashboardPage() {
           <Link className="btn btn-nav-plain" href="/">
             {m.navHome}
           </Link>
-          <Link className="btn btn-nav-plain" href="/journal">
-            {m.navJournal}
-          </Link>
           <Link className="btn btn-nav-plain" href="/pricing">
             {m.navPricing}
           </Link>
