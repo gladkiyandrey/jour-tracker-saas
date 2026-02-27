@@ -95,18 +95,30 @@ export default async function SharePage({ params }: { params: Promise<Params> })
   const consistencyRate = activeDays > 0 ? Math.round((greenDays / activeDays) * 100) : 0;
   const generatedAt = new Date(snapshot.createdAt);
   const generatedText = Number.isNaN(generatedAt.getTime()) ? "Unknown date" : generatedAt.toLocaleDateString("en-US");
+  const bars = snapshot.days
+    .slice()
+    .sort((a, b) => a.day - b.day)
+    .map((d) => ({
+      day: d.day,
+      type: d.variant === "neg" ? "neg" : d.variant === "pos-outline" ? "outline" : "pos",
+      height: d.variant === "neg" ? 74 : d.variant === "pos-outline" ? 52 : 40,
+    }));
+  const axisLabels = bars.filter((_, i) => i % Math.max(1, Math.ceil(bars.length / 10)) === 0 || i === bars.length - 1);
 
   return (
     <main className={styles.page}>
       <section className={styles.card}>
+        <div className={styles.glowA} aria-hidden />
+        <div className={styles.glowB} aria-hidden />
+        <div className={styles.noise} aria-hidden />
         <div className={styles.topMeta}>
           <span className={styles.brandPill}>Consist</span>
-          <span className={styles.periodPill}>
+          <span className={styles.periodPill} aria-label="Monthly snapshot">
             {monthNames[snapshot.month]} {snapshot.year}
           </span>
         </div>
-        <h1>I built a {snapshot.score}% trading discipline this month.</h1>
-        <p className={styles.month}>Can you beat this score?</p>
+        <h1>Discipline Snapshot</h1>
+        <p className={styles.month}>Neon verified share card</p>
 
         <div className={styles.summaryStrip}>
           <span>{activeDays} tracked days</span>
@@ -129,6 +141,17 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           </div>
         </div>
 
+        <div className={styles.legendTabs}>
+          <span className={styles.tabActive}>Monthly</span>
+          <span className={styles.tabGhost}>Performance</span>
+          <span className={styles.tabGhost}>Consistency</span>
+        </div>
+
+        <div className={styles.heroMetric}>
+          <span>Live verified score</span>
+          <strong>{snapshot.score}%</strong>
+        </div>
+
         <div className={styles.legend}>
           <span className={styles.legendItem}>
             <i className={`${styles.legendLine} ${styles.legendYellow}`} /> Consistency
@@ -136,10 +159,24 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           <span className={styles.legendItem}>
             <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
           </span>
-          <span className={styles.legendHint}>Auto-generated from journal data</span>
+          <span className={styles.legendHint}>Verified by Consist</span>
         </div>
 
         <div className={styles.chartShell}>
+          <div className={styles.chartBackdrop} />
+          <div className={styles.chartOrbs} aria-hidden>
+            <span />
+            <span />
+          </div>
+          <div className={styles.barLayer} aria-hidden>
+            {bars.length ? (
+              bars.map((bar) => (
+                <div key={`bar-${bar.day}`} className={`${styles.bar} ${styles[`bar_${bar.type}`]}`} style={{ height: `${bar.height}%` }} />
+              ))
+            ) : (
+              <div className={styles.barEmpty} />
+            )}
+          </div>
           <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-hidden>
             <g>
               <line className={styles.grid} x1="20" y1="30" x2="500" y2="30" />
@@ -153,13 +190,18 @@ export default async function SharePage({ params }: { params: Promise<Params> })
             <path className={styles.yellow} d={snapshot.chartYellow} />
             <path className={styles.blue} d={snapshot.chartBlue} />
           </svg>
+          <div className={styles.axisRow} aria-hidden>
+            {axisLabels.map((point) => (
+              <span key={`axis-${point.day}`}>{point.day}</span>
+            ))}
+          </div>
         </div>
 
         <div className={styles.cta}>
           <span>
-            Green days {greenDays} · Red days {redDays} · Built for disciplined traders.
+            Green days {greenDays} · Red days {redDays}
           </span>
-          <Link href="/login">Build your own score</Link>
+          <Link href="/login">Build your own verified card</Link>
         </div>
 
         <section className={styles.verifyCard}>
