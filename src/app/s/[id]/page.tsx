@@ -95,59 +95,39 @@ export default async function SharePage({ params }: { params: Promise<Params> })
   const consistencyRate = activeDays > 0 ? Math.round((greenDays / activeDays) * 100) : 0;
   const generatedAt = new Date(snapshot.createdAt);
   const generatedText = Number.isNaN(generatedAt.getTime()) ? "Unknown date" : generatedAt.toLocaleDateString("en-US");
-  const bars = snapshot.days
-    .slice()
-    .sort((a, b) => a.day - b.day)
-    .map((d) => ({
-      day: d.day,
-      type: d.variant === "neg" ? "neg" : d.variant === "pos-outline" ? "outline" : "pos",
-      height: d.variant === "neg" ? 74 : d.variant === "pos-outline" ? 52 : 40,
-    }));
-  const axisLabels = bars.filter((_, i) => i % Math.max(1, Math.ceil(bars.length / 10)) === 0 || i === bars.length - 1);
-  const scoreLabel = snapshot.score >= 80 ? "Elite discipline" : snapshot.score >= 65 ? "Consistent trader" : "In recovery mode";
 
   return (
     <main className={styles.page}>
       <section className={styles.card}>
-        <div className={styles.glowA} aria-hidden />
-        <div className={styles.glowB} aria-hidden />
-        <div className={styles.noise} aria-hidden />
-
-        <header className={styles.head}>
-          <div className={styles.brandWrap}>
-            <span className={styles.brand}>CONSIST</span>
-            <span className={styles.verifyChip}>Verified Snapshot</span>
-          </div>
+        <div className={styles.topMeta}>
+          <span className={styles.brandPill}>Consist</span>
           <span className={styles.periodPill}>
             {monthNames[snapshot.month]} {snapshot.year}
           </span>
-        </header>
+        </div>
+        <h1>I built a {snapshot.score}% trading discipline this month.</h1>
+        <p className={styles.month}>Can you beat this score?</p>
 
-        <section className={styles.hero}>
-          <div className={styles.heroLeft}>
-            <span className={styles.heroTag}>Reward</span>
-            <h1>{snapshot.score}%</h1>
-            <p>{scoreLabel}</p>
-            <div className={styles.heroMeta}>
-              <span>{activeDays} tracked days</span>
-              <span>{consistencyRate}% positive days</span>
-            </div>
+        <div className={styles.summaryStrip}>
+          <span>{activeDays} tracked days</span>
+          <span>{consistencyRate}% positive days</span>
+          <span>Generated: {generatedText}</span>
+        </div>
+
+        <div className={styles.stats}>
+          <div className={styles.statBox}>
+            <span>Discipline Score</span>
+            <strong>{snapshot.score}%</strong>
           </div>
-          <div className={styles.heroRight}>
-            <span className={styles.qrLabel}>Scan & verify</span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className={styles.qrImage}
-              src={`/api/share/qr/${snapshot.id}`}
-              alt={`Verification QR for share ${snapshot.id}`}
-              width={160}
-              height={160}
-            />
-            <a href={verifyUrl} target="_blank" rel="noreferrer" className={styles.verifyUrl}>
-              {verifyUrl}
-            </a>
+          <div className={styles.statBox}>
+            <span>Green Streak</span>
+            <strong>{snapshot.greenStreak}</strong>
           </div>
-        </section>
+          <div className={styles.statBox}>
+            <span>Red Streak</span>
+            <strong>{snapshot.redStreak}</strong>
+          </div>
+        </div>
 
         <div className={styles.legend}>
           <span className={styles.legendItem}>
@@ -156,20 +136,10 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           <span className={styles.legendItem}>
             <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
           </span>
-          <span className={styles.legendHint}>Generated: {generatedText}</span>
+          <span className={styles.legendHint}>Auto-generated from journal data</span>
         </div>
 
         <div className={styles.chartShell}>
-          <div className={styles.chartBackdrop} />
-          <div className={styles.barLayer} aria-hidden>
-            {bars.length ? (
-              bars.map((bar) => (
-                <div key={`bar-${bar.day}`} className={`${styles.bar} ${styles[`bar_${bar.type}`]}`} style={{ height: `${bar.height}%` }} />
-              ))
-            ) : (
-              <div className={styles.barEmpty} />
-            )}
-          </div>
           <svg className={styles.chart} viewBox="0 0 520 280" preserveAspectRatio="none" aria-hidden>
             <g>
               <line className={styles.grid} x1="20" y1="30" x2="500" y2="30" />
@@ -183,32 +153,32 @@ export default async function SharePage({ params }: { params: Promise<Params> })
             <path className={styles.yellow} d={snapshot.chartYellow} />
             <path className={styles.blue} d={snapshot.chartBlue} />
           </svg>
-          <div className={styles.axisRow} aria-hidden>
-            {axisLabels.map((point) => (
-              <span key={`axis-${point.day}`}>{point.day}</span>
-            ))}
-          </div>
         </div>
-
-        <section className={styles.metrics}>
-          <div className={styles.metric}>
-            <span>Green Streak</span>
-            <strong>{snapshot.greenStreak}</strong>
-          </div>
-          <div className={styles.metric}>
-            <span>Red Streak</span>
-            <strong>{snapshot.redStreak}</strong>
-          </div>
-          <div className={styles.metric}>
-            <span>Month Balance</span>
-            <strong>{greenDays} / {greenDays + redDays}</strong>
-          </div>
-        </section>
 
         <div className={styles.cta}>
-          <span>Show your discipline publicly</span>
-          <Link href="/login">Build your own card</Link>
+          <span>
+            Green days {greenDays} · Red days {redDays} · Built for disciplined traders.
+          </span>
+          <Link href="/login">Build your own score</Link>
         </div>
+
+        <section className={styles.verifyCard}>
+          <div className={styles.verifyText}>
+            <h2>Verified snapshot</h2>
+            <p>Scan the QR code to open the verification page for this shared result.</p>
+            <a href={verifyUrl} target="_blank" rel="noreferrer">
+              {verifyUrl}
+            </a>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className={styles.qrImage}
+            src={`/api/share/qr/${snapshot.id}`}
+            alt={`Verification QR for share ${snapshot.id}`}
+            width={160}
+            height={160}
+          />
+        </section>
       </section>
     </main>
   );
