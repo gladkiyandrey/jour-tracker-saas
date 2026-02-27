@@ -69,6 +69,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || "https://consist.online").replace(/\/$/, "");
   const verifyUrl = `${appUrl}/share/verify/${snapshot.id}`;
   const qrUrl = `${appUrl}/api/share/qr/${snapshot.id}`;
+  const scoreLabel = snapshot.score >= 80 ? "Elite discipline" : snapshot.score >= 65 ? "Consistent trader" : "In recovery mode";
 
   return new ImageResponse(
     (
@@ -79,28 +80,23 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          padding: "36px",
+          padding: "34px",
           background:
-            "radial-gradient(circle at 16% 10%, rgba(78,124,255,0.32) 0%, rgba(78,124,255,0) 42%), radial-gradient(circle at 84% 18%, rgba(172,110,255,0.3) 0%, rgba(172,110,255,0) 44%), radial-gradient(circle at 50% 100%, rgba(32,213,154,0.18) 0%, rgba(32,213,154,0) 45%), #070b16",
+            "radial-gradient(circle at 14% 12%, rgba(69,108,255,0.24) 0%, rgba(69,108,255,0) 40%), radial-gradient(circle at 88% 84%, rgba(34,214,172,0.16) 0%, rgba(34,214,172,0) 45%), #070b16",
           color: "#f4f7ff",
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ fontSize: 52, fontWeight: 700, letterSpacing: -1 }}>Discipline Snapshot</div>
-            <div style={{ marginTop: 2, fontSize: 24, color: "#b8c7f5" }}>
-              {monthNames[snapshot.month]} {snapshot.year}
-            </div>
-            <div style={{ marginTop: 2, fontSize: 20, color: "#d7e0ff" }}>
-              {activeDays} tracked days · {greenDays} green · {redDays} red
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div style={{ fontSize: 20, letterSpacing: 2, color: "#dce6ff" }}>CONSIST VERIFIED</div>
+            <div style={{ fontSize: 62, fontWeight: 700, letterSpacing: -1 }}>REWARD</div>
           </div>
           <div
             style={{
               border: "1px solid rgba(121,145,228,0.42)",
               borderRadius: 999,
-              padding: "10px 18px",
-              fontSize: 22,
+              padding: "8px 16px",
+              fontSize: 20,
               background: "rgba(15,22,40,0.8)",
             }}
           >
@@ -108,7 +104,33 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 20, fontSize: 20, color: "#d9e2ff" }}>
+        <div
+          style={{
+            marginTop: 8,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "14px 16px",
+            borderRadius: 14,
+            border: "1px solid rgba(123,141,204,0.34)",
+            background: "linear-gradient(180deg, rgba(12,17,30,0.85), rgba(7,11,22,0.9))",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ fontSize: 18, color: "#b8c7f5" }}>
+              {monthNames[snapshot.month]} {snapshot.year}
+            </div>
+            <div style={{ fontSize: 62, fontWeight: 700, lineHeight: 0.94 }}>{snapshot.score}%</div>
+            <div style={{ fontSize: 20, color: "#d7e0ff" }}>{scoreLabel}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 5, fontSize: 18, color: "#d9e2ff", textAlign: "right" }}>
+            <span>{activeDays} tracked days</span>
+            <span>{greenDays} green days</span>
+            <span>{redDays} red days</span>
+          </div>
+        </div>
+
+        <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 20, fontSize: 20, color: "#d9e2ff" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 28, height: 0, borderTop: "4px solid #ffd24a", borderRadius: 999 }} />
             Consistency
@@ -120,7 +142,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           <div style={{ marginLeft: "auto", color: "#b8c7f5" }}>Verified share card</div>
         </div>
 
-        <div style={{ width: "100%", height: 282, display: "flex", alignItems: "stretch", gap: 14 }}>
+        <div style={{ width: "100%", height: 250, display: "flex", alignItems: "stretch", gap: 14 }}>
           <div
             style={{
               flex: 1,
@@ -140,8 +162,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
                 position: "absolute",
                 left: 22,
                 right: 22,
-                bottom: 28,
-                height: 108,
+                bottom: 24,
+                height: 94,
                 display: "flex",
                 alignItems: "flex-end",
                 gap: 6,
@@ -173,7 +195,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
           <div
             style={{
-              width: 220,
+              width: 214,
               borderRadius: 14,
               border: "1px solid rgba(123,141,204,0.35)",
               background:
@@ -182,7 +204,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              gap: 8,
+              gap: 7,
               color: "#d9e2ff",
               fontSize: 17,
             }}
@@ -194,7 +216,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
           </div>
         </div>
 
-        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24, color: "#d9e2ff" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 21, color: "#d9e2ff" }}>
           <div>
             Discipline Score {snapshot.score}% · Green streak {snapshot.greenStreak} · Red streak {snapshot.redStreak}
           </div>

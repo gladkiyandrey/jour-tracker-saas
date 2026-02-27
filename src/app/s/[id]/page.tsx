@@ -104,6 +104,7 @@ export default async function SharePage({ params }: { params: Promise<Params> })
       height: d.variant === "neg" ? 74 : d.variant === "pos-outline" ? 52 : 40,
     }));
   const axisLabels = bars.filter((_, i) => i % Math.max(1, Math.ceil(bars.length / 10)) === 0 || i === bars.length - 1);
+  const scoreLabel = snapshot.score >= 80 ? "Elite discipline" : snapshot.score >= 65 ? "Consistent trader" : "In recovery mode";
 
   return (
     <main className={styles.page}>
@@ -111,46 +112,42 @@ export default async function SharePage({ params }: { params: Promise<Params> })
         <div className={styles.glowA} aria-hidden />
         <div className={styles.glowB} aria-hidden />
         <div className={styles.noise} aria-hidden />
-        <div className={styles.topMeta}>
-          <span className={styles.brandPill}>Consist</span>
-          <span className={styles.periodPill} aria-label="Monthly snapshot">
+
+        <header className={styles.head}>
+          <div className={styles.brandWrap}>
+            <span className={styles.brand}>CONSIST</span>
+            <span className={styles.verifyChip}>Verified Snapshot</span>
+          </div>
+          <span className={styles.periodPill}>
             {monthNames[snapshot.month]} {snapshot.year}
           </span>
-        </div>
-        <h1>Discipline Snapshot</h1>
-        <p className={styles.month}>Neon verified share card</p>
+        </header>
 
-        <div className={styles.summaryStrip}>
-          <span>{activeDays} tracked days</span>
-          <span>{consistencyRate}% positive days</span>
-          <span>Generated: {generatedText}</span>
-        </div>
-
-        <div className={styles.stats}>
-          <div className={styles.statBox}>
-            <span>Discipline Score</span>
-            <strong>{snapshot.score}%</strong>
+        <section className={styles.hero}>
+          <div className={styles.heroLeft}>
+            <span className={styles.heroTag}>Reward</span>
+            <h1>{snapshot.score}%</h1>
+            <p>{scoreLabel}</p>
+            <div className={styles.heroMeta}>
+              <span>{activeDays} tracked days</span>
+              <span>{consistencyRate}% positive days</span>
+            </div>
           </div>
-          <div className={styles.statBox}>
-            <span>Green Streak</span>
-            <strong>{snapshot.greenStreak}</strong>
+          <div className={styles.heroRight}>
+            <span className={styles.qrLabel}>Scan & verify</span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              className={styles.qrImage}
+              src={`/api/share/qr/${snapshot.id}`}
+              alt={`Verification QR for share ${snapshot.id}`}
+              width={160}
+              height={160}
+            />
+            <a href={verifyUrl} target="_blank" rel="noreferrer" className={styles.verifyUrl}>
+              {verifyUrl}
+            </a>
           </div>
-          <div className={styles.statBox}>
-            <span>Red Streak</span>
-            <strong>{snapshot.redStreak}</strong>
-          </div>
-        </div>
-
-        <div className={styles.legendTabs}>
-          <span className={styles.tabActive}>Monthly</span>
-          <span className={styles.tabGhost}>Performance</span>
-          <span className={styles.tabGhost}>Consistency</span>
-        </div>
-
-        <div className={styles.heroMetric}>
-          <span>Live verified score</span>
-          <strong>{snapshot.score}%</strong>
-        </div>
+        </section>
 
         <div className={styles.legend}>
           <span className={styles.legendItem}>
@@ -159,15 +156,11 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           <span className={styles.legendItem}>
             <i className={`${styles.legendLine} ${styles.legendBlue}`} /> Deposit size
           </span>
-          <span className={styles.legendHint}>Verified by Consist</span>
+          <span className={styles.legendHint}>Generated: {generatedText}</span>
         </div>
 
         <div className={styles.chartShell}>
           <div className={styles.chartBackdrop} />
-          <div className={styles.chartOrbs} aria-hidden>
-            <span />
-            <span />
-          </div>
           <div className={styles.barLayer} aria-hidden>
             {bars.length ? (
               bars.map((bar) => (
@@ -197,30 +190,25 @@ export default async function SharePage({ params }: { params: Promise<Params> })
           </div>
         </div>
 
-        <div className={styles.cta}>
-          <span>
-            Green days {greenDays} · Red days {redDays}
-          </span>
-          <Link href="/login">Build your own verified card</Link>
-        </div>
-
-        <section className={styles.verifyCard}>
-          <div className={styles.verifyText}>
-            <h2>Verified snapshot</h2>
-            <p>Scan the QR code to open the verification page for this shared result.</p>
-            <a href={verifyUrl} target="_blank" rel="noreferrer">
-              {verifyUrl}
-            </a>
+        <section className={styles.metrics}>
+          <div className={styles.metric}>
+            <span>Green Streak</span>
+            <strong>{snapshot.greenStreak}</strong>
           </div>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            className={styles.qrImage}
-            src={`/api/share/qr/${snapshot.id}`}
-            alt={`Verification QR for share ${snapshot.id}`}
-            width={160}
-            height={160}
-          />
+          <div className={styles.metric}>
+            <span>Red Streak</span>
+            <strong>{snapshot.redStreak}</strong>
+          </div>
+          <div className={styles.metric}>
+            <span>Month Balance</span>
+            <strong>{greenDays} / {greenDays + redDays}</strong>
+          </div>
         </section>
+
+        <div className={styles.cta}>
+          <span>Show your discipline publicly</span>
+          <Link href="/login">Build your own card</Link>
+        </div>
       </section>
     </main>
   );
