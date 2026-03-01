@@ -602,12 +602,14 @@
 
 .signalList {
   margin-top: 10px;
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-wrap: nowrap;
   gap: 8px;
 }
 
 .signalItem {
+  flex: 1 1 0;
+  min-width: 0;
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: start;
@@ -1073,6 +1075,7 @@
   }
 
   .signalList {
+    display: grid;
     grid-template-columns: 1fr;
   }
 
