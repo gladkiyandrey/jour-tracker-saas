@@ -89,8 +89,8 @@ a {
 
 .site-logo img {
   display: block;
-  width: auto;
-  height: 28px;
+  width: 120px;
+  height: auto;
 }
 
 .settings-logo-wrap {
@@ -1062,7 +1062,8 @@ a {
   }
 
   .site-logo img {
-    height: 24px;
+    width: 104px;
+    height: auto;
   }
 
   .topbar-center {
