@@ -7,6 +7,7 @@ import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import DashboardTrackerLoader from "@/components/tracker/DashboardTrackerLoader";
 import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import SiteLogo from "@/components/ui/SiteLogo";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
@@ -72,7 +73,7 @@ export default async function DashboardPage() {
     <main className="site dashboard">
       <header className="topbar">
         <div className="topbar-left">
-          <div className="logo logo-light">{m.appName}</div>
+          <SiteLogo href="/app" className="logo-light" />
         </div>
         <nav className="topbar-center">
           <Link className="btn btn-nav-plain" href="/">

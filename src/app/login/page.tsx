@@ -1,6 +1,7 @@
 import Link from "next/link";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import SiteLogo from "@/components/ui/SiteLogo";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 type LoginPageProps = {
@@ -103,7 +104,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">{m.appName}</div>
+        <SiteLogo href="/" />
         <nav className="nav">
           <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/">

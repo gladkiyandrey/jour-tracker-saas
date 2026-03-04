@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import SiteLogo from "@/components/ui/SiteLogo";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
 
 type PricingPageProps = {
@@ -29,7 +30,7 @@ export default async function PricingPage({ searchParams }: PricingPageProps) {
   return (
     <main className="site">
       <header className="topbar">
-        <div className="logo">{m.appName}</div>
+        <SiteLogo href="/" />
         <nav className="nav">
           <LanguageSwitcher locale={locale} />
           <Link className="btn" href="/">
