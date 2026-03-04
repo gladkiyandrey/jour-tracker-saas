@@ -1,31 +1,19 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="126" y1="86" x2="874" y2="938" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#8FB0FF"/>
-      <stop offset="0.55" stop-color="#5E84E6"/>
-      <stop offset="1" stop-color="#3652B8"/>
+    <linearGradient id="bg" x1="104" y1="84" x2="900" y2="936" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9AB7FF"/>
+      <stop offset="0.55" stop-color="#638AED"/>
+      <stop offset="1" stop-color="#3B57BB"/>
     </linearGradient>
-    <linearGradient id="ring" x1="212" y1="201" x2="808" y2="787" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F2F6FF"/>
-    </linearGradient>
-    <filter id="soft" x="0" y="0" width="1024" height="1024" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feGaussianBlur stdDeviation="0.4"/>
-    </filter>
   </defs>
 
-  <rect x="0" y="0" width="1024" height="1024" rx="210" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="210" fill="url(#bg)"/>
 
-  <g filter="url(#soft)">
-    <!-- Main circular stroke -->
-    <path d="M788 290C721 208 621 160 512 160C316 160 157 319 157 515C157 711 316 870 512 870C594 870 672 842 735 792"
-          stroke="url(#ring)" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M791 290C723 208 622 160 512 160C316 160 157 319 157 515C157 711 316 870 512 870C593 870 670 843 733 794"
+        stroke="#F6F8FF" stroke-width="78" stroke-linecap="round" stroke-linejoin="round"/>
 
-    <!-- Arrow head integrated into G -->
-    <path d="M582 585L875 496L740 683L582 585Z" fill="#F8FBFF"/>
+  <path d="M579 584L879 495L741 686L579 584Z" fill="#F6F8FF"/>
 
-    <!-- Bottom swoosh accent -->
-    <path d="M170 748C252 823 360 864 478 864C584 864 682 831 761 775"
-          stroke="#F5F8FF" stroke-opacity="0.82" stroke-width="26" stroke-linecap="round"/>
-  </g>
+  <path d="M179 739C258 819 363 862 477 862C582 862 678 831 756 778"
+        stroke="#F6F8FF" stroke-opacity="0.9" stroke-width="24" stroke-linecap="round"/>
 </svg>
