@@ -9,14 +9,28 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title || "Consist", {
       body: data.body || "Open your tracker.",
-      icon: "/icon-192.png",
+      icon: "/icon-512.png",
       badge: "/favicon-32x32.png",
+      image: data.image || "/icon-512.png",
+      vibrate: [120, 40, 120],
+      tag: data.tag || "consist-reminder",
+      renotify: true,
+      requireInteraction: false,
+      actions: [
+        { action: "open", title: "Open Consist" },
+        { action: "close", title: "Dismiss" },
+      ],
       data: { url: data.url || "/app" },
     }),
   );
 });
 
 self.addEventListener("notificationclick", (event) => {
+  if (event.action === "close") {
+    event.notification.close();
+    return;
+  }
+
   event.notification.close();
   const target = event.notification.data?.url || "/app";
 
