@@ -217,13 +217,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
         avgTrades: "Сделок в день (сред.)",
         greenPnlSum: "Сумма PnL зеленых",
         redPnlSum: "Сумма PnL красных",
-        redDamageShare: "Доля урона красных",
+        avgErrorCost: "Средняя цена ошибки",
         maxDrawdown: "Макс. просадка",
         totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
         avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
         greenPnlSumHint: "Суммарный результат системных дней (зеленый и зеленый с обводкой), рассчитанный по изменению депозита.",
         redPnlSumHint: "Суммарный результат дней с нарушением дисциплины (красные дни), по изменению депозита.",
-        redDamageShareHint: "Сколько процентов прибыли зеленых дней съели убытки красных дней. Чем ниже, тем лучше.",
+        avgErrorCostHint:
+          "Средний убыток за 1 красный день: сумма убытков красных дней / количество красных дней.",
         maxDrawdownHint: "Максимальная просадка депозита от локального пика внутри месяца.",
         signalizer: "Сигнализатор",
         creating: "Создание...",
@@ -280,13 +281,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
         avgTrades: "Угод на день (серед.)",
         greenPnlSum: "Сума PnL зелених",
         redPnlSum: "Сума PnL червоних",
-        redDamageShare: "Частка втрат червоних",
+        avgErrorCost: "Середня ціна помилки",
         maxDrawdown: "Макс. просадка",
         totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
         avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
         greenPnlSumHint: "Сумарний результат системних днів (зелений і зелений з обводкою), розрахований за зміною депозиту.",
         redPnlSumHint: "Сумарний результат днів з порушенням дисципліни (червоні дні), за зміною депозиту.",
-        redDamageShareHint: "Який відсоток прибутку зелених днів зʼїли збитки червоних днів. Чим менше, тим краще.",
+        avgErrorCostHint:
+          "Середній збиток за 1 червоний день: сума збитків червоних днів / кількість червоних днів.",
         maxDrawdownHint: "Максимальна просадка депозиту від локального піка всередині місяця.",
         signalizer: "Сигналізатор",
         creating: "Створення...",
@@ -342,13 +344,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
       avgTrades: "Avg trades/day",
       greenPnlSum: "Green PnL sum",
       redPnlSum: "Red PnL sum",
-      redDamageShare: "Red Damage Share",
+      avgErrorCost: "Avg Error Cost",
       maxDrawdown: "Max drawdown",
       totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
       avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
       greenPnlSumHint: "Combined result of disciplined days (green and outlined green), based on deposit changes.",
       redPnlSumHint: "Combined result of undisciplined days (red), based on deposit changes.",
-      redDamageShareHint: "What percent of green-day profits was eaten by red-day losses. Lower is better.",
+      avgErrorCostHint:
+        "Average loss per red day: total red-day losses / number of red days.",
       maxDrawdownHint: "Maximum deposit drop from a local peak within the month.",
       signalizer: "Signalizer",
       creating: "Creating...",
@@ -1211,7 +1214,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         avgTrades: "0.0",
         greenPnlSum: "0$",
         redPnlSum: "0$",
-        redDamageShare: "0%",
+        avgErrorCost: "0$",
         maxDrawdown: "0.0%",
       };
     }
@@ -1242,20 +1245,18 @@ export default function TrackerClient({ userKey, locale }: Props) {
       .reduce((acc, day) => acc + day.delta, 0);
     const redPnl = deltas.filter((day) => day.variant === "neg").reduce((acc, day) => acc + day.delta, 0);
 
-    const greenProfitOnly = deltas
-      .filter((day) => day.variant === "pos" || day.variant === "pos-outline")
-      .reduce((acc, day) => acc + Math.max(day.delta, 0), 0);
     const redLossOnly = deltas
       .filter((day) => day.variant === "neg")
       .reduce((acc, day) => acc + Math.abs(Math.min(day.delta, 0)), 0);
-    const redDamageShare = greenProfitOnly > 0 ? `${((redLossOnly / greenProfitOnly) * 100).toFixed(1)}%` : "0%";
+    const redDaysCount = values.filter((day) => day.variant === "neg").length;
+    const avgErrorCost = redDaysCount > 0 ? `${Math.round(redLossOnly / redDaysCount).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$` : "0$";
 
     return {
       totalTrades: `${totalTradesCount}`,
       avgTrades,
       greenPnlSum: formatSignedUsd(greenPnl),
       redPnlSum: formatSignedUsd(redPnl),
-      redDamageShare,
+      avgErrorCost,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
     };
   }, [locale, reviewMode, sortedEntries, viewMonth, viewYear]);
@@ -2183,21 +2184,21 @@ export default function TrackerClient({ userKey, locale }: Props) {
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
-                <span>{ui.redDamageShare}</span>
+                <span>{ui.avgErrorCost}</span>
                 <button
                   type="button"
                   className={styles.metricHelp}
-                  aria-label={ui.redDamageShareHint}
+                  aria-label={ui.avgErrorCostHint}
                   onClick={(e) => {
                     e.stopPropagation();
-                    toggleHelp("review-red-damage");
+                    toggleHelp("review-avg-error-cost");
                   }}
                 >
                   ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-red-damage") ? styles.metricTooltipVisible : ""}`}>{ui.redDamageShareHint}</span>
+                  <span className={`${styles.metricTooltip} ${helpOpen("review-avg-error-cost") ? styles.metricTooltipVisible : ""}`}>{ui.avgErrorCostHint}</span>
                 </button>
               </div>
-              <strong>{periodReview.redDamageShare}</strong>
+              <strong>{periodReview.avgErrorCost}</strong>
             </div>
             <div className={styles.weeklyItem}>
               <div className={styles.metricLabel}>
