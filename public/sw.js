@@ -10,7 +10,7 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(data.title || "Consist", {
       body: data.body || "Open your tracker.",
       icon: "/icon-512.png",
-      badge: "/favicon-32x32.png",
+      badge: "/badge-72x72.png",
       image: data.image || "/icon-512.png",
       vibrate: [120, 40, 120],
       tag: data.tag || "consist-reminder",
