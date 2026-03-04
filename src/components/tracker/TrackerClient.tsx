@@ -247,6 +247,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         futureDayLocked: "Будущие даты нельзя заполнять.",
         cancel: "Отмена",
         save: "Сохранить",
+        sessionExpiredShare: "Сессия истекла. Перенаправляем на вход…",
       };
     }
     if (locale === "uk") {
@@ -311,6 +312,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         futureDayLocked: "Майбутні дати не можна заповнювати.",
         cancel: "Скасувати",
         save: "Зберегти",
+        sessionExpiredShare: "Сесія завершилась. Перенаправляємо на вхід…",
       };
     }
     return {
@@ -374,6 +376,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       futureDayLocked: "Future dates cannot be filled.",
       cancel: "Cancel",
       save: "Save",
+      sessionExpiredShare: "Session expired. Redirecting to login…",
     };
   }, [locale]);
 
@@ -1703,6 +1706,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
           days,
         }),
       });
+      if (res.status === 401) {
+        setShareStatus(ui.sessionExpiredShare);
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => {
+            window.location.href = "/login";
+          }, 900);
+        }
+        return;
+      }
       if (!res.ok) {
         const errPayload = (await res.json().catch(() => null)) as { error?: string } | null;
         throw new Error(errPayload?.error || "Failed to create share link");
@@ -1722,6 +1734,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : locale === "ru" ? "Неизвестная ошибка" : locale === "uk" ? "Невідома помилка" : "Unknown error";
+      if (message.toLowerCase().includes("unauthorized")) {
+        setShareStatus(ui.sessionExpiredShare);
+        if (typeof window !== "undefined") {
+          window.setTimeout(() => {
+            window.location.href = "/login";
+          }, 900);
+        }
+        return;
+      }
       setShareStatus(`${locale === "ru" ? "Ошибка" : locale === "uk" ? "Помилка" : "Error"}: ${message}`);
     } finally {
       setShareLoading(false);
