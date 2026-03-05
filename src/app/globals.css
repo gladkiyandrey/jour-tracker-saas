@@ -51,7 +51,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 0 18px;
+  padding: 10px 0 10px;
 }
 
 .topbar-left,
@@ -710,7 +710,7 @@ a {
 }
 
 .dashboard {
-  padding: 16px 0 30px;
+  padding: 8px 0 30px;
 }
 
 .badge {

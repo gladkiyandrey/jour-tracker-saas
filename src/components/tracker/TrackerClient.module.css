@@ -5,7 +5,7 @@
 }
 
 .tracker {
-  margin-top: 14px;
+  margin-top: 6px;
   display: grid;
   grid-template-columns: 1.35fr 0.85fr;
   gap: 16px;
