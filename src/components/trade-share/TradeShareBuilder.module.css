@@ -173,11 +173,11 @@
 
 .logoWatermark {
   position: absolute;
-  width: 194px;
+  width: 194.3px;
   height: 53px;
-  left: calc(50% - 97px);
-  top: 272px;
-  opacity: 0.18;
+  left: 127px;
+  top: 238px;
+  opacity: 0.1;
   pointer-events: none;
 }
 
@@ -188,13 +188,13 @@
   right: 34px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  z-index: 2;
+  gap: 16px;
+  z-index: 4;
 }
 
 .ticker {
   font-weight: 500;
-  font-size: 22px;
+  font-size: 38px;
   line-height: 27px;
   color: #fff;
 }
@@ -203,9 +203,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 16px;
+  margin-left: auto;
 }
 
 .sideArrow {
@@ -218,43 +219,6 @@
 
 .short {
   color: #ff6f7f;
-}
-
-.executionTag {
-  position: absolute;
-  left: 34px;
-  top: 70px;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 9px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(10, 13, 19, 0.65);
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 12px;
-  line-height: 14px;
-}
-
-.pnlBlock {
-  position: absolute;
-  left: 35px;
-  top: 98px;
-  z-index: 2;
-}
-
-.pnlLabel {
-  color: rgba(255, 255, 255, 0.74);
-  font-size: 14px;
-  line-height: 17px;
-}
-
-.pnlValue {
-  margin-top: 4px;
-  color: #00ffa3;
-  font-weight: 700;
-  font-size: 32px;
-  line-height: 38px;
 }
 
 .figmaChart {
@@ -270,8 +234,8 @@
 }
 
 .price {
-  stroke: rgba(255, 255, 255, 0.26);
-  stroke-width: 2;
+  stroke: rgba(203, 214, 236, 0.38);
+  stroke-width: 2.2;
   fill: none;
 }
 
@@ -281,9 +245,9 @@
 
 .tradeLine {
   stroke: #00ffa3;
-  stroke-width: 2.2;
+  stroke-width: 3;
   fill: none;
-  filter: drop-shadow(0 0 4px rgba(0, 255, 163, 0.4));
+  filter: drop-shadow(0 0 3px rgba(0, 255, 163, 0.35));
 }
 
 .vLine {
@@ -307,15 +271,16 @@
 .infoGrid {
   position: absolute;
   left: 35px;
-  top: 333px;
+  top: 356px;
   width: 326px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  z-index: 4;
 }
 
 .infoRow {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 183px;
   align-items: center;
   gap: 12px;
 }
@@ -330,8 +295,8 @@
 }
 
 .infoRow strong {
-  text-align: right;
-  max-width: 185px;
+  text-align: left;
+  max-width: 183px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

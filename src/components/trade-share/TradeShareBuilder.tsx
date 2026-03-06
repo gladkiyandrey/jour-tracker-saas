@@ -364,18 +364,11 @@ export default function TradeShareBuilder() {
           <img className={styles.logoWatermark} src="/brand/consist-logo-white.svg" alt="" aria-hidden="true" />
 
           <div className={styles.topRow}>
-            <div className={styles.ticker}>{data.symbol.replace("/", "")}</div>
+            <div className={styles.ticker}>{data.symbol}</div>
             <div className={`${styles.sideBadge} ${tradeDirectionClass}`}>
               <span className={styles.sideArrow}>{(pnlPct ?? 0) >= 0 ? "↗" : "↘"}</span>
-              <span>{tradeDirection} 100X</span>
+              <span>{tradeDirection}</span>
             </div>
-          </div>
-
-          <div className={styles.executionTag}>Execution: Perfect</div>
-
-          <div className={styles.pnlBlock}>
-            <div className={styles.pnlLabel}>Net P&amp;L</div>
-            <div className={styles.pnlValue}>{(pnlPct ?? 0) >= 0 ? "+" : ""}{(pnlPct ?? 0).toFixed(2)}%</div>
           </div>
 
           <svg className={styles.figmaChart} viewBox={`0 0 ${chart.w} ${chart.h}`} aria-label="Trade chart">
@@ -385,20 +378,9 @@ export default function TradeShareBuilder() {
                 <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" />
               </linearGradient>
             </defs>
-            {[0, 1, 2, 3, 4].map((i) => {
-              const y = chart.top + (chart.innerH / 4) * i;
-              return <line key={i} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
-            })}
-
             <path className={styles.price} d={chart.fullPath} />
             <path className={styles.tradeFill} d={chart.fillPath} />
             <path className={styles.tradeLine} d={chart.segPath} />
-
-            <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
-            <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
-
-            <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r={4} />
-            <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r={4} />
           </svg>
 
           <div className={styles.infoGrid}>
