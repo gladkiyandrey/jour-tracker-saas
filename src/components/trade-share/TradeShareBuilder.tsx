@@ -23,6 +23,11 @@ type PreviewResponse = {
   exitPriceMarket: number | null;
 };
 
+type PreviewError = {
+  error: string;
+  suggestions?: string[];
+};
+
 function dtLocal(ts: number) {
   const d = new Date(ts);
   const pad = (n: number) => `${n}`.padStart(2, "0");
@@ -45,6 +50,7 @@ export default function TradeShareBuilder() {
   const [exitPrice, setExitPrice] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
   const [data, setData] = useState<PreviewResponse | null>(null);
 
   const chart = useMemo(() => {
@@ -109,6 +115,7 @@ export default function TradeShareBuilder() {
   async function loadPreview() {
     setLoading(true);
     setError("");
+    setSymbolSuggestions([]);
     try {
       const res = await fetch("/api/trade-share/preview", {
         method: "POST",
@@ -125,8 +132,11 @@ export default function TradeShareBuilder() {
         }),
       });
 
-      const json = (await res.json()) as PreviewResponse | { error: string };
+      const json = (await res.json()) as PreviewResponse | PreviewError;
       if (!res.ok) {
+        if ("error" in json && Array.isArray(json.suggestions) && json.suggestions.length > 0) {
+          setSymbolSuggestions(json.suggestions);
+        }
         throw new Error("error" in json ? json.error : "Failed to load chart");
       }
       setData(json as PreviewResponse);
@@ -205,6 +215,23 @@ export default function TradeShareBuilder() {
           </button>
           {error ? <span className={styles.error}>{error}</span> : null}
         </div>
+        {symbolSuggestions.length > 0 ? (
+          <div className={styles.suggestions}>
+            {symbolSuggestions.map((candidate) => (
+              <button
+                key={candidate}
+                type="button"
+                className={styles.suggestionBtn}
+                onClick={() => {
+                  setSymbol(candidate);
+                  setError("");
+                }}
+              >
+                {candidate}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {data && chart ? (

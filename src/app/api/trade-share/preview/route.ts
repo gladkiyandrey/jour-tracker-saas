@@ -29,6 +29,32 @@ type Point = {
   c: number;
 };
 
+async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<string[]> {
+  const q = query.trim();
+  if (!q) return [];
+
+  try {
+    const url = new URL("https://api.twelvedata.com/symbol_search");
+    url.searchParams.set("symbol", q);
+    url.searchParams.set("apikey", apiKey);
+    url.searchParams.set("outputsize", "8");
+
+    const res = await fetch(url.toString(), { cache: "no-store" });
+    if (!res.ok) return [];
+    const raw = (await res.json()) as {
+      data?: Array<{ symbol?: string; instrument_name?: string; exchange?: string }>;
+    };
+
+    const picks = (raw.data || [])
+      .map((item) => item.symbol)
+      .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+
+    return [...new Set(picks)].slice(0, 5);
+  } catch {
+    return [];
+  }
+}
+
 function toIso(input: string, label: string) {
   const ts = Date.parse(input);
   if (Number.isNaN(ts)) {
@@ -105,7 +131,19 @@ export async function POST(req: Request) {
     };
 
     if (raw.status === "error") {
-      return NextResponse.json({ error: raw.message || "Twelve Data error" }, { status: 502 });
+      const message = raw.message || "Twelve Data error";
+      const symbolIssue = /symbol|figi|missing|invalid/i.test(message);
+      if (symbolIssue) {
+        const suggestions = await fetchSymbolSuggestions(apiKey, symbol);
+        return NextResponse.json(
+          {
+            error: message,
+            suggestions,
+          },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({ error: message }, { status: 502 });
     }
 
     const points: Point[] = (raw.values || [])
