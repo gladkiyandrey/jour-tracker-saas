@@ -211,9 +211,54 @@
   background: rgba(9, 13, 24, 0.72);
 }
 
-.chartCanvas {
+.chart {
   width: 100%;
   height: 340px;
+  display: block;
+}
+
+.grid {
+  stroke: rgba(120, 136, 190, 0.22);
+  stroke-width: 1;
+}
+
+.baseLine {
+  stroke: rgba(104, 132, 204, 0.4);
+  stroke-width: 2;
+}
+
+.tradeFill {
+  fill: rgba(0, 255, 163, 0.16);
+}
+
+.price {
+  stroke: #6f87b7;
+  stroke-width: 2.5;
+  fill: none;
+}
+
+.tradeLine {
+  stroke: #00ffa3;
+  stroke-width: 3.5;
+  fill: none;
+}
+
+.vLine {
+  stroke: rgba(200, 216, 255, 0.5);
+  stroke-dasharray: 6 6;
+}
+
+.dot {
+  fill: #0f1424;
+  stroke-width: 2;
+}
+
+.dotEntry {
+  stroke: #ffd24a;
+}
+
+.dotExit {
+  stroke: #00ffa3;
 }
 
 .details {
@@ -256,7 +301,7 @@
     grid-template-columns: 1fr;
   }
 
-  .chartCanvas {
+  .chart {
     height: 280px;
   }
 }

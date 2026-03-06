@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  createChart,
-  LineSeries,
-  type IChartApi,
-  type ISeriesApi,
-  type LineData,
-  type Time,
-  type UTCTimestamp,
-} from "lightweight-charts";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./TradeShareBuilder.module.css";
 
 type Point = { t: string; ts: number; c: number };
@@ -88,10 +79,6 @@ export default function TradeShareBuilder() {
   const [lookupSuggestions, setLookupSuggestions] = useState<SymbolItem[]>(POPULAR_SYMBOLS);
   const [showSymbolList, setShowSymbolList] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
-  const chartRef = useRef<HTMLDivElement | null>(null);
-  const chartApiRef = useRef<IChartApi | null>(null);
-  const baseSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
-  const tradeSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   useEffect(() => {
     const q = symbol.trim();
@@ -125,91 +112,63 @@ export default function TradeShareBuilder() {
     return () => clearTimeout(timer);
   }, [symbol]);
 
-  const chartContainerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) {
-      if (chartApiRef.current) {
-        chartApiRef.current.remove();
-      }
-      chartApiRef.current = null;
-      baseSeriesRef.current = null;
-      tradeSeriesRef.current = null;
-      chartRef.current = null;
-      return;
+  const chart = useMemo(() => {
+    if (!data || data.points.length < 2) {
+      return null;
     }
 
-    chartRef.current = node;
-    if (chartApiRef.current) {
-      return;
-    }
+    const w = 980;
+    const h = 320;
+    const left = 24;
+    const right = 24;
+    const top = 18;
+    const bottom = 24;
+    const innerW = w - left - right;
+    const innerH = h - top - bottom;
 
-    const chart = createChart(node, {
-      autoSize: true,
-      layout: {
-        background: { color: "rgba(9, 13, 24, 0.0)" },
-        textColor: "#9ea9cc",
-      },
-      grid: {
-        vertLines: { color: "rgba(120, 136, 190, 0.12)" },
-        horzLines: { color: "rgba(120, 136, 190, 0.22)" },
-      },
-      rightPriceScale: {
-        borderColor: "rgba(120, 136, 190, 0.2)",
-      },
-      timeScale: {
-        borderColor: "rgba(120, 136, 190, 0.2)",
-        timeVisible: true,
-        secondsVisible: false,
-      },
-      crosshair: {
-        vertLine: { color: "rgba(176, 196, 255, 0.35)" },
-        horzLine: { color: "rgba(176, 196, 255, 0.35)" },
-      },
-    });
+    const safeMin = data.min;
+    const safeMax = data.max === data.min ? data.max + 1 : data.max;
 
-    const baseSeries = chart.addSeries(LineSeries, {
-      color: "#6f87b7",
-      lineWidth: 2,
-      crosshairMarkerBorderColor: "#6f87b7",
-      crosshairMarkerBackgroundColor: "#0f1424",
-      priceLineVisible: false,
-      lastValueVisible: false,
-    });
+    const toX = (index: number) => left + (index / (data.points.length - 1)) * innerW;
+    const toY = (price: number) => top + ((safeMax - price) / (safeMax - safeMin)) * innerH;
 
-    const tradeSeries = chart.addSeries(LineSeries, {
-      color: "#00ffa3",
-      lineWidth: 3,
-      crosshairMarkerBorderColor: "#00ffa3",
-      crosshairMarkerBackgroundColor: "#0f1424",
-      priceLineVisible: false,
-      lastValueVisible: false,
-    });
+    const fullPath = data.points
+      .map((p, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)} ${toY(p.c).toFixed(2)}`)
+      .join(" ");
 
-    chartApiRef.current = chart;
-    baseSeriesRef.current = baseSeries;
-    tradeSeriesRef.current = tradeSeries;
-  }, []);
+    const seg = data.points.slice(data.tradeStart, data.tradeEnd + 1);
+    const segPath = seg
+      .map((p, i) => {
+        const idx = data.tradeStart + i;
+        return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
+      })
+      .join(" ");
 
-  useEffect(() => {
-    if (!data || !chartApiRef.current || !baseSeriesRef.current || !tradeSeriesRef.current) {
-      return;
-    }
+    const fillPath = [
+      segPath,
+      `L ${toX(data.tradeEnd).toFixed(2)} ${(top + innerH).toFixed(2)}`,
+      `L ${toX(data.tradeStart).toFixed(2)} ${(top + innerH).toFixed(2)}`,
+      "Z",
+    ].join(" ");
 
-    const baseData: LineData<Time>[] = data.points.map((p) => ({
-      time: Math.floor(p.ts / 1000) as UTCTimestamp,
-      value: p.c,
-    }));
-
-    const tradeData: Array<LineData<Time> | { time: Time }> = data.points.map((p, i) => {
-      const time = Math.floor(p.ts / 1000) as UTCTimestamp;
-      if (i < data.tradeStart || i > data.tradeEnd) {
-        return { time };
-      }
-      return { time, value: p.c };
-    });
-
-    baseSeriesRef.current.setData(baseData);
-    tradeSeriesRef.current.setData(tradeData);
-    chartApiRef.current.timeScale().fitContent();
+    return {
+      w,
+      h,
+      left,
+      top,
+      innerW,
+      innerH,
+      toX,
+      toY,
+      fullPath,
+      segPath,
+      fillPath,
+      entryX: toX(data.entryIndex),
+      exitX: toX(data.exitIndex),
+      entryY: toY(data.points[data.entryIndex].c),
+      exitY: toY(data.points[data.exitIndex].c),
+      floorY: top + innerH,
+    };
   }, [data]);
 
   async function loadPreview() {
@@ -358,7 +317,7 @@ export default function TradeShareBuilder() {
         ) : null}
       </div>
 
-      {data ? (
+      {data && chart ? (
         <div className={styles.card}>
           <div className={styles.cardTop}>
             <div className={styles.symbol}>{data.symbol}</div>
@@ -383,7 +342,23 @@ export default function TradeShareBuilder() {
           </div>
 
           <div className={styles.chartWrap}>
-            <div ref={chartContainerRef} className={styles.chartCanvas} aria-label="Trade chart" />
+            <svg className={styles.chart} viewBox={`0 0 ${chart.w} ${chart.h}`} preserveAspectRatio="none" aria-label="Trade chart">
+              {[0, 1, 2, 3, 4].map((i) => {
+                const y = chart.top + (chart.innerH / 4) * i;
+                return <line key={i} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
+              })}
+              <line className={styles.baseLine} x1={chart.left} y1={chart.floorY} x2={chart.left + chart.innerW} y2={chart.floorY} />
+
+              <path className={styles.tradeFill} d={chart.fillPath} />
+              <path className={styles.price} d={chart.fullPath} />
+              <path className={styles.tradeLine} d={chart.segPath} />
+
+              <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
+              <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
+
+              <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r={5} />
+              <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r={5} />
+            </svg>
           </div>
 
           <div className={styles.details}>
