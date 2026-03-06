@@ -15,8 +15,6 @@ const ALLOWED_INTERVALS = new Set([
 type PreviewRequest = {
   symbol: string;
   interval: string;
-  startAt: string;
-  endAt: string;
   entryAt: string;
   exitAt: string;
   entryPrice?: number | string;
@@ -63,6 +61,31 @@ function toIso(input: string, label: string) {
   return new Date(ts).toISOString();
 }
 
+function intervalMs(interval: string) {
+  switch (interval) {
+    case "1min":
+      return 60 * 1000;
+    case "5min":
+      return 5 * 60 * 1000;
+    case "15min":
+      return 15 * 60 * 1000;
+    case "30min":
+      return 30 * 60 * 1000;
+    case "45min":
+      return 45 * 60 * 1000;
+    case "1h":
+      return 60 * 60 * 1000;
+    case "2h":
+      return 2 * 60 * 60 * 1000;
+    case "4h":
+      return 4 * 60 * 60 * 1000;
+    case "1day":
+      return 24 * 60 * 60 * 1000;
+    default:
+      return 15 * 60 * 1000;
+  }
+}
+
 function pickNearestIndex(points: Point[], timestamp: number) {
   let best = 0;
   let bestDelta = Infinity;
@@ -94,18 +117,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unsupported interval" }, { status: 400 });
     }
 
-    const startAtIso = toIso(body.startAt, "startAt");
-    const endAtIso = toIso(body.endAt, "endAt");
     const entryAtIso = toIso(body.entryAt, "entryAt");
     const exitAtIso = toIso(body.exitAt, "exitAt");
 
-    const startTs = Date.parse(startAtIso);
-    const endTs = Date.parse(endAtIso);
     const entryTs = Date.parse(entryAtIso);
     const exitTs = Date.parse(exitAtIso);
+    const tradeStartTs = Math.min(entryTs, exitTs);
+    const tradeEndTs = Math.max(entryTs, exitTs);
+    const step = intervalMs(interval);
+    const contextBefore = 40;
+    const contextAfter = 40;
+    const startTs = tradeStartTs - contextBefore * step;
+    const endTs = tradeEndTs + contextAfter * step;
+    const startAtIso = new Date(startTs).toISOString();
+    const endAtIso = new Date(endTs).toISOString();
 
     if (startTs >= endTs) {
-      return NextResponse.json({ error: "startAt must be earlier than endAt" }, { status: 400 });
+      return NextResponse.json({ error: "entryAt/exitAt range is invalid" }, { status: 400 });
     }
 
     const url = new URL("https://api.twelvedata.com/time_series");
@@ -184,6 +212,8 @@ export async function POST(req: Request) {
       exitPriceInput: body.exitPrice ?? null,
       entryTime: entryAtIso,
       exitTime: exitAtIso,
+      rangeStart: startAtIso,
+      rangeEnd: endAtIso,
       entryPriceMarket: points[entryIndex]?.c ?? null,
       exitPriceMarket: points[exitIndex]?.c ?? null,
     };

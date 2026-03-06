@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./TradeShareBuilder.module.css";
 
 type Point = { t: string; ts: number; c: number };
@@ -19,6 +19,8 @@ type PreviewResponse = {
   exitPriceInput: number | string | null;
   entryTime: string;
   exitTime: string;
+  rangeStart: string;
+  rangeEnd: string;
   entryPriceMarket: number | null;
   exitPriceMarket: number | null;
 };
@@ -35,15 +37,13 @@ function dtLocal(ts: number) {
 }
 
 const now = Date.now();
-const minus24h = now - 24 * 60 * 60 * 1000;
 const minus12h = now - 12 * 60 * 60 * 1000;
 const minus2h = now - 2 * 60 * 60 * 1000;
+const POPULAR_SYMBOLS = ["EUR/USD", "GBP/USD", "USD/JPY", "XAU/USD", "BTC/USD", "ETH/USD", "GER40"];
 
 export default function TradeShareBuilder() {
   const [symbol, setSymbol] = useState("EUR/USD");
   const [interval, setInterval] = useState("15min");
-  const [startAt, setStartAt] = useState(dtLocal(minus24h));
-  const [endAt, setEndAt] = useState(dtLocal(now));
   const [entryAt, setEntryAt] = useState(dtLocal(minus12h));
   const [exitAt, setExitAt] = useState(dtLocal(minus2h));
   const [entryPrice, setEntryPrice] = useState("");
@@ -51,7 +51,33 @@ export default function TradeShareBuilder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
+  const [lookupSuggestions, setLookupSuggestions] = useState<string[]>(POPULAR_SYMBOLS);
   const [data, setData] = useState<PreviewResponse | null>(null);
+
+  useEffect(() => {
+    const q = symbol.trim();
+    if (q.length < 1) {
+      setLookupSuggestions(POPULAR_SYMBOLS);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/trade-share/symbols?q=${encodeURIComponent(q)}`, { cache: "no-store" });
+        const json = (await res.json()) as { items?: Array<{ symbol: string }>; error?: string };
+        if (!res.ok || !Array.isArray(json.items)) {
+          return;
+        }
+        const found = json.items.map((x) => x.symbol).filter(Boolean);
+        const combined = [...new Set([q.toUpperCase(), ...found, ...POPULAR_SYMBOLS])].slice(0, 20);
+        setLookupSuggestions(combined);
+      } catch {
+        // keep existing list
+      }
+    }, 220);
+
+    return () => clearTimeout(timer);
+  }, [symbol]);
 
   const chart = useMemo(() => {
     if (!data || data.points.length < 2) {
@@ -123,8 +149,6 @@ export default function TradeShareBuilder() {
         body: JSON.stringify({
           symbol,
           interval,
-          startAt,
-          endAt,
           entryAt,
           exitAt,
           entryPrice: entryPrice || undefined,
@@ -165,7 +189,18 @@ export default function TradeShareBuilder() {
         <div className={styles.formGrid}>
           <div className={styles.field}>
             <label>Symbol</label>
-            <input value={symbol} onChange={(e) => setSymbol(e.target.value)} placeholder="EUR/USD" />
+            <input
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              placeholder="EUR/USD"
+              list="trade-symbols"
+              autoComplete="off"
+            />
+            <datalist id="trade-symbols">
+              {lookupSuggestions.map((item) => (
+                <option key={item} value={item} />
+              ))}
+            </datalist>
           </div>
           <div className={styles.field}>
             <label>Interval</label>
@@ -182,21 +217,16 @@ export default function TradeShareBuilder() {
             </select>
           </div>
           <div className={styles.field}>
-            <label>Start</label>
-            <input type="datetime-local" value={startAt} onChange={(e) => setStartAt(e.target.value)} />
-          </div>
-
-          <div className={styles.field}>
-            <label>End</label>
-            <input type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} />
-          </div>
-          <div className={styles.field}>
             <label>Entry time</label>
             <input type="datetime-local" value={entryAt} onChange={(e) => setEntryAt(e.target.value)} />
           </div>
           <div className={styles.field}>
             <label>Exit time</label>
             <input type="datetime-local" value={exitAt} onChange={(e) => setExitAt(e.target.value)} />
+          </div>
+          <div className={styles.field}>
+            <label>Range (auto)</label>
+            <input value="Calculated automatically from Entry/Exit" readOnly />
           </div>
 
           <div className={styles.field}>
@@ -290,6 +320,12 @@ export default function TradeShareBuilder() {
             <div className={styles.detail}>
               <b>Candles</b>
               <span>{data.points.length}</span>
+            </div>
+            <div className={styles.detail}>
+              <b>Auto range</b>
+              <span>
+                {new Date(data.rangeStart).toLocaleString()} - {new Date(data.rangeEnd).toLocaleString()}
+              </span>
             </div>
           </div>
         </div>
