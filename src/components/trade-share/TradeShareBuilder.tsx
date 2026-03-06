@@ -73,6 +73,8 @@ export default function TradeShareBuilder() {
   const [exitAt, setExitAt] = useState(dtLocal(minus2h));
   const [entryPrice, setEntryPrice] = useState("");
   const [exitPrice, setExitPrice] = useState("");
+  const [volume, setVolume] = useState("0.42");
+  const [rr, setRr] = useState("2.23");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
@@ -117,20 +119,23 @@ export default function TradeShareBuilder() {
       return null;
     }
 
-    const w = 980;
-    const h = 320;
-    const left = 24;
-    const right = 24;
-    const top = 18;
-    const bottom = 24;
-    const innerW = w - left - right;
-    const innerH = h - top - bottom;
+    const w = 450;
+    const h = 600;
+    const left = 45;
+    const right = 405;
+    const top = 74;
+    const bottom = 255;
+    const innerW = right - left;
+    const innerH = bottom - top;
 
     const safeMin = data.min;
     const safeMax = data.max === data.min ? data.max + 1 : data.max;
 
     const toX = (index: number) => left + (index / (data.points.length - 1)) * innerW;
-    const toY = (price: number) => top + ((safeMax - price) / (safeMax - safeMin)) * innerH;
+    const toY = (price: number) => {
+      const y = top + ((safeMax - price) / (safeMax - safeMin)) * innerH;
+      return Math.max(top, Math.min(bottom, y));
+    };
 
     const fullPath = data.points
       .map((p, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)} ${toY(p.c).toFixed(2)}`)
@@ -167,7 +172,7 @@ export default function TradeShareBuilder() {
       exitX: toX(data.exitIndex),
       entryY: toY(data.points[data.entryIndex].c),
       exitY: toY(data.points[data.exitIndex].c),
-      floorY: top + innerH,
+      floorY: bottom,
     };
   }, [data]);
 
@@ -212,6 +217,35 @@ export default function TradeShareBuilder() {
     if (!Number.isFinite(e) || !Number.isFinite(x) || e === 0) return null;
     return ((x - e) / e) * 100;
   }, [data]);
+
+  const tradeDirection = (pnlPct ?? 0) >= 0 ? "Long" : "Short";
+  const tradeDirectionClass = (pnlPct ?? 0) >= 0 ? styles.long : styles.short;
+
+  function formatPrice(v: number | string | null) {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return "n/a";
+    return `${n.toFixed(5)} USD`;
+  }
+
+  function formatLongDate(value: string) {
+    const d = new Date(value);
+    return d.toLocaleString("en-US", {
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  }
+
+  function formatDuration(start: string, end: string) {
+    const diffSec = Math.max(0, Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 1000));
+    const h = Math.floor(diffSec / 3600);
+    const m = Math.floor((diffSec % 3600) / 60);
+    const s = diffSec % 60;
+    return `${h}h ${m}m ${s}s`;
+  }
 
   return (
     <section className={styles.wrap}>
@@ -290,6 +324,14 @@ export default function TradeShareBuilder() {
             <label>Exit price (optional)</label>
             <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
           </div>
+          <div className={styles.field}>
+            <label>Volume (lots)</label>
+            <input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="0.42" />
+          </div>
+          <div className={styles.field}>
+            <label>RR</label>
+            <input value={rr} onChange={(e) => setRr(e.target.value)} placeholder="2.23" />
+          </div>
         </div>
 
         <div className={styles.actions}>
@@ -318,67 +360,75 @@ export default function TradeShareBuilder() {
       </div>
 
       {data && chart ? (
-        <div className={styles.card}>
-          <div className={styles.cardTop}>
-            <div className={styles.symbol}>{data.symbol}</div>
-            <div>{data.interval}</div>
-          </div>
+        <div className={styles.figmaCard}>
+          <img className={styles.logoWatermark} src="/brand/consist-logo-white.svg" alt="" aria-hidden="true" />
 
-          <div className={styles.metrics}>
-            <div className={styles.metric}>
-              <span>PnL %</span>
-              <strong style={{ color: (pnlPct ?? 0) >= 0 ? "#00ffa3" : "#ff8b8b" }}>
-                {pnlPct === null ? "n/a" : `${pnlPct >= 0 ? "+" : ""}${pnlPct.toFixed(2)}%`}
-              </strong>
-            </div>
-            <div className={styles.metric}>
-              <span>Market entry</span>
-              <strong>{data.entryPriceMarket?.toFixed(5) ?? "n/a"}</strong>
-            </div>
-            <div className={styles.metric}>
-              <span>Market exit</span>
-              <strong>{data.exitPriceMarket?.toFixed(5) ?? "n/a"}</strong>
+          <div className={styles.topRow}>
+            <div className={styles.ticker}>{data.symbol.replace("/", "")}</div>
+            <div className={`${styles.sideBadge} ${tradeDirectionClass}`}>
+              <span className={styles.sideArrow}>{(pnlPct ?? 0) >= 0 ? "↗" : "↘"}</span>
+              <span>{tradeDirection} 100X</span>
             </div>
           </div>
 
-          <div className={styles.chartWrap}>
-            <svg className={styles.chart} viewBox={`0 0 ${chart.w} ${chart.h}`} preserveAspectRatio="none" aria-label="Trade chart">
-              {[0, 1, 2, 3, 4].map((i) => {
-                const y = chart.top + (chart.innerH / 4) * i;
-                return <line key={i} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
-              })}
-              <line className={styles.baseLine} x1={chart.left} y1={chart.floorY} x2={chart.left + chart.innerW} y2={chart.floorY} />
+          <div className={styles.executionTag}>Execution: Perfect</div>
 
-              <path className={styles.tradeFill} d={chart.fillPath} />
-              <path className={styles.price} d={chart.fullPath} />
-              <path className={styles.tradeLine} d={chart.segPath} />
-
-              <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
-              <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
-
-              <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r={5} />
-              <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r={5} />
-            </svg>
+          <div className={styles.pnlBlock}>
+            <div className={styles.pnlLabel}>Net P&amp;L</div>
+            <div className={styles.pnlValue}>{(pnlPct ?? 0) >= 0 ? "+" : ""}{(pnlPct ?? 0).toFixed(2)}%</div>
           </div>
 
-          <div className={styles.details}>
-            <div className={styles.detail}>
-              <b>Entry time</b>
-              <span>{new Date(data.entryTime).toLocaleString()}</span>
+          <svg className={styles.figmaChart} viewBox={`0 0 ${chart.w} ${chart.h}`} aria-label="Trade chart">
+            <defs>
+              <linearGradient id="trade-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(0, 255, 163, 0.40)" />
+                <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" />
+              </linearGradient>
+            </defs>
+            {[0, 1, 2, 3, 4].map((i) => {
+              const y = chart.top + (chart.innerH / 4) * i;
+              return <line key={i} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
+            })}
+
+            <path className={styles.price} d={chart.fullPath} />
+            <path className={styles.tradeFill} d={chart.fillPath} />
+            <path className={styles.tradeLine} d={chart.segPath} />
+
+            <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
+            <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
+
+            <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r={4} />
+            <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r={4} />
+          </svg>
+
+          <div className={styles.infoGrid}>
+            <div className={styles.infoRow}>
+              <span>Entry price</span>
+              <strong>{formatPrice(data.entryPriceInput || data.entryPriceMarket)}</strong>
             </div>
-            <div className={styles.detail}>
-              <b>Exit time</b>
-              <span>{new Date(data.exitTime).toLocaleString()}</span>
+            <div className={styles.infoRow}>
+              <span>Exit price</span>
+              <strong>{formatPrice(data.exitPriceInput || data.exitPriceMarket)}</strong>
             </div>
-            <div className={styles.detail}>
-              <b>Candles</b>
-              <span>{data.points.length}</span>
+            <div className={styles.infoRow}>
+              <span>Open Date</span>
+              <strong>{formatLongDate(data.entryTime)}</strong>
             </div>
-            <div className={styles.detail}>
-              <b>Auto range</b>
-              <span>
-                {new Date(data.rangeStart).toLocaleString()} - {new Date(data.rangeEnd).toLocaleString()}
-              </span>
+            <div className={styles.infoRow}>
+              <span>Close Date</span>
+              <strong>{formatLongDate(data.exitTime)}</strong>
+            </div>
+            <div className={styles.infoRow}>
+              <span>Duration</span>
+              <strong>{formatDuration(data.entryTime, data.exitTime)}</strong>
+            </div>
+            <div className={styles.infoRow}>
+              <span>Volume</span>
+              <strong>{volume || "0.00"} Lots</strong>
+            </div>
+            <div className={styles.infoRow}>
+              <span>RR</span>
+              <strong>{rr || "0.00"}</strong>
             </div>
           </div>
         </div>

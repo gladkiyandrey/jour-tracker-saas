@@ -158,94 +158,137 @@
   border-color: rgba(150, 173, 255, 0.8);
 }
 
-.card {
-  border: 1px solid rgba(120, 136, 190, 0.28);
-  border-radius: 22px;
-  padding: 16px;
-  background: radial-gradient(circle at 20% 5%, rgba(37, 98, 255, 0.16), transparent 45%), #0e1323;
-}
-
-.cardTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.symbol {
-  font-size: 28px;
-  font-weight: 700;
-}
-
-.metrics {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.metric {
-  border: 1px solid rgba(120, 136, 190, 0.28);
-  background: rgba(12, 17, 32, 0.72);
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.metric span {
-  display: block;
-  color: #9ea9cc;
-  font-size: 12px;
-}
-
-.metric strong {
-  display: block;
-  margin-top: 5px;
-  font-size: 18px;
-}
-
-.chartWrap {
-  margin-top: 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(120, 136, 190, 0.24);
+.figmaCard {
+  position: relative;
+  width: 450px;
+  height: 600px;
   overflow: hidden;
-  background: rgba(9, 13, 24, 0.72);
+  border-radius: 25px;
+  background: #131722;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 5px 5px 21.9px rgba(255, 255, 255, 0.1),
+    0 28px 60px rgba(0, 0, 0, 0.45);
 }
 
-.chart {
+.logoWatermark {
+  position: absolute;
+  width: 194px;
+  height: 53px;
+  left: calc(50% - 97px);
+  top: 272px;
+  opacity: 0.18;
+  pointer-events: none;
+}
+
+.topRow {
+  position: absolute;
+  left: 34px;
+  top: 36px;
+  right: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 2;
+}
+
+.ticker {
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 27px;
+  color: #fff;
+}
+
+.sideBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.sideArrow {
+  font-size: 15px;
+}
+
+.long {
+  color: #31bf59;
+}
+
+.short {
+  color: #ff6f7f;
+}
+
+.executionTag {
+  position: absolute;
+  left: 34px;
+  top: 70px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 13, 19, 0.65);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  line-height: 14px;
+}
+
+.pnlBlock {
+  position: absolute;
+  left: 35px;
+  top: 98px;
+  z-index: 2;
+}
+
+.pnlLabel {
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 14px;
+  line-height: 17px;
+}
+
+.pnlValue {
+  margin-top: 4px;
+  color: #00ffa3;
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 38px;
+}
+
+.figmaChart {
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: 340px;
-  display: block;
+  height: 100%;
 }
 
 .grid {
-  stroke: rgba(120, 136, 190, 0.22);
-  stroke-width: 1;
-}
-
-.baseLine {
-  stroke: rgba(104, 132, 204, 0.4);
-  stroke-width: 2;
-}
-
-.tradeFill {
-  fill: rgba(0, 255, 163, 0.16);
+  stroke: rgba(139, 139, 139, 0.45);
+  stroke-width: 0.8;
 }
 
 .price {
-  stroke: #6f87b7;
-  stroke-width: 2.5;
+  stroke: rgba(255, 255, 255, 0.26);
+  stroke-width: 2;
   fill: none;
+}
+
+.tradeFill {
+  fill: url(#trade-gradient);
 }
 
 .tradeLine {
   stroke: #00ffa3;
-  stroke-width: 3.5;
+  stroke-width: 2.2;
   fill: none;
+  filter: drop-shadow(0 0 4px rgba(0, 255, 163, 0.4));
 }
 
 .vLine {
-  stroke: rgba(200, 216, 255, 0.5);
-  stroke-dasharray: 6 6;
+  stroke: rgba(255, 255, 255, 0.38);
+  stroke-dasharray: 4 6;
 }
 
 .dot {
@@ -261,47 +304,58 @@
   stroke: #00ffa3;
 }
 
-.details {
-  margin-top: 10px;
+.infoGrid {
+  position: absolute;
+  left: 35px;
+  top: 333px;
+  width: 326px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
-.detail {
-  border-radius: 10px;
-  background: rgba(11, 16, 30, 0.75);
-  border: 1px solid rgba(120, 136, 190, 0.22);
-  padding: 10px;
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
-.detail b {
-  display: block;
-  font-size: 12px;
-  color: #9ea9cc;
+.infoRow span,
+.infoRow strong {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #fff;
 }
 
-.detail span {
-  font-family: "JetBrains Mono", ui-monospace, Menlo, monospace;
-  font-size: 14px;
+.infoRow strong {
+  text-align: right;
+  max-width: 185px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @media (max-width: 960px) {
-  .formGrid,
-  .metrics,
-  .details {
+  .formGrid {
     grid-template-columns: 1fr 1fr;
   }
 }
 
 @media (max-width: 680px) {
-  .formGrid,
-  .metrics,
-  .details {
+  .formGrid {
     grid-template-columns: 1fr;
   }
 
-  .chart {
-    height: 280px;
+  .figmaCard {
+    width: 100%;
+    max-width: 450px;
+    height: auto;
+    aspect-ratio: 3 / 4;
+  }
+
+  .infoGrid {
+    width: calc(100% - 70px);
   }
 }
