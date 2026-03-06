@@ -4,20 +4,17 @@ import { getSubscriptionState } from "@/lib/auth";
 import { getCurrentUserFromSessionCookies } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
-import DashboardTrackerLoader from "@/components/tracker/DashboardTrackerLoader";
+import { getLocaleFromCookies, t } from "@/lib/i18n";
+import SiteLogo from "@/components/ui/SiteLogo";
 import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import SiteLogo from "@/components/ui/SiteLogo";
-import { getLocaleFromCookies, t } from "@/lib/i18n";
+import TradeShareBuilder from "@/components/trade-share/TradeShareBuilder";
 
 const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error("timeout"));
-    }, timeoutMs);
-
+    const timer = setTimeout(() => reject(new Error("timeout")), timeoutMs);
     promise
       .then((value) => resolve(value))
       .catch((error) => reject(error))
@@ -25,38 +22,37 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
   });
 }
 
-export default async function DashboardPage() {
+export default async function TradeSharePage() {
   const locale = await getLocaleFromCookies();
   const m = t(locale);
   const cookieSub = await getSubscriptionState();
   const user = await getCurrentUserFromSessionCookies();
-  if (!user) {
-    redirect("/login");
-  }
-  const email = user.email;
-  const admin = isAdminEmail(email);
+  if (!user) redirect("/login");
+
+  const admin = isAdminEmail(user.email);
   let sub = cookieSub;
   if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       const dbSub = await withTimeout(getSubscriptionStateFromDb(user.id), SUBSCRIPTION_DB_TIMEOUT_MS);
       sub = { active: dbSub.active, expiresAt: dbSub.expiresAt };
     } catch {
-      // fallback to cookie state
+      // cookie fallback
     }
   }
-  const userKey = user.id;
-  const nameFromEmail = email.split("@")[0] || "User";
+
+  const nameFromEmail = user.email.split("@")[0] || "User";
   const fallbackName = nameFromEmail
     .replace(/[._-]+/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase())
     .trim();
   const displayName = (user.displayName || fallbackName).trim();
-  const initials = displayName
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("") || "U";
+  const initials =
+    displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() ?? "")
+      .join("") || "U";
   const roleLabel = admin
     ? locale === "ru"
       ? "Админ"
@@ -76,8 +72,8 @@ export default async function DashboardPage() {
           <SiteLogo href="/app" className="logo-light" />
         </div>
         <nav className="topbar-center">
-          <Link className="btn btn-nav-plain" href="/">
-            {m.navHome}
+          <Link className="btn btn-nav-plain" href="/app">
+            Dashboard
           </Link>
           <Link className="btn btn-nav-plain" href="/app/trade-share">
             Trade Share
@@ -128,7 +124,8 @@ export default async function DashboardPage() {
           <LanguageSwitcher locale={locale} compact />
         </nav>
       </header>
-      <DashboardTrackerLoader userKey={userKey} locale={locale} />
+
+      <TradeShareBuilder />
     </main>
   );
 }
