@@ -30,6 +30,7 @@
 .field {
   display: grid;
   gap: 6px;
+  position: relative;
 }
 
 .field label {
@@ -46,6 +47,70 @@
   color: #eef3ff;
   padding: 0 12px;
   font-size: 14px;
+}
+
+.symbolList {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(120, 136, 190, 0.42);
+  background: rgba(7, 11, 22, 0.98);
+  z-index: 30;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.symbolItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(120, 136, 190, 0.15);
+  background: transparent;
+  color: #e9efff;
+  text-align: left;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.symbolItem:last-child {
+  border-bottom: 0;
+}
+
+.symbolItem:hover {
+  background: rgba(70, 105, 194, 0.16);
+}
+
+.symbolLogo {
+  min-width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(133, 161, 238, 0.35);
+  background: rgba(46, 76, 161, 0.2);
+  color: #d7e6ff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.symbolMeta {
+  display: grid;
+}
+
+.symbolCode {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.symbolName {
+  font-size: 11px;
+  color: #9ea9cc;
 }
 
 .actions {

@@ -4,6 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./TradeShareBuilder.module.css";
 
 type Point = { t: string; ts: number; c: number };
+type SymbolItem = {
+  symbol: string;
+  name?: string;
+  exchange?: string;
+  currency?: string;
+  type?: string;
+};
 
 type PreviewResponse = {
   symbol: string;
@@ -39,7 +46,25 @@ function dtLocal(ts: number) {
 const now = Date.now();
 const minus12h = now - 12 * 60 * 60 * 1000;
 const minus2h = now - 2 * 60 * 60 * 1000;
-const POPULAR_SYMBOLS = ["EUR/USD", "GBP/USD", "USD/JPY", "XAU/USD", "BTC/USD", "ETH/USD", "GER40"];
+const POPULAR_SYMBOLS: SymbolItem[] = [
+  { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
+  { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
+  { symbol: "USD/JPY", name: "US Dollar / Yen", type: "forex" },
+  { symbol: "XAU/USD", name: "Gold / US Dollar", type: "commodity" },
+  { symbol: "BTC/USD", name: "Bitcoin / US Dollar", type: "cryptocurrency" },
+  { symbol: "ETH/USD", name: "Ethereum / US Dollar", type: "cryptocurrency" },
+  { symbol: "GER40", name: "Germany 40 Index", type: "index" },
+];
+
+function symbolBadge(item: SymbolItem) {
+  const type = (item.type || "").toLowerCase();
+  if (type.includes("crypto")) return "₿";
+  if (type.includes("forex")) return "FX";
+  if (type.includes("index")) return "IX";
+  if (type.includes("stock")) return "EQ";
+  if (type.includes("commodity")) return "CM";
+  return item.symbol.slice(0, 2).toUpperCase();
+}
 
 export default function TradeShareBuilder() {
   const [symbol, setSymbol] = useState("EUR/USD");
@@ -51,7 +76,8 @@ export default function TradeShareBuilder() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
-  const [lookupSuggestions, setLookupSuggestions] = useState<string[]>(POPULAR_SYMBOLS);
+  const [lookupSuggestions, setLookupSuggestions] = useState<SymbolItem[]>(POPULAR_SYMBOLS);
+  const [showSymbolList, setShowSymbolList] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
 
   useEffect(() => {
@@ -64,13 +90,20 @@ export default function TradeShareBuilder() {
     const timer = setTimeout(async () => {
       try {
         const res = await fetch(`/api/trade-share/symbols?q=${encodeURIComponent(q)}`, { cache: "no-store" });
-        const json = (await res.json()) as { items?: Array<{ symbol: string }>; error?: string };
+        const json = (await res.json()) as { items?: SymbolItem[]; error?: string };
         if (!res.ok || !Array.isArray(json.items)) {
           return;
         }
-        const found = json.items.map((x) => x.symbol).filter(Boolean);
-        const combined = [...new Set([q.toUpperCase(), ...found, ...POPULAR_SYMBOLS])].slice(0, 20);
-        setLookupSuggestions(combined);
+        const base = { symbol: q.toUpperCase() };
+        const merged = [base, ...json.items, ...POPULAR_SYMBOLS];
+        const seen = new Set<string>();
+        const dedup = merged.filter((x) => {
+          const key = x.symbol?.toUpperCase();
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setLookupSuggestions(dedup.slice(0, 30));
       } catch {
         // keep existing list
       }
@@ -192,15 +225,35 @@ export default function TradeShareBuilder() {
             <input
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
+              onFocus={() => setShowSymbolList(true)}
+              onBlur={() => setTimeout(() => setShowSymbolList(false), 120)}
               placeholder="EUR/USD"
-              list="trade-symbols"
               autoComplete="off"
             />
-            <datalist id="trade-symbols">
-              {lookupSuggestions.map((item) => (
-                <option key={item} value={item} />
-              ))}
-            </datalist>
+            {showSymbolList ? (
+              <div className={styles.symbolList} role="listbox" aria-label="Symbols">
+                {lookupSuggestions.map((item) => (
+                  <button
+                    key={item.symbol}
+                    type="button"
+                    className={styles.symbolItem}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSymbol(item.symbol);
+                      setShowSymbolList(false);
+                    }}
+                  >
+                    <span className={styles.symbolLogo}>{symbolBadge(item)}</span>
+                    <span className={styles.symbolMeta}>
+                      <span className={styles.symbolCode}>{item.symbol}</span>
+                      <span className={styles.symbolName}>
+                        {[item.name, item.exchange, item.currency].filter(Boolean).join(" • ") || "Twelve Data symbol"}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           <div className={styles.field}>
             <label>Interval</label>
