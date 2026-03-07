@@ -39,7 +39,6 @@ type PreviewError = {
 };
 
 type PositionSide = "long" | "short";
-type PriceSourceMode = "manual" | "market";
 
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
@@ -156,12 +155,11 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [interval, setInterval] = useState("15min");
   const [timeZone, setTimeZone] = useState(initialTimeZone || "UTC");
   const [positionSide, setPositionSide] = useState<PositionSide | "">("");
-  const [priceSource, setPriceSource] = useState<PriceSourceMode>("manual");
   const [entryAt, setEntryAt] = useState("");
   const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
   const [exitPrice, setExitPrice] = useState("");
-  const [volume, setVolume] = useState("");
+  const [riskPercent, setRiskPercent] = useState("");
   const [rr, setRr] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -282,13 +280,21 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       setError("Set entry and exit time");
       return;
     }
-    if (priceSource === "manual") {
-      const entryNum = Number(entryPrice);
-      const exitNum = Number(exitPrice);
-      if (!Number.isFinite(entryNum) || entryNum <= 0 || !Number.isFinite(exitNum) || exitNum <= 0) {
-        setError("Enter entry and exit prices or switch to Market prices");
-        return;
-      }
+    const entryNum = Number(entryPrice);
+    const exitNum = Number(exitPrice);
+    const riskNum = Number(riskPercent);
+    const rrNum = Number(rr);
+    if (!Number.isFinite(entryNum) || entryNum <= 0 || !Number.isFinite(exitNum) || exitNum <= 0) {
+      setError("Enter entry and exit prices");
+      return;
+    }
+    if (!Number.isFinite(riskNum) || riskNum <= 0) {
+      setError("Enter risk percent");
+      return;
+    }
+    if (!Number.isFinite(rrNum) || rrNum < 0) {
+      setError("Enter RR");
+      return;
     }
 
     setLoading(true);
@@ -304,8 +310,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           entryAt,
           exitAt,
           timeZone,
-          entryPrice: priceSource === "manual" ? entryPrice || undefined : undefined,
-          exitPrice: priceSource === "manual" ? exitPrice || undefined : undefined,
+          entryPrice,
+          exitPrice,
         }),
       });
 
@@ -348,16 +354,33 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   }
 
   const tradeDirection = positionSide === "short" ? "Short" : "Long";
-  const effectiveEntryPrice = Number(data?.entryPriceInput ?? data?.entryPriceMarket ?? 0);
-  const effectiveExitPrice = Number(data?.exitPriceInput ?? data?.exitPriceMarket ?? 0);
-  const pnlPct =
-    data && Number.isFinite(effectiveEntryPrice) && Number.isFinite(effectiveExitPrice) && effectiveEntryPrice > 0
+  const manualEntryPrice = Number(data?.entryPriceInput ?? entryPrice ?? 0);
+  const manualExitPrice = Number(data?.exitPriceInput ?? exitPrice ?? 0);
+  const riskValue = Math.abs(Number(riskPercent));
+  const rrValue = Math.abs(Number(rr));
+  const tradeOutcome =
+    data && Number.isFinite(manualEntryPrice) && Number.isFinite(manualExitPrice) && manualEntryPrice > 0
       ? positionSide === "short"
-        ? ((effectiveEntryPrice - effectiveExitPrice) / effectiveEntryPrice) * 100
-        : ((effectiveExitPrice - effectiveEntryPrice) / effectiveEntryPrice) * 100
+        ? manualEntryPrice > manualExitPrice
+          ? "profit"
+          : manualEntryPrice < manualExitPrice
+            ? "loss"
+            : "breakeven"
+        : manualExitPrice > manualEntryPrice
+          ? "profit"
+          : manualExitPrice < manualEntryPrice
+            ? "loss"
+            : "breakeven"
       : null;
-  const isProfit = (pnlPct ?? 0) >= 0;
-  const resultClass = isProfit ? styles.profit : styles.loss;
+  const pnlPct =
+    tradeOutcome === "profit"
+      ? riskValue * rrValue
+      : tradeOutcome === "loss"
+        ? -riskValue
+        : tradeOutcome === "breakeven"
+          ? 0
+          : null;
+  const resultClass = tradeOutcome === "loss" ? styles.loss : styles.profit;
   const sideClass = positionSide === "short" ? styles.sideShort : styles.sideLong;
 
   function formatPrice(v: number | string | null) {
@@ -397,7 +420,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     <section className={styles.wrap}>
       <div className={styles.panel}>
         <h1>Trade Share Builder (MVP)</h1>
-        <p>Вводишь параметры сделки, система тянет историю цены из Twelve Data и строит график с точкой входа/выхода.</p>
+        <p>Вводишь параметры сделки, система тянет историю цены из Twelve Data и строит график по времени сделки.</p>
+        <p>Результат карточки считается только по ручным данным пользователя: side, entry, exit, risk percent и RR.</p>
         <p>Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
@@ -459,13 +483,6 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             </select>
           </div>
           <div className={styles.field}>
-            <label>Price source</label>
-            <select value={priceSource} onChange={(e) => setPriceSource(e.target.value === "market" ? "market" : "manual")}>
-              <option value="manual">Manual prices</option>
-              <option value="market">Market prices (auto)</option>
-            </select>
-          </div>
-          <div className={styles.field}>
             <label>Entry time</label>
             <input type="datetime-local" value={entryAt} onChange={(e) => setEntryAt(e.target.value)} placeholder="Select entry time" />
           </div>
@@ -475,26 +492,16 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           </div>
 
           <div className={styles.field}>
-            <label>{priceSource === "manual" ? "Entry price" : "Entry price (market)"}</label>
-            <input
-              value={priceSource === "manual" ? entryPrice : data?.entryPriceMarket ? String(data.entryPriceMarket) : ""}
-              onChange={(e) => setEntryPrice(e.target.value)}
-              placeholder="1.08452"
-              readOnly={priceSource === "market"}
-            />
+            <label>Entry price</label>
+            <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="1.08452" />
           </div>
           <div className={styles.field}>
-            <label>{priceSource === "manual" ? "Exit price" : "Exit price (market)"}</label>
-            <input
-              value={priceSource === "manual" ? exitPrice : data?.exitPriceMarket ? String(data.exitPriceMarket) : ""}
-              onChange={(e) => setExitPrice(e.target.value)}
-              placeholder="1.08632"
-              readOnly={priceSource === "market"}
-            />
+            <label>Exit price</label>
+            <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
           </div>
           <div className={styles.field}>
-            <label>Volume (lots)</label>
-            <input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 0.42" />
+            <label>Risk (%)</label>
+            <input value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} placeholder="e.g. 2" />
           </div>
           <div className={styles.field}>
             <label>RR</label>
@@ -569,28 +576,42 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               </filter>
             </defs>
             <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
-            <path d={chart.fillPath} fill={isProfit ? "url(#trade-gradient)" : "url(#trade-gradient-loss)"} />
+            <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient)"} />
             <path
               d={chart.segPath}
               fill="none"
-              stroke={isProfit ? "#00FFA3" : "#FF6B7A"}
+              stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"}
               strokeWidth="2"
               opacity="0.8"
               filter="url(#position-glow-blur)"
             />
-            <path d={chart.segPath} fill="none" stroke={isProfit ? "#00FFA3" : "#FF6B7A"} strokeWidth="3.4" />
-            <circle cx={chart.entryX} cy={chart.entryY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
-            <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke={isProfit ? "#00ffa3" : "#ff6b7a"} strokeWidth="4" />
+            <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
+            <circle
+              cx={chart.entryX}
+              cy={chart.toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : data.points[data.entryIndex].c)}
+              r="6.5"
+              fill="#0f1424"
+              stroke="#ffd24a"
+              strokeWidth="4"
+            />
+            <circle
+              cx={chart.exitX}
+              cy={chart.toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : data.points[data.exitIndex].c)}
+              r="6.5"
+              fill="#0f1424"
+              stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
+              strokeWidth="4"
+            />
           </svg>
 
           <div className={styles.infoGrid}>
             <div className={styles.infoRow}>
               <span>Entry price</span>
-              <strong>{formatPrice(data.entryPriceInput || data.entryPriceMarket)}</strong>
+              <strong>{formatPrice(data.entryPriceInput)}</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Exit price</span>
-              <strong>{formatPrice(data.exitPriceInput || data.exitPriceMarket)}</strong>
+              <strong>{formatPrice(data.exitPriceInput)}</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Open Date</span>
@@ -605,16 +626,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               <strong>{formatDuration(data.entryTime, data.exitTime)}</strong>
             </div>
             <div className={styles.infoRow}>
-              <span>Volume</span>
-              <strong>{volume || "0.00"} Lots</strong>
+              <span>Risk</span>
+              <strong>{riskPercent || "0.00"}%</strong>
             </div>
             <div className={styles.infoRow}>
               <span>RR</span>
               <strong>{rr || "0.00"}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Price source</span>
-              <strong>{priceSource === "manual" ? "Manual" : "Market-derived"}</strong>
             </div>
           </div>
         </div>

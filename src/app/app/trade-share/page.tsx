@@ -40,7 +40,7 @@ export default async function TradeSharePage() {
       // cookie fallback
     }
   }
-  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC" }));
+  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC", startDeposit: 10000 }));
 
   const nameFromEmail = user.email.split("@")[0] || "User";
   const fallbackName = nameFromEmail

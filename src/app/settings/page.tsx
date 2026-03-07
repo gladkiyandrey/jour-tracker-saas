@@ -14,7 +14,7 @@ export default async function SettingsPage() {
   if (!user) {
     redirect("/login");
   }
-  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC" }));
+  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC", startDeposit: 10000 }));
 
   return (
     <main className="site dashboard">
@@ -33,7 +33,7 @@ export default async function SettingsPage() {
       <p className="note" style={{ marginTop: 0, marginBottom: "8px" }}>
         {m.account}: {user.email}
       </p>
-      <SettingsClient userKey={user.id} locale={locale} initialTimezone={settings.timezone} />
+      <SettingsClient userKey={user.id} locale={locale} initialTimezone={settings.timezone} initialStartDeposit={settings.startDeposit} />
     </main>
   );
 }

@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       // fallback to cookie state
     }
   }
-  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC" }));
+  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC", startDeposit: 10000 }));
   const userKey = user.id;
   const nameFromEmail = email.split("@")[0] || "User";
   const fallbackName = nameFromEmail

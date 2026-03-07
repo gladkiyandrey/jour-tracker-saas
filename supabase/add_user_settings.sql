@@ -1,9 +1,12 @@
 create table if not exists public.user_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   timezone text not null default 'UTC',
+  start_deposit numeric not null default 10000,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.user_settings add column if not exists start_deposit numeric not null default 10000;
 
 alter table public.user_settings enable row level security;
 

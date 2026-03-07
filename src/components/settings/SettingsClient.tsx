@@ -8,6 +8,7 @@ type Props = {
   userKey: string;
   locale: Locale;
   initialTimezone: string;
+  initialStartDeposit: number;
 };
 
 type UserSettings = {
@@ -41,9 +42,13 @@ function base64ToUint8Array(base64: string) {
   return output;
 }
 
-export default function SettingsClient({ userKey, locale, initialTimezone }: Props) {
+export default function SettingsClient({ userKey, locale, initialTimezone, initialStartDeposit }: Props) {
   const storageKey = `consist-user-settings-${userKey}`;
-  const [state, setState] = useState<UserSettings>({ ...defaults, timezone: initialTimezone || defaults.timezone });
+  const [state, setState] = useState<UserSettings>({
+    ...defaults,
+    timezone: initialTimezone || defaults.timezone,
+    startDeposit: String(initialStartDeposit || Number(defaults.startDeposit)),
+  });
   const [savedAt, setSavedAt] = useState("");
   const [saveError, setSaveError] = useState("");
 
@@ -193,7 +198,7 @@ export default function SettingsClient({ userKey, locale, initialTimezone }: Pro
     } catch {
       // ignore parse errors
     }
-  }, [initialTimezone, storageKey]);
+  }, [initialStartDeposit, initialTimezone, storageKey]);
 
   useEffect(() => {
     const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
@@ -230,7 +235,7 @@ export default function SettingsClient({ userKey, locale, initialTimezone }: Pro
       const res = await fetch("/api/settings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ timezone: state.timezone }),
+        body: JSON.stringify({ timezone: state.timezone, startDeposit: Number(state.startDeposit) }),
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => ({}))) as { error?: string };

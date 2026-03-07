@@ -23,14 +23,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await req.json()) as { timezone?: string };
+  const body = (await req.json()) as { timezone?: string; startDeposit?: number | string };
   const timezone = String(body.timezone || "").trim();
+  const startDeposit = Number(body.startDeposit);
   if (!timezone || !isValidTimeZone(timezone)) {
     return NextResponse.json({ error: "Valid timezone is required" }, { status: 400 });
   }
+  if (!Number.isFinite(startDeposit) || startDeposit <= 0) {
+    return NextResponse.json({ error: "Valid start deposit is required" }, { status: 400 });
+  }
 
   try {
-    const settings = await upsertUserSettings(user.id, { timezone });
+    const settings = await upsertUserSettings(user.id, { timezone, startDeposit });
     return NextResponse.json({ settings });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
