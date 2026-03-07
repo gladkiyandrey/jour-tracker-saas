@@ -215,8 +215,9 @@
   position: absolute;
   width: 120px;
   height: 33px;
-  left: calc(50% - 60px);
-  top: 290px;
+  left: 50%;
+  top: calc(50% - 9.5px);
+  transform: translate(-50%, -50%);
   opacity: 0.2;
   object-fit: contain;
   pointer-events: none;
