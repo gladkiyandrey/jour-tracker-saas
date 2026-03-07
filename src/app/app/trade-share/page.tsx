@@ -9,6 +9,7 @@ import SiteLogo from "@/components/ui/SiteLogo";
 import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
 import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import TradeShareBuilder from "@/components/trade-share/TradeShareBuilder";
+import { getUserSettings } from "@/lib/user-settings-store";
 
 const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
 
@@ -39,6 +40,7 @@ export default async function TradeSharePage() {
       // cookie fallback
     }
   }
+  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC" }));
 
   const nameFromEmail = user.email.split("@")[0] || "User";
   const fallbackName = nameFromEmail
@@ -125,7 +127,7 @@ export default async function TradeSharePage() {
         </nav>
       </header>
 
-      <TradeShareBuilder />
+      <TradeShareBuilder initialTimeZone={settings.timezone} />
     </main>
   );
 }

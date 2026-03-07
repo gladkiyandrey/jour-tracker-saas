@@ -99,9 +99,14 @@ async function applyRoundedCornersToDataUrl(dataUrl: string, radiusPx: number): 
   return canvas.toDataURL("image/png");
 }
 
-export default function TradeShareBuilder() {
+type TradeShareBuilderProps = {
+  initialTimeZone: string;
+};
+
+export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilderProps) {
   const [symbol, setSymbol] = useState("");
   const [interval, setInterval] = useState("15min");
+  const [timeZone, setTimeZone] = useState(initialTimeZone || "UTC");
   const [entryAt, setEntryAt] = useState("");
   const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
@@ -116,6 +121,10 @@ export default function TradeShareBuilder() {
   const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setTimeZone(initialTimeZone || "UTC");
+  }, [initialTimeZone]);
 
   useEffect(() => {
     const q = symbol.trim();
@@ -232,6 +241,7 @@ export default function TradeShareBuilder() {
           interval,
           entryAt,
           exitAt,
+          timeZone,
           entryPrice: entryPrice || undefined,
           exitPrice: exitPrice || undefined,
         }),
@@ -295,6 +305,7 @@ export default function TradeShareBuilder() {
   function formatLongDate(value: string) {
     const d = new Date(value);
     return d.toLocaleString("en-US", {
+      timeZone,
       month: "long",
       year: "numeric",
       hour: "2-digit",
@@ -317,6 +328,7 @@ export default function TradeShareBuilder() {
       <div className={styles.panel}>
         <h1>Trade Share Builder (MVP)</h1>
         <p>Вводишь параметры сделки, система тянет историю цены из Twelve Data и строит график с точкой входа/выхода.</p>
+        <p>Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
           <div className={styles.field}>
@@ -375,10 +387,6 @@ export default function TradeShareBuilder() {
           <div className={styles.field}>
             <label>Exit time</label>
             <input type="datetime-local" value={exitAt} onChange={(e) => setExitAt(e.target.value)} placeholder="Select exit time" />
-          </div>
-          <div className={styles.field}>
-            <label>Range (auto)</label>
-            <input value="Calculated automatically from Entry/Exit" readOnly />
           </div>
 
           <div className={styles.field}>

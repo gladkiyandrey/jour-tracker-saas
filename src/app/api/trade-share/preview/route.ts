@@ -17,6 +17,7 @@ type PreviewRequest = {
   interval: string;
   entryAt: string;
   exitAt: string;
+  timeZone?: string;
   entryPrice?: number | string;
   exitPrice?: number | string;
 };
@@ -53,11 +54,58 @@ async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<st
   }
 }
 
-function toIso(input: string, label: string) {
-  const ts = Date.parse(input);
-  if (Number.isNaN(ts)) {
+function isValidTimeZone(value: string) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format(new Date());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function getTimeZoneOffsetMs(timeZone: string, date: Date) {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(date);
+  const map = Object.fromEntries(parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
+  const asUtc = Date.UTC(
+    Number(map.year),
+    Number(map.month) - 1,
+    Number(map.day),
+    Number(map.hour),
+    Number(map.minute),
+    Number(map.second),
+  );
+  return asUtc - date.getTime();
+}
+
+function localDateTimeInZoneToIso(input: string, timeZone: string, label: string) {
+  const match = input.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) {
     throw new Error(`Invalid ${label}`);
   }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const hour = Number(match[4]);
+  const minute = Number(match[5]);
+  const second = Number(match[6] || "0");
+
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second);
+  let ts = utcGuess;
+  for (let i = 0; i < 3; i += 1) {
+    ts = utcGuess - getTimeZoneOffsetMs(timeZone, new Date(ts));
+  }
+
   return new Date(ts).toISOString();
 }
 
@@ -109,6 +157,7 @@ export async function POST(req: Request) {
     const body = (await req.json()) as PreviewRequest;
     const symbol = String(body.symbol || "").trim().toUpperCase();
     const interval = String(body.interval || "").trim();
+    const timeZone = String(body.timeZone || "UTC").trim();
 
     if (!symbol) {
       return NextResponse.json({ error: "Symbol is required" }, { status: 400 });
@@ -116,9 +165,12 @@ export async function POST(req: Request) {
     if (!ALLOWED_INTERVALS.has(interval)) {
       return NextResponse.json({ error: "Unsupported interval" }, { status: 400 });
     }
+    if (!isValidTimeZone(timeZone)) {
+      return NextResponse.json({ error: "Unsupported timezone" }, { status: 400 });
+    }
 
-    const entryAtIso = toIso(body.entryAt, "entryAt");
-    const exitAtIso = toIso(body.exitAt, "exitAt");
+    const entryAtIso = localDateTimeInZoneToIso(body.entryAt, timeZone, "entryAt");
+    const exitAtIso = localDateTimeInZoneToIso(body.exitAt, timeZone, "exitAt");
 
     const entryTs = Date.parse(entryAtIso);
     const exitTs = Date.parse(exitAtIso);

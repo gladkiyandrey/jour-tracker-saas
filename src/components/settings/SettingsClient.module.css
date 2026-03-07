@@ -41,6 +41,12 @@
   color: #d6def9;
 }
 
+.hint {
+  color: #9ea9cc;
+  font-size: 11px;
+  line-height: 1.35;
+}
+
 .input,
 .select {
   width: 100%;
@@ -80,6 +86,12 @@
   margin: 0;
   font-size: 12px;
   color: #9fecc1;
+}
+
+.error {
+  margin: 0;
+  font-size: 12px;
+  color: #ff9ea5;
 }
 
 .pushBox {

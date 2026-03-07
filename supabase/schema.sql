@@ -64,17 +64,28 @@ create table if not exists public.pending_subscription_grants (
   updated_at timestamptz not null default now()
 );
 
+create table if not exists public.user_settings (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  timezone text not null default 'UTC',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create index if not exists idx_pending_subscription_grants_admin_created
   on public.pending_subscription_grants (granted_by_user_id, created_at desc);
 
 alter table public.tracker_entries enable row level security;
 alter table public.user_subscriptions enable row level security;
+alter table public.user_settings enable row level security;
 
 drop policy if exists "tracker_select_own" on public.tracker_entries;
 drop policy if exists "tracker_insert_own" on public.tracker_entries;
 drop policy if exists "tracker_update_own" on public.tracker_entries;
 drop policy if exists "tracker_delete_own" on public.tracker_entries;
 drop policy if exists "subscription_select_own" on public.user_subscriptions;
+drop policy if exists "user_settings_select_own" on public.user_settings;
+drop policy if exists "user_settings_insert_own" on public.user_settings;
+drop policy if exists "user_settings_update_own" on public.user_settings;
 
 create policy "tracker_select_own"
   on public.tracker_entries
@@ -101,3 +112,19 @@ create policy "subscription_select_own"
   on public.user_subscriptions
   for select
   using (auth.uid() = user_id);
+
+create policy "user_settings_select_own"
+  on public.user_settings
+  for select
+  using (auth.uid() = user_id);
+
+create policy "user_settings_insert_own"
+  on public.user_settings
+  for insert
+  with check (auth.uid() = user_id);
+
+create policy "user_settings_update_own"
+  on public.user_settings
+  for update
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);

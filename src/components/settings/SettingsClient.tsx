@@ -7,11 +7,13 @@ import styles from "./SettingsClient.module.css";
 type Props = {
   userKey: string;
   locale: Locale;
+  initialTimezone: string;
 };
 
 type UserSettings = {
   startDeposit: string;
   maxTradesPerDay: string;
+  timezone: string;
   disciplineMode: "strict" | "balanced" | "soft";
   riskAlerts: boolean;
   regressionAlerts: boolean;
@@ -21,6 +23,7 @@ type UserSettings = {
 const defaults: UserSettings = {
   startDeposit: "10000",
   maxTradesPerDay: "2",
+  timezone: "UTC",
   disciplineMode: "balanced",
   riskAlerts: true,
   regressionAlerts: true,
@@ -38,10 +41,11 @@ function base64ToUint8Array(base64: string) {
   return output;
 }
 
-export default function SettingsClient({ userKey, locale }: Props) {
+export default function SettingsClient({ userKey, locale, initialTimezone }: Props) {
   const storageKey = `consist-user-settings-${userKey}`;
-  const [state, setState] = useState<UserSettings>(defaults);
+  const [state, setState] = useState<UserSettings>({ ...defaults, timezone: initialTimezone || defaults.timezone });
   const [savedAt, setSavedAt] = useState("");
+  const [saveError, setSaveError] = useState("");
 
   const [pushSupported, setPushSupported] = useState(false);
   const [pushPermission, setPushPermission] = useState<NotificationPermission>("default");
@@ -56,6 +60,8 @@ export default function SettingsClient({ userKey, locale }: Props) {
         ruleHelp: "Базовые лимиты для личного режима торговли.",
         startDeposit: "Стартовый депозит ($)",
         maxTrades: "Макс. сделок/день",
+        timezone: "Часовой пояс",
+        timezoneHelp: "Используется для корректного времени сделок и графиков.",
         disciplineMode: "Режим дисциплины",
         strict: "Строгий",
         balanced: "Сбалансированный",
@@ -89,6 +95,8 @@ export default function SettingsClient({ userKey, locale }: Props) {
         ruleHelp: "Базові ліміти для особистого режиму торгівлі.",
         startDeposit: "Стартовий депозит ($)",
         maxTrades: "Макс. угод/день",
+        timezone: "Часовий пояс",
+        timezoneHelp: "Використовується для коректного часу угод і графіків.",
         disciplineMode: "Режим дисципліни",
         strict: "Строгий",
         balanced: "Збалансований",
@@ -121,6 +129,8 @@ export default function SettingsClient({ userKey, locale }: Props) {
       ruleHelp: "Basic limits used for your personal workflow.",
       startDeposit: "Start deposit ($)",
       maxTrades: "Max trades/day",
+      timezone: "Time zone",
+      timezoneHelp: "Used to interpret trade times and build the chart correctly.",
       disciplineMode: "Discipline mode",
       strict: "Strict",
       balanced: "Balanced",
@@ -149,6 +159,19 @@ export default function SettingsClient({ userKey, locale }: Props) {
     };
   }, [locale]);
 
+  const timeZoneOptions = useMemo(() => {
+    const browserZone =
+      typeof Intl !== "undefined" && typeof Intl.DateTimeFormat === "function"
+        ? Intl.DateTimeFormat().resolvedOptions().timeZone
+        : "UTC";
+    const supported =
+      typeof Intl !== "undefined" && "supportedValuesOf" in Intl
+        ? (Intl.supportedValuesOf("timeZone") as string[])
+        : ["UTC"];
+    const merged = Array.from(new Set(["UTC", browserZone, initialTimezone, ...supported].filter(Boolean)));
+    return merged.sort((a, b) => a.localeCompare(b, "en"));
+  }, [initialTimezone]);
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
@@ -157,6 +180,7 @@ export default function SettingsClient({ userKey, locale }: Props) {
       setState({
         startDeposit: parsed.startDeposit ?? defaults.startDeposit,
         maxTradesPerDay: parsed.maxTradesPerDay ?? defaults.maxTradesPerDay,
+        timezone: typeof parsed.timezone === "string" && parsed.timezone ? parsed.timezone : initialTimezone || defaults.timezone,
         disciplineMode:
           parsed.disciplineMode === "strict" || parsed.disciplineMode === "balanced" || parsed.disciplineMode === "soft"
             ? parsed.disciplineMode
@@ -169,7 +193,7 @@ export default function SettingsClient({ userKey, locale }: Props) {
     } catch {
       // ignore parse errors
     }
-  }, [storageKey]);
+  }, [initialTimezone, storageKey]);
 
   useEffect(() => {
     const supported = typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
@@ -199,12 +223,23 @@ export default function SettingsClient({ userKey, locale }: Props) {
     };
   }, [pushSupported]);
 
-  const save = () => {
+  const save = async () => {
+    setSaveError("");
     try {
       localStorage.setItem(storageKey, JSON.stringify(state));
+      const res = await fetch("/api/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timezone: state.timezone }),
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(payload.error || "Failed to save settings");
+      }
       setSavedAt(new Date().toLocaleTimeString(locale === "uk" ? "uk-UA" : locale === "ru" ? "ru-RU" : "en-US", { hour: "2-digit", minute: "2-digit" }));
     } catch {
-      setSavedAt("save failed");
+      setSavedAt("");
+      setSaveError("save failed");
     }
   };
 
@@ -327,6 +362,21 @@ export default function SettingsClient({ userKey, locale }: Props) {
               />
             </label>
             <label className={styles.label}>
+              {txt.timezone}
+              <select
+                className={styles.select}
+                value={state.timezone}
+                onChange={(e) => setState((prev) => ({ ...prev, timezone: e.target.value }))}
+              >
+                {timeZoneOptions.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+              </select>
+              <span className={styles.hint}>{txt.timezoneHelp}</span>
+            </label>
+            <label className={styles.label}>
               {txt.disciplineMode}
               <select
                 className={styles.select}
@@ -402,6 +452,7 @@ export default function SettingsClient({ userKey, locale }: Props) {
           {txt.saveSettings}
         </button>
         {savedAt ? <p className={styles.saved}>{txt.savedAt} {savedAt}</p> : null}
+        {saveError ? <p className={styles.error}>{saveError}</p> : null}
       </div>
 
       <article className={styles.tips}>
