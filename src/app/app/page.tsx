@@ -1,14 +1,11 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSubscriptionState } from "@/lib/auth";
 import { getCurrentUserFromSessionCookies } from "@/lib/current-user";
 import { isAdminEmail } from "@/lib/admin-auth";
 import { getSubscriptionStateFromDb } from "@/lib/subscription-store";
-import DashboardTrackerLoader from "@/components/tracker/DashboardTrackerLoader";
-import SubscriptionBadgeClient from "@/components/subscription/SubscriptionBadgeClient";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
-import SiteLogo from "@/components/ui/SiteLogo";
 import { getLocaleFromCookies, t } from "@/lib/i18n";
+import { getUserSettings } from "@/lib/user-settings-store";
+import DashboardHomeClient from "@/components/dashboard/DashboardHomeClient";
 
 const SUBSCRIPTION_DB_TIMEOUT_MS = 700;
 
@@ -44,6 +41,7 @@ export default async function DashboardPage() {
       // fallback to cookie state
     }
   }
+  const settings = await getUserSettings(user.id).catch(() => ({ timezone: "UTC" }));
   const userKey = user.id;
   const nameFromEmail = email.split("@")[0] || "User";
   const fallbackName = nameFromEmail
@@ -70,65 +68,22 @@ export default async function DashboardPage() {
         : "Personal Account";
 
   return (
-    <main className="site dashboard">
-      <header className="topbar">
-        <div className="topbar-left">
-          <SiteLogo href="/app" className="logo-light" />
-        </div>
-        <nav className="topbar-center">
-          <Link className="btn btn-nav-plain" href="/">
-            {m.navHome}
-          </Link>
-          <Link className="btn btn-nav-plain" href="/app/trade-share">
-            Trade Share
-          </Link>
-          <Link className="btn btn-nav-plain" href="/pricing">
-            {m.navPricing}
-          </Link>
-        </nav>
-        <nav className="topbar-right">
-          <SubscriptionBadgeClient active={sub.active} expiresAt={sub.expiresAt} locale={locale} mode="icon" />
-          <details className="user-menu">
-            <summary className="user-menu-summary top-trigger">
-              {user.avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img className="user-avatar user-avatar-image" src={user.avatarUrl} alt={displayName} />
-              ) : (
-                <span className="user-avatar">{initials}</span>
-              )}
-              <span className="user-meta">
-                <strong>{displayName}</strong>
-                <small>{roleLabel}</small>
-              </span>
-              <svg className="user-chevron" viewBox="0 0 20 20" aria-hidden="true">
-                <path d="M6 8l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            </summary>
-            <div className="user-menu-panel">
-              <Link className="user-menu-link" href="/settings">
-                {m.settings}
-              </Link>
-              {admin ? (
-                <Link className="user-menu-link" href="/admin">
-                  {m.navAdmin}
-                </Link>
-              ) : null}
-              <form action="/api/auth/logout" method="post">
-                <button className="user-menu-link user-menu-logout" type="submit">
-                  <svg viewBox="0 0 20 20" aria-hidden="true">
-                    <path d="M12 4h4v12h-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                    <path d="M8 6l-4 4 4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                    <path d="M4 10h10" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-                  </svg>
-                  {m.logout}
-                </button>
-              </form>
-            </div>
-          </details>
-          <LanguageSwitcher locale={locale} compact />
-        </nav>
-      </header>
-      <DashboardTrackerLoader userKey={userKey} locale={locale} />
-    </main>
+    <DashboardHomeClient
+      userKey={userKey}
+      locale={locale}
+      subActive={sub.active}
+      subExpiresAt={sub.expiresAt}
+      avatarUrl={user.avatarUrl}
+      displayName={displayName}
+      initials={initials}
+      roleLabel={roleLabel}
+      admin={admin}
+      navHome={m.navHome}
+      navPricing={m.navPricing}
+      settingsLabel={m.settings}
+      adminLabel={m.navAdmin}
+      logoutLabel={m.logout}
+      initialTimeZone={settings.timezone}
+    />
   );
 }
