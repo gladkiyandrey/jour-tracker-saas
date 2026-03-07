@@ -38,15 +38,6 @@ type PreviewError = {
   suggestions?: string[];
 };
 
-function dtLocal(ts: number) {
-  const d = new Date(ts);
-  const pad = (n: number) => `${n}`.padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-const now = Date.now();
-const minus12h = now - 12 * 60 * 60 * 1000;
-const minus2h = now - 2 * 60 * 60 * 1000;
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
@@ -68,14 +59,14 @@ function symbolBadge(item: SymbolItem) {
 }
 
 export default function TradeShareBuilder() {
-  const [symbol, setSymbol] = useState("EUR/USD");
+  const [symbol, setSymbol] = useState("");
   const [interval, setInterval] = useState("15min");
-  const [entryAt, setEntryAt] = useState(dtLocal(minus12h));
-  const [exitAt, setExitAt] = useState(dtLocal(minus2h));
+  const [entryAt, setEntryAt] = useState("");
+  const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
   const [exitPrice, setExitPrice] = useState("");
-  const [volume, setVolume] = useState("0.42");
-  const [rr, setRr] = useState("2.23");
+  const [volume, setVolume] = useState("");
+  const [rr, setRr] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
@@ -180,6 +171,15 @@ export default function TradeShareBuilder() {
   }, [data]);
 
   async function loadPreview() {
+    if (!symbol.trim()) {
+      setError("Enter symbol");
+      return;
+    }
+    if (!entryAt || !exitAt) {
+      setError("Set entry and exit time");
+      return;
+    }
+
     setLoading(true);
     setError("");
     setSymbolSuggestions([]);
@@ -328,11 +328,11 @@ export default function TradeShareBuilder() {
           </div>
           <div className={styles.field}>
             <label>Entry time</label>
-            <input type="datetime-local" value={entryAt} onChange={(e) => setEntryAt(e.target.value)} />
+            <input type="datetime-local" value={entryAt} onChange={(e) => setEntryAt(e.target.value)} placeholder="Select entry time" />
           </div>
           <div className={styles.field}>
             <label>Exit time</label>
-            <input type="datetime-local" value={exitAt} onChange={(e) => setExitAt(e.target.value)} />
+            <input type="datetime-local" value={exitAt} onChange={(e) => setExitAt(e.target.value)} placeholder="Select exit time" />
           </div>
           <div className={styles.field}>
             <label>Range (auto)</label>
@@ -349,11 +349,11 @@ export default function TradeShareBuilder() {
           </div>
           <div className={styles.field}>
             <label>Volume (lots)</label>
-            <input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="0.42" />
+            <input value={volume} onChange={(e) => setVolume(e.target.value)} placeholder="e.g. 0.42" />
           </div>
           <div className={styles.field}>
             <label>RR</label>
-            <input value={rr} onChange={(e) => setRr(e.target.value)} placeholder="2.23" />
+            <input value={rr} onChange={(e) => setRr(e.target.value)} placeholder="e.g. 2.23" />
           </div>
         </div>
 
