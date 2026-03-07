@@ -425,9 +425,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     <section className={styles.wrap}>
       <div className={styles.panel}>
         <h1>Trade Share Builder (MVP)</h1>
-        <p>Вводишь параметры сделки, система тянет историю цены из Twelve Data и строит график по времени сделки.</p>
-        <p>Результат карточки считается только по ручным данным пользователя: side, entry, stop loss, exit и risk percent.</p>
-        <p>Timezone: {timeZone}</p>
+        <p>Build a trade card from your manual trade data. Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
           <div className={`${styles.field} ${styles.fieldFull}`}>
