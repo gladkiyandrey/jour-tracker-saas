@@ -405,21 +405,47 @@ export default function TradeShareBuilder() {
           <svg className={styles.figmaChart} viewBox={`0 0 ${chart.w} ${chart.h}`} aria-label="Trade chart">
             <defs>
               <linearGradient id="trade-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(0, 255, 163, 0.40)" />
-                <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" />
+                <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
               </linearGradient>
             </defs>
             {Array.from({ length: 5 }).map((_, i) => {
               const y = chart.top + (chart.innerH / 4) * i;
-              return <line key={`grid-${i}`} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
+              return (
+                <line
+                  key={`grid-${i}`}
+                  x1={chart.left}
+                  y1={y}
+                  x2={chart.left + chart.innerW}
+                  y2={y}
+                  stroke="rgba(139, 139, 139, 0.75)"
+                  strokeWidth="1"
+                />
+              );
             })}
-            <path className={styles.price} d={chart.fullPath} />
-            <path className={styles.tradeFill} d={chart.fillPath} />
-            <path className={styles.tradeLine} d={chart.segPath} />
-            <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
-            <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
-            <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r="6.5" />
-            <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r="6.5" />
+            <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
+            <path d={chart.fillPath} fill="url(#trade-gradient)" />
+            <path d={chart.segPath} fill="none" stroke="#00FFA3" strokeWidth="4" />
+            <line
+              x1={chart.entryX}
+              y1={chart.entryY}
+              x2={chart.entryX}
+              y2={chart.floorY}
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="1"
+              strokeDasharray="6 6"
+            />
+            <line
+              x1={chart.exitX}
+              y1={chart.exitY}
+              x2={chart.exitX}
+              y2={chart.floorY}
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth="1"
+              strokeDasharray="6 6"
+            />
+            <circle cx={chart.entryX} cy={chart.entryY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
+            <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke="#00ffa3" strokeWidth="4" />
           </svg>
 
           <div className={styles.infoGrid}>
