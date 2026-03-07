@@ -1,30 +1,37 @@
 .wrap {
   display: grid;
-  gap: 16px;
+  grid-template-columns: minmax(320px, 390px) minmax(450px, 1fr);
+  gap: 20px;
+  align-items: start;
 }
 
 .panel {
+  width: 100%;
   border: 1px solid rgba(120, 136, 190, 0.28);
   border-radius: 18px;
-  padding: 16px;
+  padding: 14px;
   background: linear-gradient(160deg, rgba(23, 31, 58, 0.84), rgba(11, 15, 28, 0.92));
+  box-shadow: 0 14px 32px rgba(2, 7, 21, 0.34);
 }
 
 .panel h1 {
-  margin: 0 0 8px;
-  font-size: 28px;
+  margin: 0 0 6px;
+  font-size: 20px;
+  line-height: 1.15;
 }
 
 .panel p {
   margin: 0;
   color: #9ea9cc;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .formGrid {
-  margin-top: 14px;
+  margin-top: 12px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: 1fr;
+  gap: 8px;
 }
 
 .field {
@@ -34,19 +41,19 @@
 }
 
 .field label {
-  font-size: 13px;
+  font-size: 12px;
   color: #afbbdf;
 }
 
 .field input,
 .field select {
-  height: 40px;
+  height: 38px;
   border-radius: 12px;
   border: 1px solid rgba(120, 136, 190, 0.35);
   background: rgba(8, 12, 24, 0.8);
   color: #eef3ff;
-  padding: 0 12px;
-  font-size: 14px;
+  padding: 0 10px;
+  font-size: 13px;
 }
 
 .symbolList {
@@ -114,14 +121,15 @@
 }
 
 .actions {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  align-items: center;
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-items: stretch;
 }
 
 .button {
-  height: 42px;
+  height: 40px;
   border: 1px solid rgba(98, 139, 255, 0.45);
   background: linear-gradient(180deg, #5f8eff, #4977e7);
   color: white;
@@ -137,7 +145,7 @@
 }
 
 .buttonSecondary {
-  height: 42px;
+  height: 40px;
   border: 1px solid rgba(130, 149, 206, 0.45);
   color: white;
   border-radius: 12px;
@@ -154,7 +162,7 @@
 
 .error {
   color: #ff9ea5;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .suggestions {
@@ -183,6 +191,7 @@
   position: relative;
   width: 450px;
   height: 600px;
+  justify-self: center;
   overflow: hidden;
   border-radius: 25px;
   background: #131722;
@@ -358,8 +367,17 @@
 }
 
 @media (max-width: 960px) {
+  .wrap {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .panel {
+    max-width: 100%;
+  }
+
   .formGrid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
   }
 }
 
