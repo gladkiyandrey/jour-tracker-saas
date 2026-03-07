@@ -501,12 +501,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="1.08452" />
           </div>
           <div className={styles.field}>
-            <label>Stop loss</label>
-            <input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="1.08200" />
-          </div>
-          <div className={styles.field}>
             <label>Exit price</label>
             <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
+          </div>
+          <div className={styles.field}>
+            <label>Stop loss</label>
+            <input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="1.08200" />
           </div>
           <div className={styles.field}>
             <label>Risk (%)</label>
