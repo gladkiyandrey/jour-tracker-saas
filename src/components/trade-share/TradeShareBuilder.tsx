@@ -219,7 +219,6 @@ export default function TradeShareBuilder() {
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
         pixelRatio: 2,
-        backgroundColor: "#131722",
       });
       const a = document.createElement("a");
       a.href = dataUrl;

@@ -194,6 +194,7 @@
   justify-self: center;
   overflow: hidden;
   border-radius: 25px !important;
+  clip-path: inset(0 round 25px);
   background: #131722;
   border: 0;
   box-shadow: inset 5px 5px 21.9px rgba(255, 255, 255, 0.1);
