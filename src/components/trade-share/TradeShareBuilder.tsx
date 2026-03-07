@@ -99,6 +99,51 @@ async function applyRoundedCornersToDataUrl(dataUrl: string, radiusPx: number): 
   return canvas.toDataURL("image/png");
 }
 
+async function waitForCardAssets(root: HTMLElement) {
+  const fontsReady =
+    typeof document !== "undefined" && "fonts" in document ? (document.fonts.ready.catch(() => undefined) as Promise<unknown>) : Promise.resolve();
+
+  const imageNodes = Array.from(root.querySelectorAll("img"));
+  const imageReady = imageNodes.map(async (img) => {
+    if (img.complete && img.naturalWidth > 0) {
+      if ("decode" in img) {
+        try {
+          await img.decode();
+        } catch {
+          // ignore decode failures for already loaded images
+        }
+      }
+      return;
+    }
+
+    await new Promise<void>((resolve) => {
+      const cleanup = () => {
+        img.removeEventListener("load", onLoad);
+        img.removeEventListener("error", onLoad);
+      };
+      const onLoad = () => {
+        cleanup();
+        resolve();
+      };
+      img.addEventListener("load", onLoad, { once: true });
+      img.addEventListener("error", onLoad, { once: true });
+    });
+
+    if ("decode" in img) {
+      try {
+        await img.decode();
+      } catch {
+        // ignore decode failures after load
+      }
+    }
+  });
+
+  await Promise.all([fontsReady, ...imageReady]);
+
+  // Give layout/paint a full frame before rasterizing.
+  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+}
+
 type TradeShareBuilderProps = {
   initialTimeZone: string;
 };
@@ -268,6 +313,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     try {
       setDownloading(true);
       const pixelRatio = 2;
+      await waitForCardAssets(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
         pixelRatio,
