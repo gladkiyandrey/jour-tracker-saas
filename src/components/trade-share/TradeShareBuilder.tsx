@@ -470,7 +470,7 @@ export default function TradeShareBuilder() {
               opacity="0.8"
               filter="url(#position-glow-blur)"
             />
-            <path d={chart.segPath} fill="none" stroke="#00FFA3" strokeWidth="4" />
+            <path d={chart.segPath} fill="none" stroke="#00FFA3" strokeWidth="3.4" />
             <circle cx={chart.entryX} cy={chart.entryY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
             <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke="#00ffa3" strokeWidth="4" />
           </svg>

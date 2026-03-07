@@ -228,7 +228,7 @@
   left: 50%;
   top: calc(50% - 9.5px);
   transform: translate(-50%, -50%);
-  opacity: 0.09;
+  opacity: 0.15;
   object-fit: contain;
   pointer-events: none;
   z-index: 3;
@@ -316,7 +316,7 @@
 
 .tradeLine {
   stroke: #00ffa3;
-  stroke-width: 4;
+  stroke-width: 3.4;
   fill: none;
   filter: drop-shadow(0 0 3px rgba(0, 255, 163, 0.35));
 }
