@@ -194,10 +194,10 @@
 
 .logoWatermark {
   position: absolute;
-  width: 244px;
-  height: 66.6px;
-  left: calc(50% - 244px / 2);
-  top: calc(50% - 66.6px / 2 - 10px);
+  width: 440px;
+  height: 120px;
+  left: calc(50% - 440px / 2);
+  top: calc(50% - 120px / 2 - 10px);
   opacity: 0.22;
   pointer-events: none;
 }
