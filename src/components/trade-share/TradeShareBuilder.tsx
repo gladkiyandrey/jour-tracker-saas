@@ -58,6 +58,47 @@ function symbolBadge(item: SymbolItem) {
   return item.symbol.slice(0, 2).toUpperCase();
 }
 
+function clipRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + w - radius, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+  ctx.lineTo(x + w, y + h - radius);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+  ctx.lineTo(x + radius, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+async function applyRoundedCornersToDataUrl(dataUrl: string, radiusPx: number): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error("Failed to load exported card image"));
+    el.src = dataUrl;
+  });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = img.width;
+  canvas.height = img.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Failed to create export canvas");
+  }
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  clipRoundedRect(ctx, 0, 0, canvas.width, canvas.height, radiusPx);
+  ctx.save();
+  ctx.clip();
+  ctx.drawImage(img, 0, 0);
+  ctx.restore();
+
+  return canvas.toDataURL("image/png");
+}
+
 export default function TradeShareBuilder() {
   const [symbol, setSymbol] = useState("");
   const [interval, setInterval] = useState("15min");
@@ -216,12 +257,14 @@ export default function TradeShareBuilder() {
     if (!cardRef.current || !data) return;
     try {
       setDownloading(true);
+      const pixelRatio = 2;
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio,
       });
+      const roundedDataUrl = await applyRoundedCornersToDataUrl(dataUrl, 25 * pixelRatio);
       const a = document.createElement("a");
-      a.href = dataUrl;
+      a.href = roundedDataUrl;
       a.download = `consist-trade-${(data.symbol || "card").replace(/[^\w-]+/g, "-").toLowerCase()}.png`;
       a.click();
     } catch {
