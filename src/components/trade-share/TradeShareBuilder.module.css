@@ -224,37 +224,6 @@
   z-index: 3;
 }
 
-.chartMask {
-  position: absolute;
-  left: 45px;
-  top: 74px;
-  width: 360px;
-  height: 183px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.positionHighlight {
-  position: absolute;
-  left: 105px;
-  top: 117px;
-  width: 165px;
-  height: 127px;
-  pointer-events: none;
-  z-index: 3;
-}
-
-.greenGlow {
-  position: absolute;
-  left: 105px;
-  top: 117px;
-  width: 165px;
-  height: 160px;
-  mix-blend-mode: color-dodge;
-  pointer-events: none;
-  z-index: 2;
-}
-
 .cornerGlow {
   position: absolute;
   left: 386px;
@@ -265,45 +234,6 @@
   pointer-events: none;
   z-index: 2;
   opacity: 0.9;
-}
-
-.guideVerticalLeft,
-.guideVerticalRight {
-  position: absolute;
-  top: -44px;
-  width: 35px;
-  height: 656px;
-  border: 1px solid #ff0000;
-  opacity: 0.3;
-  pointer-events: none;
-  z-index: 8;
-}
-
-.guideVerticalLeft {
-  left: 0;
-}
-
-.guideVerticalRight {
-  right: 0;
-}
-
-.guideHorizontalTop,
-.guideHorizontalBottom {
-  position: absolute;
-  left: 35px;
-  right: 35px;
-  height: 1px;
-  background: rgba(255, 0, 0, 0.3);
-  pointer-events: none;
-  z-index: 8;
-}
-
-.guideHorizontalTop {
-  top: 35px;
-}
-
-.guideHorizontalBottom {
-  bottom: 35px;
 }
 
 .figmaChart {
@@ -358,18 +288,19 @@
   color: #ff6f7f;
 }
 
-.grid {
+.gridLine {
   stroke: rgba(139, 139, 139, 0.75);
   stroke-width: 1;
 }
 
-.price {
+.fullLine {
   stroke: rgba(160, 167, 180, 0.55);
   stroke-width: 2.5;
   fill: none;
+  filter: blur(0.5px);
 }
 
-.tradeFill {
+.fillArea {
   fill: url(#trade-gradient);
 }
 
@@ -380,22 +311,23 @@
   filter: drop-shadow(0 0 3px rgba(0, 255, 163, 0.35));
 }
 
-.vLine {
+.markerLine {
   stroke: rgba(255, 255, 255, 0.35);
   stroke-width: 1;
   stroke-dasharray: 6 6;
 }
 
-.dot {
+.entryDot,
+.exitDot {
   fill: #0f1424;
   stroke-width: 4;
 }
 
-.dotEntry {
+.entryDot {
   stroke: #ffd24a;
 }
 
-.dotExit {
+.exitDot {
   stroke: #00ffa3;
 }
 
