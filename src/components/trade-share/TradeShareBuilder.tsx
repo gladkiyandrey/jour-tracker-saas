@@ -38,6 +38,8 @@ type PreviewError = {
   suggestions?: string[];
 };
 
+type PositionSide = "long" | "short";
+
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
@@ -152,6 +154,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [symbol, setSymbol] = useState("");
   const [interval, setInterval] = useState("15min");
   const [timeZone, setTimeZone] = useState(initialTimeZone || "UTC");
+  const [positionSide, setPositionSide] = useState<PositionSide | "">("");
   const [entryAt, setEntryAt] = useState("");
   const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
@@ -269,6 +272,10 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       setError("Enter symbol");
       return;
     }
+    if (positionSide !== "long" && positionSide !== "short") {
+      setError("Choose trade side");
+      return;
+    }
     if (!entryAt || !exitAt) {
       setError("Set entry and exit time");
       return;
@@ -330,17 +337,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     }
   }
 
-  const pnlPct = useMemo(() => {
-    if (!data) return null;
-    const e = Number(data.entryPriceInput || data.entryPriceMarket || 0);
-    const x = Number(data.exitPriceInput || data.exitPriceMarket || 0);
-    if (!Number.isFinite(e) || !Number.isFinite(x) || e === 0) return null;
-    return ((x - e) / e) * 100;
-  }, [data]);
-
-  const tradeDirection = (pnlPct ?? 0) >= 0 ? "Long" : "Short";
-  const tradeDirectionClass = (pnlPct ?? 0) >= 0 ? styles.long : styles.short;
-  const isLong = (pnlPct ?? 0) >= 0;
+  const tradeDirection = positionSide === "short" ? "Short" : "Long";
+  const tradeDirectionClass = positionSide === "short" ? styles.short : styles.long;
+  const isLong = positionSide !== "short";
 
   function formatPrice(v: number | string | null) {
     const n = Number(v);
@@ -424,6 +423,14 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               <option>2h</option>
               <option>4h</option>
               <option>1day</option>
+            </select>
+          </div>
+          <div className={styles.field}>
+            <label>Side</label>
+            <select value={positionSide} onChange={(e) => setPositionSide(e.target.value === "short" ? "short" : e.target.value === "long" ? "long" : "")}>
+              <option value="">Choose side</option>
+              <option value="long">Long</option>
+              <option value="short">Short</option>
             </select>
           </div>
           <div className={styles.field}>
