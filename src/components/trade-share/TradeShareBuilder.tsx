@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { toPng } from "html-to-image";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./TradeShareBuilder.module.css";
 
 type Point = { t: string; ts: number; c: number };
@@ -80,7 +81,9 @@ export default function TradeShareBuilder() {
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
   const [lookupSuggestions, setLookupSuggestions] = useState<SymbolItem[]>(POPULAR_SYMBOLS);
   const [showSymbolList, setShowSymbolList] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const q = symbol.trim();
@@ -207,6 +210,26 @@ export default function TradeShareBuilder() {
       setError(e instanceof Error ? e.message : "Failed to load chart");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function downloadCardPng() {
+    if (!cardRef.current || !data) return;
+    try {
+      setDownloading(true);
+      const dataUrl = await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#131722",
+      });
+      const a = document.createElement("a");
+      a.href = dataUrl;
+      a.download = `consist-trade-${(data.symbol || "card").replace(/[^\w-]+/g, "-").toLowerCase()}.png`;
+      a.click();
+    } catch {
+      setError("Failed to download image. Try again.");
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -338,6 +361,14 @@ export default function TradeShareBuilder() {
           <button className={styles.button} type="button" onClick={loadPreview} disabled={loading}>
             {loading ? "Loading..." : "Build preview"}
           </button>
+          <button
+            className={styles.buttonSecondary}
+            type="button"
+            onClick={downloadCardPng}
+            disabled={!data || downloading}
+          >
+            {downloading ? "Exporting..." : "Download card (PNG)"}
+          </button>
           {error ? <span className={styles.error}>{error}</span> : null}
         </div>
         {symbolSuggestions.length > 0 ? (
@@ -360,7 +391,7 @@ export default function TradeShareBuilder() {
       </div>
 
       {data && chart ? (
-        <div className={styles.figmaCard}>
+        <div className={styles.figmaCard} ref={cardRef}>
           <img className={styles.logoWatermark} src="/brand/consist-logo-white.svg" alt="" aria-hidden="true" />
 
           <div className={styles.topRow}>

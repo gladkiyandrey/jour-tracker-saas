@@ -131,6 +131,27 @@
   cursor: pointer;
 }
 
+.button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.buttonSecondary {
+  height: 42px;
+  border: 1px solid rgba(130, 149, 206, 0.45);
+  color: white;
+  border-radius: 12px;
+  padding: 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgba(9, 13, 25, 0.72);
+}
+
+.buttonSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .error {
   color: #ff9ea5;
   font-size: 13px;
