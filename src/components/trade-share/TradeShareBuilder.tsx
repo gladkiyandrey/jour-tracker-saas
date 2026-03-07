@@ -117,8 +117,8 @@ export default function TradeShareBuilder() {
     const h = 600;
     const left = 45;
     const right = 405;
-    const top = 74;
-    const bottom = 255;
+    const top = 84;
+    const bottom = 265;
     const innerW = right - left;
     const innerH = bottom - top;
 
