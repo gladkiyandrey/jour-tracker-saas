@@ -419,28 +419,40 @@ export default function TradeShareBuilder() {
             {Array.from({ length: 5 }).map((_, i) => {
               const y = chart.top + (chart.innerH / 4) * i;
               return (
-                <line key={`grid-${i}`} className={styles.gridLine} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />
+                <line
+                  key={`grid-${i}`}
+                  x1={chart.left}
+                  y1={y}
+                  x2={chart.left + chart.innerW}
+                  y2={y}
+                  stroke="rgba(139, 139, 139, 0.75)"
+                  strokeWidth="1"
+                />
               );
             })}
-            <path d={chart.fullPath} className={styles.fullLine} />
-            <path d={chart.fillPath} className={styles.fillArea} />
-            <path d={chart.segPath} className={styles.tradeLine} />
+            <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
+            <path d={chart.fillPath} fill="url(#trade-gradient)" />
+            <path d={chart.segPath} fill="none" stroke="#00FFA3" strokeWidth="4" />
             <line
-              className={styles.markerLine}
               x1={chart.entryX}
               y1={chart.entryY}
               x2={chart.entryX}
               y2={chart.floorY}
+              stroke="rgba(255, 255, 255, 0.35)"
+              strokeWidth="1"
+              strokeDasharray="6 6"
             />
             <line
-              className={styles.markerLine}
               x1={chart.exitX}
               y1={chart.exitY}
               x2={chart.exitX}
               y2={chart.floorY}
+              stroke="rgba(255, 255, 255, 0.35)"
+              strokeWidth="1"
+              strokeDasharray="6 6"
             />
-            <circle className={styles.entryDot} cx={chart.entryX} cy={chart.entryY} r="6.5" />
-            <circle className={styles.exitDot} cx={chart.exitX} cy={chart.exitY} r="6.5" />
+            <circle cx={chart.entryX} cy={chart.entryY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
+            <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke="#00ffa3" strokeWidth="4" />
           </svg>
 
           <div className={styles.infoGrid}>
