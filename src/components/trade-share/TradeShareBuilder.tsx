@@ -418,20 +418,6 @@ export default function TradeShareBuilder() {
                 <feGaussianBlur stdDeviation="2" />
               </filter>
             </defs>
-            {Array.from({ length: 5 }).map((_, i) => {
-              const y = chart.top + (chart.innerH / 4) * i;
-              return (
-                <line
-                  key={`grid-${i}`}
-                  x1={chart.left}
-                  y1={y}
-                  x2={chart.left + chart.innerW}
-                  y2={y}
-                  stroke="rgba(139, 139, 139, 0.75)"
-                  strokeWidth="1"
-                />
-              );
-            })}
             <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
             <path d={chart.fillPath} fill="url(#trade-gradient)" />
             <path
