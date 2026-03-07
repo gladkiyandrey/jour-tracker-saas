@@ -137,6 +137,46 @@
   font-weight: 700;
 }
 
+.symbolPairLogo {
+  position: relative;
+  min-width: 44px;
+  width: 44px;
+  height: 30px;
+  display: inline-block;
+}
+
+.symbolCoin {
+  position: absolute;
+  top: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(133, 161, 238, 0.42);
+  background: #162347;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+}
+
+.symbolCoin img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.symbolCoin span {
+  color: #e7efff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.symbolCoinOffset {
+  left: 14px;
+}
+
 .symbolMeta {
   display: grid;
 }

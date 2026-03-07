@@ -50,6 +50,39 @@ const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "GER40", name: "Germany 40 Index", type: "index" },
 ];
 
+const FOREX_FLAG_MAP: Record<string, string> = {
+  USD: "us",
+  EUR: "eu",
+  GBP: "gb",
+  JPY: "jp",
+  CHF: "ch",
+  CAD: "ca",
+  AUD: "au",
+  NZD: "nz",
+};
+
+function canonicalSymbol(value: string) {
+  return value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
+}
+
+function formatSymbolDisplay(value: string) {
+  const normalized = canonicalSymbol(value);
+  if (/^[A-Z]{6}$/.test(normalized)) {
+    return `${normalized.slice(0, 3)}/${normalized.slice(3)}`;
+  }
+  return value.toUpperCase();
+}
+
+function getForexCurrencies(symbol: string) {
+  const normalized = canonicalSymbol(symbol);
+  if (!/^[A-Z]{6}$/.test(normalized)) return null;
+  return [normalized.slice(0, 3), normalized.slice(3)] as const;
+}
+
+function countryFlag(code: string) {
+  return FOREX_FLAG_MAP[code] ? `https://flagcdn.com/w40/${FOREX_FLAG_MAP[code]}.png` : null;
+}
+
 function symbolBadge(item: SymbolItem) {
   const type = (item.type || "").toLowerCase();
   if (type.includes("crypto")) return "₿";
@@ -58,6 +91,30 @@ function symbolBadge(item: SymbolItem) {
   if (type.includes("stock")) return "EQ";
   if (type.includes("commodity")) return "CM";
   return item.symbol.slice(0, 2).toUpperCase();
+}
+
+function renderSymbolLogo(item: SymbolItem) {
+  const type = (item.type || "").toLowerCase();
+  const forexCurrencies = type.includes("forex") ? getForexCurrencies(item.symbol) : null;
+
+  if (forexCurrencies) {
+    const [base, quote] = forexCurrencies;
+    const baseFlag = countryFlag(base);
+    const quoteFlag = countryFlag(quote);
+
+    return (
+      <span className={styles.symbolPairLogo} aria-hidden="true">
+        <span className={styles.symbolCoin}>
+          {baseFlag ? <img src={baseFlag} alt="" /> : <span>{base}</span>}
+        </span>
+        <span className={`${styles.symbolCoin} ${styles.symbolCoinOffset}`}>
+          {quoteFlag ? <img src={quoteFlag} alt="" /> : <span>{quote}</span>}
+        </span>
+      </span>
+    );
+  }
+
+  return <span className={styles.symbolLogo}>{symbolBadge(item)}</span>;
 }
 
 function clipRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -188,11 +245,11 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         if (!res.ok || !Array.isArray(json.items)) {
           return;
         }
-        const base = { symbol: q.toUpperCase() };
+        const base = { symbol: formatSymbolDisplay(q) };
         const merged = [base, ...json.items, ...POPULAR_SYMBOLS];
         const seen = new Set<string>();
         const dedup = merged.filter((x) => {
-          const key = x.symbol?.toUpperCase();
+          const key = x.symbol ? canonicalSymbol(x.symbol) : "";
           if (!key || seen.has(key)) return false;
           seen.add(key);
           return true;
@@ -451,9 +508,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
                       setShowSymbolList(false);
                     }}
                   >
-                    <span className={styles.symbolLogo}>{symbolBadge(item)}</span>
+                    {renderSymbolLogo(item)}
                     <span className={styles.symbolMeta}>
-                      <span className={styles.symbolCode}>{item.symbol}</span>
+                      <span className={styles.symbolCode}>{formatSymbolDisplay(item.symbol)}</span>
                       <span className={styles.symbolName}>
                         {[item.name, item.exchange, item.currency].filter(Boolean).join(" • ") || "Twelve Data symbol"}
                       </span>
