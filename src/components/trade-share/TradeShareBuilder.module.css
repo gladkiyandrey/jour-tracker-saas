@@ -213,12 +213,12 @@
 
 .logoWatermark {
   position: absolute;
-  width: 300px;
-  height: 82px;
+  width: 360px;
+  height: 98px;
   left: 50%;
   top: calc(50% - 9.5px);
   transform: translate(-50%, -50%);
-  opacity: 0.34;
+  opacity: 0.09;
   object-fit: contain;
   pointer-events: none;
   z-index: 3;
