@@ -39,6 +39,7 @@ type PreviewError = {
 };
 
 type PositionSide = "long" | "short";
+type PriceSourceMode = "manual" | "market";
 
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
@@ -155,6 +156,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [interval, setInterval] = useState("15min");
   const [timeZone, setTimeZone] = useState(initialTimeZone || "UTC");
   const [positionSide, setPositionSide] = useState<PositionSide | "">("");
+  const [priceSource, setPriceSource] = useState<PriceSourceMode>("manual");
   const [entryAt, setEntryAt] = useState("");
   const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
@@ -280,6 +282,14 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       setError("Set entry and exit time");
       return;
     }
+    if (priceSource === "manual") {
+      const entryNum = Number(entryPrice);
+      const exitNum = Number(exitPrice);
+      if (!Number.isFinite(entryNum) || entryNum <= 0 || !Number.isFinite(exitNum) || exitNum <= 0) {
+        setError("Enter entry and exit prices or switch to Market prices");
+        return;
+      }
+    }
 
     setLoading(true);
     setError("");
@@ -294,8 +304,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           entryAt,
           exitAt,
           timeZone,
-          entryPrice: entryPrice || undefined,
-          exitPrice: exitPrice || undefined,
+          entryPrice: priceSource === "manual" ? entryPrice || undefined : undefined,
+          exitPrice: priceSource === "manual" ? exitPrice || undefined : undefined,
         }),
       });
 
@@ -338,8 +348,17 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   }
 
   const tradeDirection = positionSide === "short" ? "Short" : "Long";
-  const tradeDirectionClass = positionSide === "short" ? styles.short : styles.long;
-  const isLong = positionSide !== "short";
+  const effectiveEntryPrice = Number(data?.entryPriceInput ?? data?.entryPriceMarket ?? 0);
+  const effectiveExitPrice = Number(data?.exitPriceInput ?? data?.exitPriceMarket ?? 0);
+  const pnlPct =
+    data && Number.isFinite(effectiveEntryPrice) && Number.isFinite(effectiveExitPrice) && effectiveEntryPrice > 0
+      ? positionSide === "short"
+        ? ((effectiveEntryPrice - effectiveExitPrice) / effectiveEntryPrice) * 100
+        : ((effectiveExitPrice - effectiveEntryPrice) / effectiveEntryPrice) * 100
+      : null;
+  const isProfit = (pnlPct ?? 0) >= 0;
+  const resultClass = isProfit ? styles.profit : styles.loss;
+  const sideClass = positionSide === "short" ? styles.sideShort : styles.sideLong;
 
   function formatPrice(v: number | string | null) {
     const n = Number(v);
@@ -366,6 +385,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     const m = Math.floor((diffSec % 3600) / 60);
     const s = diffSec % 60;
     return `${h}h ${m}m ${s}s`;
+  }
+
+  function formatPct(value: number | null) {
+    if (value === null || !Number.isFinite(value)) return "n/a";
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value.toFixed(2)}%`;
   }
 
   return (
@@ -434,6 +459,13 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             </select>
           </div>
           <div className={styles.field}>
+            <label>Price source</label>
+            <select value={priceSource} onChange={(e) => setPriceSource(e.target.value === "market" ? "market" : "manual")}>
+              <option value="manual">Manual prices</option>
+              <option value="market">Market prices (auto)</option>
+            </select>
+          </div>
+          <div className={styles.field}>
             <label>Entry time</label>
             <input type="datetime-local" value={entryAt} onChange={(e) => setEntryAt(e.target.value)} placeholder="Select entry time" />
           </div>
@@ -443,12 +475,22 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           </div>
 
           <div className={styles.field}>
-            <label>Entry price (optional)</label>
-            <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="1.08452" />
+            <label>{priceSource === "manual" ? "Entry price" : "Entry price (market)"}</label>
+            <input
+              value={priceSource === "manual" ? entryPrice : data?.entryPriceMarket ? String(data.entryPriceMarket) : ""}
+              onChange={(e) => setEntryPrice(e.target.value)}
+              placeholder="1.08452"
+              readOnly={priceSource === "market"}
+            />
           </div>
           <div className={styles.field}>
-            <label>Exit price (optional)</label>
-            <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
+            <label>{priceSource === "manual" ? "Exit price" : "Exit price (market)"}</label>
+            <input
+              value={priceSource === "manual" ? exitPrice : data?.exitPriceMarket ? String(data.exitPriceMarket) : ""}
+              onChange={(e) => setExitPrice(e.target.value)}
+              placeholder="1.08632"
+              readOnly={priceSource === "market"}
+            />
           </div>
           <div className={styles.field}>
             <label>Volume (lots)</label>
@@ -503,12 +545,13 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
 
           <div className={styles.topRow}>
             <div className={styles.ticker}>{data.symbol}</div>
-            <div className={`${styles.sideBadge} ${tradeDirectionClass}`}>
+            <div className={`${styles.sideBadge} ${sideClass}`}>
               <span className={styles.sideArrow} aria-hidden="true">
-                {isLong ? "↗" : "↘"}
+                {positionSide === "short" ? "↘" : "↗"}
               </span>
               <span>{tradeDirection}</span>
             </div>
+            <div className={`${styles.resultBadge} ${resultClass}`}>{formatPct(pnlPct)}</div>
           </div>
 
           <svg className={styles.figmaChart} viewBox={`0 0 ${chart.w} ${chart.h}`} aria-label="Trade chart">
@@ -517,23 +560,27 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
                 <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.4" />
                 <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
               </linearGradient>
+              <linearGradient id="trade-gradient-loss" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#FF6B7A" stopOpacity="0.42" />
+                <stop offset="100%" stopColor="#FF6B7A" stopOpacity="0" />
+              </linearGradient>
               <filter id="position-glow-blur" x="-15%" y="-20%" width="130%" height="160%">
                 <feGaussianBlur stdDeviation="2" />
               </filter>
             </defs>
             <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
-            <path d={chart.fillPath} fill="url(#trade-gradient)" />
+            <path d={chart.fillPath} fill={isProfit ? "url(#trade-gradient)" : "url(#trade-gradient-loss)"} />
             <path
               d={chart.segPath}
               fill="none"
-              stroke="#00FFA3"
+              stroke={isProfit ? "#00FFA3" : "#FF6B7A"}
               strokeWidth="2"
               opacity="0.8"
               filter="url(#position-glow-blur)"
             />
-            <path d={chart.segPath} fill="none" stroke="#00FFA3" strokeWidth="3.4" />
+            <path d={chart.segPath} fill="none" stroke={isProfit ? "#00FFA3" : "#FF6B7A"} strokeWidth="3.4" />
             <circle cx={chart.entryX} cy={chart.entryY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
-            <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke="#00ffa3" strokeWidth="4" />
+            <circle cx={chart.exitX} cy={chart.exitY} r="6.5" fill="#0f1424" stroke={isProfit ? "#00ffa3" : "#ff6b7a"} strokeWidth="4" />
           </svg>
 
           <div className={styles.infoGrid}>
@@ -564,6 +611,10 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <div className={styles.infoRow}>
               <span>RR</span>
               <strong>{rr || "0.00"}</strong>
+            </div>
+            <div className={styles.infoRow}>
+              <span>Price source</span>
+              <strong>{priceSource === "manual" ? "Manual" : "Market-derived"}</strong>
             </div>
           </div>
         </div>

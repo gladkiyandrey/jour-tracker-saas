@@ -279,10 +279,25 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-left: 16px;
+  margin-left: 14px;
   font-size: 14px;
   font-weight: 600;
   line-height: 16px;
+}
+
+.resultBadge {
+  margin-left: auto;
+  min-width: 78px;
+  height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid transparent;
 }
 
 .sideArrow {
@@ -290,12 +305,24 @@
   line-height: 1;
 }
 
-.long {
-  color: #31bf59;
+.sideLong {
+  color: #6fd7ff;
 }
 
-.short {
-  color: #ff6f7f;
+.sideShort {
+  color: #ffb36f;
+}
+
+.profit {
+  color: #00ffa3;
+  background: rgba(0, 255, 163, 0.1);
+  border-color: rgba(0, 255, 163, 0.24);
+}
+
+.loss {
+  color: #ff6b7a;
+  background: rgba(255, 107, 122, 0.12);
+  border-color: rgba(255, 107, 122, 0.26);
 }
 
 .gridLine {
@@ -341,7 +368,7 @@
   top: 333px;
   width: 326px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   z-index: 6;
 }
 
