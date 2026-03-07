@@ -430,7 +430,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         <p>Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
-          <div className={styles.field}>
+          <div className={`${styles.field} ${styles.fieldFull}`}>
             <label>Symbol</label>
             <input
               value={symbol}
