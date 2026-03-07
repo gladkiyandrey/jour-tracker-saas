@@ -1,5 +1,42 @@
 import { NextResponse } from "next/server";
 
+const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd"];
+const BLOCKED_NAME_WORDS = [
+  "warrant",
+  "option",
+  "future",
+  "futures",
+  "fund",
+  "etf",
+  "etn",
+  "bond",
+  "certificate",
+  "rights",
+  "note",
+  "swap",
+];
+
+function isLikelyTradableSpotSymbol(symbol: string) {
+  const s = symbol.toUpperCase();
+  if (/^[A-Z]{3}\/[A-Z]{3}$/.test(s)) return true; // EUR/USD
+  if (/^[A-Z]{6}$/.test(s)) return true; // EURUSD
+  if (/^[A-Z]{2,5}\d{1,4}$/.test(s)) return true; // GER40, US500, NAS100
+  if (/^X(AU|AG|PT|PD)\/USD$/.test(s)) return true; // metals
+  return false;
+}
+
+function matchesAllowedType(type: string) {
+  const t = (type || "").toLowerCase();
+  if (!t) return false;
+  return ALLOWED_TYPE_WORDS.some((w) => t.includes(w));
+}
+
+function containsBlockedName(name: string) {
+  const n = (name || "").toLowerCase();
+  if (!n) return false;
+  return BLOCKED_NAME_WORDS.some((w) => n.includes(w));
+}
+
 export async function GET(req: Request) {
   try {
     const apiKey = process.env.TWELVE_DATA_API_KEY;
@@ -43,15 +80,29 @@ export async function GET(req: Request) {
 
     const items = (raw.data || [])
       .filter((x) => x.symbol)
+      .filter((x) => {
+        const symbol = (x.symbol || "").trim();
+        const type = (x.type || "").trim();
+        const name = (x.instrument_name || "").trim();
+
+        if (!symbol) return false;
+        if (!matchesAllowedType(type) && !isLikelyTradableSpotSymbol(symbol)) return false;
+        if (containsBlockedName(name)) return false;
+        return true;
+      })
       .sort((a, b) => {
         const as = (a.symbol || "").toUpperCase();
         const bs = (b.symbol || "").toUpperCase();
-        const aStarts = as.startsWith(normalizedQ) ? 1 : 0;
-        const bStarts = bs.startsWith(normalizedQ) ? 1 : 0;
-        if (aStarts !== bStarts) {
-          return bStarts - aStarts;
-        }
-        return as.localeCompare(bs);
+
+        const aStarts = as.startsWith(normalizedQ) ? 2 : as.includes(normalizedQ) ? 1 : 0;
+        const bStarts = bs.startsWith(normalizedQ) ? 2 : bs.includes(normalizedQ) ? 1 : 0;
+        if (aStarts !== bStarts) return bStarts - aStarts;
+
+        const aGood = isLikelyTradableSpotSymbol(as) ? 1 : 0;
+        const bGood = isLikelyTradableSpotSymbol(bs) ? 1 : 0;
+        if (aGood !== bGood) return bGood - aGood;
+
+        return as.localeCompare(bs, "en");
       })
       .slice(0, 60)
       .map((x) => ({

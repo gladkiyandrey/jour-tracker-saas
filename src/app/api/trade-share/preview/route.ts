@@ -125,10 +125,16 @@ export async function POST(req: Request) {
     const tradeStartTs = Math.min(entryTs, exitTs);
     const tradeEndTs = Math.max(entryTs, exitTs);
     const step = intervalMs(interval);
-    const contextBefore = 40;
-    const contextAfter = 40;
-    const startTs = tradeStartTs - contextBefore * step;
-    const endTs = tradeEndTs + contextAfter * step;
+    const contextBefore = 48;
+    const minContextAfter = 48;
+    const tradeLengthCandles = Math.max(1, Math.ceil((tradeEndTs - tradeStartTs) / step));
+    const contextAfter = Math.max(minContextAfter, tradeLengthCandles + 24);
+
+    // Keep entry time visually around the center:
+    // - enough candles before entry (gray history)
+    // - enough candles after exit (gray history)
+    const startTs = entryTs - contextBefore * step;
+    const endTs = entryTs + contextAfter * step;
     const startAtIso = new Date(startTs).toISOString();
     const endAtIso = new Date(endTs).toISOString();
 
