@@ -311,12 +311,6 @@
   filter: drop-shadow(0 0 3px rgba(0, 255, 163, 0.35));
 }
 
-.markerLine {
-  stroke: rgba(255, 255, 255, 0.35);
-  stroke-width: 1;
-  stroke-dasharray: 6 6;
-}
-
 .entryDot,
 .exitDot {
   fill: #0f1424;
