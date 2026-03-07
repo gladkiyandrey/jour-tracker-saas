@@ -193,7 +193,7 @@
   height: 600px;
   justify-self: center;
   overflow: hidden;
-  border-radius: 25px;
+  border-radius: 25px !important;
   background: #131722;
   border: 0;
   box-shadow: inset 5px 5px 21.9px rgba(255, 255, 255, 0.1);
@@ -391,6 +391,7 @@
     max-width: 450px;
     height: auto;
     aspect-ratio: 3 / 4;
+    border-radius: 25px !important;
   }
 
   .infoGrid {
