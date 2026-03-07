@@ -186,7 +186,7 @@
   overflow: hidden;
   border-radius: 25px;
   background: #131722;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
     inset 5px 5px 21.9px rgba(255, 255, 255, 0.1),
     0 28px 60px rgba(0, 0, 0, 0.45);
@@ -196,9 +196,9 @@
   position: absolute;
   width: 194.3px;
   height: 53px;
-  left: 127px;
-  top: 238px;
-  opacity: 0.1;
+  left: calc(50% - 194.3px / 2 + 0.15px);
+  top: calc(50% - 53px / 2 - 15.5px);
+  opacity: 0.18;
   pointer-events: none;
 }
 
@@ -215,16 +215,17 @@
 
 .ticker {
   font-weight: 500;
-  font-size: 38px;
+  font-size: 22px;
   line-height: 27px;
   color: #fff;
+  letter-spacing: 0;
 }
 
 .sideBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
   line-height: 16px;
   margin-left: auto;
@@ -250,13 +251,13 @@
 }
 
 .grid {
-  stroke: rgba(139, 139, 139, 0.45);
-  stroke-width: 0.8;
+  stroke: rgba(139, 139, 139, 0.75);
+  stroke-width: 1;
 }
 
 .price {
-  stroke: rgba(203, 214, 236, 0.38);
-  stroke-width: 2.2;
+  stroke: rgba(160, 167, 180, 0.55);
+  stroke-width: 2.5;
   fill: none;
 }
 
@@ -266,19 +267,20 @@
 
 .tradeLine {
   stroke: #00ffa3;
-  stroke-width: 3;
+  stroke-width: 4;
   fill: none;
   filter: drop-shadow(0 0 3px rgba(0, 255, 163, 0.35));
 }
 
 .vLine {
-  stroke: rgba(255, 255, 255, 0.38);
-  stroke-dasharray: 4 6;
+  stroke: rgba(255, 255, 255, 0.35);
+  stroke-width: 1;
+  stroke-dasharray: 6 6;
 }
 
 .dot {
   fill: #0f1424;
-  stroke-width: 2;
+  stroke-width: 4;
 }
 
 .dotEntry {
@@ -292,18 +294,18 @@
 .infoGrid {
   position: absolute;
   left: 35px;
-  top: 356px;
+  top: 333px;
   width: 326px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
   z-index: 4;
 }
 
 .infoRow {
   display: grid;
-  grid-template-columns: 1fr 183px;
+  grid-template-columns: 143px 183px;
   align-items: center;
-  gap: 12px;
+  gap: 0;
 }
 
 .infoRow span,
@@ -319,8 +321,6 @@
   text-align: left;
   max-width: 183px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 @media (max-width: 960px) {

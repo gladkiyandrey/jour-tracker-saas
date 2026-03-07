@@ -398,7 +398,7 @@ export default function TradeShareBuilder() {
             <div className={styles.ticker}>{data.symbol}</div>
             <div className={`${styles.sideBadge} ${tradeDirectionClass}`}>
               <span className={styles.sideArrow}>{(pnlPct ?? 0) >= 0 ? "↗" : "↘"}</span>
-              <span>{tradeDirection}</span>
+              <span>{tradeDirection} 100X</span>
             </div>
           </div>
 
@@ -409,9 +409,17 @@ export default function TradeShareBuilder() {
                 <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" />
               </linearGradient>
             </defs>
+            {Array.from({ length: 5 }).map((_, i) => {
+              const y = chart.top + (chart.innerH / 4) * i;
+              return <line key={`grid-${i}`} className={styles.grid} x1={chart.left} y1={y} x2={chart.left + chart.innerW} y2={y} />;
+            })}
             <path className={styles.price} d={chart.fullPath} />
             <path className={styles.tradeFill} d={chart.fillPath} />
             <path className={styles.tradeLine} d={chart.segPath} />
+            <line className={styles.vLine} x1={chart.entryX} y1={chart.entryY} x2={chart.entryX} y2={chart.floorY} />
+            <line className={styles.vLine} x1={chart.exitX} y1={chart.exitY} x2={chart.exitX} y2={chart.floorY} />
+            <circle className={`${styles.dot} ${styles.dotEntry}`} cx={chart.entryX} cy={chart.entryY} r="6.5" />
+            <circle className={`${styles.dot} ${styles.dotExit}`} cx={chart.exitX} cy={chart.exitY} r="6.5" />
           </svg>
 
           <div className={styles.infoGrid}>
