@@ -186,37 +186,150 @@
   overflow: hidden;
   border-radius: 25px;
   background: #131722;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow:
-    inset 5px 5px 21.9px rgba(255, 255, 255, 0.1),
-    0 28px 60px rgba(0, 0, 0, 0.45);
+  border: 0;
+  box-shadow: inset 5px 5px 21.9px rgba(255, 255, 255, 0.1);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.overlayNoise {
+  position: absolute;
+  left: -8px;
+  top: -9px;
+  width: 526px;
+  height: 1051px;
+  object-fit: cover;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.innerGlow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 5px 5px 21.9px rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+  z-index: 9;
 }
 
 .logoWatermark {
   position: absolute;
-  width: 440px;
-  height: 120px;
-  left: calc(50% - 440px / 2);
-  top: calc(50% - 120px / 2 - 30px);
-  opacity: 0.22;
+  width: 120px;
+  height: 33px;
+  left: calc(50% - 60px);
+  top: 290px;
+  opacity: 0.2;
+  object-fit: contain;
   pointer-events: none;
+  z-index: 3;
+}
+
+.chartMask {
+  position: absolute;
+  left: 45px;
+  top: 74px;
+  width: 360px;
+  height: 183px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.positionHighlight {
+  position: absolute;
+  left: 105px;
+  top: 117px;
+  width: 165px;
+  height: 127px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.greenGlow {
+  position: absolute;
+  left: 105px;
+  top: 117px;
+  width: 165px;
+  height: 160px;
+  mix-blend-mode: color-dodge;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.cornerGlow {
+  position: absolute;
+  left: 386px;
+  top: 526px;
+  width: 74px;
+  height: 74px;
+  transform: rotate(178.24deg);
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0.9;
+}
+
+.guideVerticalLeft,
+.guideVerticalRight {
+  position: absolute;
+  top: -44px;
+  width: 35px;
+  height: 656px;
+  border: 1px solid #ff0000;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 8;
+}
+
+.guideVerticalLeft {
+  left: 0;
+}
+
+.guideVerticalRight {
+  right: 0;
+}
+
+.guideHorizontalTop,
+.guideHorizontalBottom {
+  position: absolute;
+  left: 35px;
+  right: 35px;
+  height: 1px;
+  background: rgba(255, 0, 0, 0.3);
+  pointer-events: none;
+  z-index: 8;
+}
+
+.guideHorizontalTop {
+  top: 35px;
+}
+
+.guideHorizontalBottom {
+  bottom: 35px;
+}
+
+.figmaChart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 450px;
+  height: 600px;
+  pointer-events: none;
+  z-index: 4;
 }
 
 .topRow {
   position: absolute;
   left: 34px;
-  top: 28px;
+  top: 40px;
   right: 34px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  z-index: 4;
+  gap: 10px;
+  z-index: 6;
 }
 
 .ticker {
-  font-weight: 700;
-  font-size: 31px;
-  line-height: 38px;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 27px;
   color: #fff;
   letter-spacing: 0;
 }
@@ -224,15 +337,16 @@
 .sideBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 16px;
+  gap: 5px;
+  margin-left: 16px;
+  font-size: 14px;
   font-weight: 600;
-  line-height: 20px;
-  margin-left: auto;
+  line-height: 16px;
 }
 
 .sideArrow {
-  font-size: 15px;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .long {
@@ -241,13 +355,6 @@
 
 .short {
   color: #ff6f7f;
-}
-
-.figmaChart {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
 }
 
 .grid {
@@ -298,7 +405,7 @@
   width: 326px;
   display: grid;
   gap: 10px;
-  z-index: 4;
+  z-index: 6;
 }
 
 .infoRow {

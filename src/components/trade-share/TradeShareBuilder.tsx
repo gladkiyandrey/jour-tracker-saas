@@ -117,8 +117,8 @@ export default function TradeShareBuilder() {
     const h = 600;
     const left = 45;
     const right = 405;
-    const top = 84;
-    const bottom = 265;
+    const top = 74;
+    const bottom = 255;
     const innerW = right - left;
     const innerH = bottom - top;
 
@@ -243,6 +243,7 @@ export default function TradeShareBuilder() {
 
   const tradeDirection = (pnlPct ?? 0) >= 0 ? "Long" : "Short";
   const tradeDirectionClass = (pnlPct ?? 0) >= 0 ? styles.long : styles.short;
+  const isLong = (pnlPct ?? 0) >= 0;
 
   function formatPrice(v: number | string | null) {
     const n = Number(v);
@@ -392,13 +393,26 @@ export default function TradeShareBuilder() {
 
       {data && chart ? (
         <div className={styles.figmaCard} ref={cardRef}>
+          <img className={styles.overlayNoise} src="/trade-share/figma-82-1109/overlay-noise.jpg" alt="" aria-hidden="true" />
+          <div className={styles.innerGlow} />
+
           <img className={styles.logoWatermark} src="/brand/consist-logo-white.svg" alt="" aria-hidden="true" />
+          <img className={styles.chartMask} src="/trade-share/figma-82-1109/chart-mask.svg" alt="" aria-hidden="true" />
+          <img className={styles.positionHighlight} src="/trade-share/figma-82-1109/position-highlight.svg" alt="" aria-hidden="true" />
+          <img className={styles.greenGlow} src="/trade-share/figma-82-1109/bg-glow.svg" alt="" aria-hidden="true" />
+          <img className={styles.cornerGlow} src="/trade-share/figma-82-1109/corner-ring.svg" alt="" aria-hidden="true" />
+          <span className={styles.guideVerticalLeft} aria-hidden="true" />
+          <span className={styles.guideVerticalRight} aria-hidden="true" />
+          <span className={styles.guideHorizontalTop} aria-hidden="true" />
+          <span className={styles.guideHorizontalBottom} aria-hidden="true" />
 
           <div className={styles.topRow}>
             <div className={styles.ticker}>{data.symbol}</div>
             <div className={`${styles.sideBadge} ${tradeDirectionClass}`}>
-              <span className={styles.sideArrow}>{(pnlPct ?? 0) >= 0 ? "↗" : "↘"}</span>
-              <span>{tradeDirection} 100X</span>
+              <span className={styles.sideArrow} aria-hidden="true">
+                {isLong ? "↗" : "↘"}
+              </span>
+              <span>{tradeDirection}</span>
             </div>
           </div>
 
