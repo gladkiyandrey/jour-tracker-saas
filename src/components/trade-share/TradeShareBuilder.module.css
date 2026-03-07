@@ -31,8 +31,7 @@
   margin-top: 12px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 22px;
-  row-gap: 10px;
+  gap: 14px 22px;
   align-items: start;
 }
 
@@ -40,6 +39,7 @@
   display: grid;
   gap: 6px;
   position: relative;
+  min-width: 0;
 }
 
 .fieldFull {
@@ -53,7 +53,10 @@
 
 .field input,
 .field select {
+  width: 100%;
+  min-width: 0;
   height: 38px;
+  box-sizing: border-box;
   border-radius: 12px;
   border: 1px solid rgba(120, 136, 190, 0.35);
   background: rgba(8, 12, 24, 0.8);
@@ -130,8 +133,7 @@
   margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  column-gap: 16px;
-  row-gap: 8px;
+  gap: 14px 22px;
   align-items: stretch;
 }
 
