@@ -158,9 +158,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [entryAt, setEntryAt] = useState("");
   const [exitAt, setExitAt] = useState("");
   const [entryPrice, setEntryPrice] = useState("");
+  const [stopLoss, setStopLoss] = useState("");
   const [exitPrice, setExitPrice] = useState("");
   const [riskPercent, setRiskPercent] = useState("");
-  const [rr, setRr] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
@@ -281,19 +281,27 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       return;
     }
     const entryNum = Number(entryPrice);
+    const stopNum = Number(stopLoss);
     const exitNum = Number(exitPrice);
     const riskNum = Number(riskPercent);
-    const rrNum = Number(rr);
     if (!Number.isFinite(entryNum) || entryNum <= 0 || !Number.isFinite(exitNum) || exitNum <= 0) {
       setError("Enter entry and exit prices");
+      return;
+    }
+    if (!Number.isFinite(stopNum) || stopNum <= 0) {
+      setError("Enter stop loss");
       return;
     }
     if (!Number.isFinite(riskNum) || riskNum <= 0) {
       setError("Enter risk percent");
       return;
     }
-    if (!Number.isFinite(rrNum) || rrNum < 0) {
-      setError("Enter RR");
+    if (positionSide === "long" && stopNum >= entryNum) {
+      setError("For long trades, stop loss must be below entry");
+      return;
+    }
+    if (positionSide === "short" && stopNum <= entryNum) {
+      setError("For short trades, stop loss must be above entry");
       return;
     }
 
@@ -355,31 +363,28 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
 
   const tradeDirection = positionSide === "short" ? "Short" : "Long";
   const manualEntryPrice = Number(data?.entryPriceInput ?? entryPrice ?? 0);
+  const manualStopLoss = Number(stopLoss);
   const manualExitPrice = Number(data?.exitPriceInput ?? exitPrice ?? 0);
   const riskValue = Math.abs(Number(riskPercent));
-  const rrValue = Math.abs(Number(rr));
-  const tradeOutcome =
-    data && Number.isFinite(manualEntryPrice) && Number.isFinite(manualExitPrice) && manualEntryPrice > 0
+  const rrValue =
+    Number.isFinite(manualEntryPrice) &&
+    Number.isFinite(manualStopLoss) &&
+    Number.isFinite(manualExitPrice) &&
+    manualEntryPrice > 0
       ? positionSide === "short"
-        ? manualEntryPrice > manualExitPrice
-          ? "profit"
-          : manualEntryPrice < manualExitPrice
-            ? "loss"
-            : "breakeven"
-        : manualExitPrice > manualEntryPrice
-          ? "profit"
-          : manualExitPrice < manualEntryPrice
-            ? "loss"
-            : "breakeven"
+        ? (manualEntryPrice - manualExitPrice) / (manualStopLoss - manualEntryPrice)
+        : (manualExitPrice - manualEntryPrice) / (manualEntryPrice - manualStopLoss)
+      : null;
+  const tradeOutcome =
+    rrValue !== null && Number.isFinite(rrValue)
+      ? rrValue > 0
+        ? "profit"
+        : rrValue < 0
+          ? "loss"
+          : "breakeven"
       : null;
   const pnlPct =
-    tradeOutcome === "profit"
-      ? riskValue * rrValue
-      : tradeOutcome === "loss"
-        ? -riskValue
-        : tradeOutcome === "breakeven"
-          ? 0
-          : null;
+    rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
   const resultClass = tradeOutcome === "loss" ? styles.loss : styles.profit;
   const sideClass = positionSide === "short" ? styles.sideShort : styles.sideLong;
 
@@ -421,7 +426,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       <div className={styles.panel}>
         <h1>Trade Share Builder (MVP)</h1>
         <p>Вводишь параметры сделки, система тянет историю цены из Twelve Data и строит график по времени сделки.</p>
-        <p>Результат карточки считается только по ручным данным пользователя: side, entry, exit, risk percent и RR.</p>
+        <p>Результат карточки считается только по ручным данным пользователя: side, entry, stop loss, exit и risk percent.</p>
         <p>Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
@@ -496,16 +501,16 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="1.08452" />
           </div>
           <div className={styles.field}>
+            <label>Stop loss</label>
+            <input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="1.08200" />
+          </div>
+          <div className={styles.field}>
             <label>Exit price</label>
             <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
           </div>
           <div className={styles.field}>
             <label>Risk (%)</label>
             <input value={riskPercent} onChange={(e) => setRiskPercent(e.target.value)} placeholder="e.g. 2" />
-          </div>
-          <div className={styles.field}>
-            <label>RR</label>
-            <input value={rr} onChange={(e) => setRr(e.target.value)} placeholder="e.g. 2.23" />
           </div>
         </div>
 
@@ -614,6 +619,10 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               <strong>{formatPrice(data.exitPriceInput)}</strong>
             </div>
             <div className={styles.infoRow}>
+              <span>Stop loss</span>
+              <strong>{formatPrice(stopLoss)}</strong>
+            </div>
+            <div className={styles.infoRow}>
               <span>Open Date</span>
               <strong>{formatLongDate(data.entryTime)}</strong>
             </div>
@@ -631,7 +640,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             </div>
             <div className={styles.infoRow}>
               <span>RR</span>
-              <strong>{rr || "0.00"}</strong>
+              <strong>{rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"}</strong>
             </div>
           </div>
         </div>
