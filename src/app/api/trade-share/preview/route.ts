@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   canonicalSymbol,
   curatedSuggestionsForQuery,
+  getCuratedAliasMatch,
   normalizeRequestedSymbol,
   symbolVariants,
   type ResolvedSymbol,
@@ -283,6 +284,16 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json()) as PreviewRequest;
+    const curatedMatch = getCuratedAliasMatch(body.symbol || "");
+    if (curatedMatch && curatedMatch.requiresPro) {
+      return NextResponse.json(
+        {
+          error: "This market is not available on the current data plan. Upgrade Twelve Data or use a supported forex, metal, or crypto symbol.",
+          suggestions: [],
+        },
+        { status: 400 }
+      );
+    }
     const resolved = normalizeRequestedSymbol(body.symbol || "");
     const interval = String(body.interval || "").trim();
     const timeZone = String(body.timeZone || "UTC").trim();
@@ -331,6 +342,15 @@ export async function POST(req: Request) {
 
     if (raw.status === "error") {
       const message = raw.message || "Twelve Data error";
+      if (/starting with Pro|Pro plan/i.test(message)) {
+        return NextResponse.json(
+          {
+            error: "This market is not available on the current data plan. Upgrade Twelve Data or use a supported forex, metal, or crypto symbol.",
+            suggestions: [],
+          },
+          { status: 400 }
+        );
+      }
       const symbolIssue = /symbol|figi|missing|invalid/i.test(message);
       if (symbolIssue) {
         const fallback = await searchCanonicalSymbol(apiKey, String(body.symbol || ""));

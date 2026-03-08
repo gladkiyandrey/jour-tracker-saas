@@ -10,6 +10,7 @@ export type CuratedSymbolItem = {
   currency?: string;
   type: string;
   resolved: ResolvedSymbol;
+  requiresPro?: boolean;
 };
 
 const CURATED_SYMBOLS: CuratedSymbolItem[] = [
@@ -35,35 +36,35 @@ const CURATED_SYMBOLS: CuratedSymbolItem[] = [
   { symbol: "XRP/USD", name: "XRP / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "XRP/USD" } },
   { symbol: "ADA/USD", name: "Cardano / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "ADA/USD" } },
   { symbol: "DOGE/USD", name: "Dogecoin / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "DOGE/USD" } },
-  { symbol: "GER40", name: "DAX 40", exchange: "XETR", type: "index", resolved: { symbol: "GDAXI", exchange: "XETR" } },
-  { symbol: "GER30", name: "DAX 40", exchange: "XETR", type: "index", resolved: { symbol: "GDAXI", exchange: "XETR" } },
-  { symbol: "DAX", name: "DAX 40", exchange: "XETR", type: "index", resolved: { symbol: "GDAXI", exchange: "XETR" } },
-  { symbol: "DE40", name: "DAX 40", exchange: "XETR", type: "index", resolved: { symbol: "GDAXI", exchange: "XETR" } },
-  { symbol: "FRA40", name: "CAC 40", exchange: "Euronext", type: "index", resolved: { symbol: "FCHI", exchange: "Euronext" } },
-  { symbol: "CAC40", name: "CAC 40", exchange: "Euronext", type: "index", resolved: { symbol: "FCHI", exchange: "Euronext" } },
-  { symbol: "UK100", name: "FTSE 100", exchange: "LSE", type: "index", resolved: { symbol: "FTSE", exchange: "LSE" } },
-  { symbol: "FTSE100", name: "FTSE 100", exchange: "LSE", type: "index", resolved: { symbol: "FTSE", exchange: "LSE" } },
-  { symbol: "JP225", name: "Nikkei 225", exchange: "JPX", type: "index", resolved: { symbol: "N225", exchange: "JPX" } },
-  { symbol: "NIKKEI", name: "Nikkei 225", exchange: "JPX", type: "index", resolved: { symbol: "N225", exchange: "JPX" } },
-  { symbol: "NIKKEI225", name: "Nikkei 225", exchange: "JPX", type: "index", resolved: { symbol: "N225", exchange: "JPX" } },
-  { symbol: "HK50", name: "Hang Seng", exchange: "HKEX", type: "index", resolved: { symbol: "HSI", exchange: "HKEX" } },
-  { symbol: "HANGSENG", name: "Hang Seng", exchange: "HKEX", type: "index", resolved: { symbol: "HSI", exchange: "HKEX" } },
-  { symbol: "AU200", name: "ASX 200", exchange: "ASX", type: "index", resolved: { symbol: "AXJO", exchange: "ASX" } },
-  { symbol: "ASX200", name: "ASX 200", exchange: "ASX", type: "index", resolved: { symbol: "AXJO", exchange: "ASX" } },
-  { symbol: "ESP35", name: "IBEX 35", exchange: "BME", type: "index", resolved: { symbol: "IBEX", exchange: "BME" } },
-  { symbol: "IBEX35", name: "IBEX 35", exchange: "BME", type: "index", resolved: { symbol: "IBEX", exchange: "BME" } },
-  { symbol: "EU50", name: "Euro Stoxx 50", exchange: "SIX", type: "index", resolved: { symbol: "STOXX50E", exchange: "SIX" } },
-  { symbol: "ESTX50", name: "Euro Stoxx 50", exchange: "SIX", type: "index", resolved: { symbol: "STOXX50E", exchange: "SIX" } },
-  { symbol: "US30", name: "Dow Jones 30", type: "index", resolved: { symbol: "DJI" } },
-  { symbol: "DJ30", name: "Dow Jones 30", type: "index", resolved: { symbol: "DJI" } },
-  { symbol: "WALLSTREET30", name: "Dow Jones 30", type: "index", resolved: { symbol: "DJI" } },
-  { symbol: "US100", name: "Nasdaq 100", type: "index", resolved: { symbol: "NDX" } },
-  { symbol: "NAS100", name: "Nasdaq 100", type: "index", resolved: { symbol: "NDX" } },
-  { symbol: "NASDAQ100", name: "Nasdaq 100", type: "index", resolved: { symbol: "NDX" } },
-  { symbol: "US500", name: "S&P 500", type: "index", resolved: { symbol: "GSPC" } },
-  { symbol: "SPX500", name: "S&P 500", type: "index", resolved: { symbol: "GSPC" } },
-  { symbol: "SP500", name: "S&P 500", type: "index", resolved: { symbol: "GSPC" } },
-  { symbol: "SPX", name: "S&P 500", type: "index", resolved: { symbol: "GSPC" } },
+  { symbol: "GER40", name: "DAX 40", exchange: "XETR", type: "index", requiresPro: true, resolved: { symbol: "GDAXI", exchange: "XETR" } },
+  { symbol: "GER30", name: "DAX 40", exchange: "XETR", type: "index", requiresPro: true, resolved: { symbol: "GDAXI", exchange: "XETR" } },
+  { symbol: "DAX", name: "DAX 40", exchange: "XETR", type: "index", requiresPro: true, resolved: { symbol: "GDAXI", exchange: "XETR" } },
+  { symbol: "DE40", name: "DAX 40", exchange: "XETR", type: "index", requiresPro: true, resolved: { symbol: "GDAXI", exchange: "XETR" } },
+  { symbol: "FRA40", name: "CAC 40", exchange: "Euronext", type: "index", requiresPro: true, resolved: { symbol: "FCHI", exchange: "Euronext" } },
+  { symbol: "CAC40", name: "CAC 40", exchange: "Euronext", type: "index", requiresPro: true, resolved: { symbol: "FCHI", exchange: "Euronext" } },
+  { symbol: "UK100", name: "FTSE 100", exchange: "LSE", type: "index", requiresPro: true, resolved: { symbol: "FTSE", exchange: "LSE" } },
+  { symbol: "FTSE100", name: "FTSE 100", exchange: "LSE", type: "index", requiresPro: true, resolved: { symbol: "FTSE", exchange: "LSE" } },
+  { symbol: "JP225", name: "Nikkei 225", exchange: "JPX", type: "index", requiresPro: true, resolved: { symbol: "N225", exchange: "JPX" } },
+  { symbol: "NIKKEI", name: "Nikkei 225", exchange: "JPX", type: "index", requiresPro: true, resolved: { symbol: "N225", exchange: "JPX" } },
+  { symbol: "NIKKEI225", name: "Nikkei 225", exchange: "JPX", type: "index", requiresPro: true, resolved: { symbol: "N225", exchange: "JPX" } },
+  { symbol: "HK50", name: "Hang Seng", exchange: "HKEX", type: "index", requiresPro: true, resolved: { symbol: "HSI", exchange: "HKEX" } },
+  { symbol: "HANGSENG", name: "Hang Seng", exchange: "HKEX", type: "index", requiresPro: true, resolved: { symbol: "HSI", exchange: "HKEX" } },
+  { symbol: "AU200", name: "ASX 200", exchange: "ASX", type: "index", requiresPro: true, resolved: { symbol: "AXJO", exchange: "ASX" } },
+  { symbol: "ASX200", name: "ASX 200", exchange: "ASX", type: "index", requiresPro: true, resolved: { symbol: "AXJO", exchange: "ASX" } },
+  { symbol: "ESP35", name: "IBEX 35", exchange: "BME", type: "index", requiresPro: true, resolved: { symbol: "IBEX", exchange: "BME" } },
+  { symbol: "IBEX35", name: "IBEX 35", exchange: "BME", type: "index", requiresPro: true, resolved: { symbol: "IBEX", exchange: "BME" } },
+  { symbol: "EU50", name: "Euro Stoxx 50", exchange: "SIX", type: "index", requiresPro: true, resolved: { symbol: "STOXX50E", exchange: "SIX" } },
+  { symbol: "ESTX50", name: "Euro Stoxx 50", exchange: "SIX", type: "index", requiresPro: true, resolved: { symbol: "STOXX50E", exchange: "SIX" } },
+  { symbol: "US30", name: "Dow Jones 30", type: "index", requiresPro: true, resolved: { symbol: "DJI" } },
+  { symbol: "DJ30", name: "Dow Jones 30", type: "index", requiresPro: true, resolved: { symbol: "DJI" } },
+  { symbol: "WALLSTREET30", name: "Dow Jones 30", type: "index", requiresPro: true, resolved: { symbol: "DJI" } },
+  { symbol: "US100", name: "Nasdaq 100", type: "index", requiresPro: true, resolved: { symbol: "NDX" } },
+  { symbol: "NAS100", name: "Nasdaq 100", type: "index", requiresPro: true, resolved: { symbol: "NDX" } },
+  { symbol: "NASDAQ100", name: "Nasdaq 100", type: "index", requiresPro: true, resolved: { symbol: "NDX" } },
+  { symbol: "US500", name: "S&P 500", type: "index", requiresPro: true, resolved: { symbol: "GSPC" } },
+  { symbol: "SPX500", name: "S&P 500", type: "index", requiresPro: true, resolved: { symbol: "GSPC" } },
+  { symbol: "SP500", name: "S&P 500", type: "index", requiresPro: true, resolved: { symbol: "GSPC" } },
+  { symbol: "SPX", name: "S&P 500", type: "index", requiresPro: true, resolved: { symbol: "GSPC" } },
 ];
 
 const CATALOG_BY_ALIAS = new Map<string, CuratedSymbolItem>();
@@ -76,11 +77,26 @@ export function canonicalSymbol(value: string) {
   return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
-export function normalizeRequestedSymbol(value: string): ResolvedSymbol {
+export function proMarketsEnabled() {
+  return process.env.TWELVE_DATA_ENABLE_PRO_MARKETS === "true";
+}
+
+export function isCuratedItemAvailable(item: CuratedSymbolItem) {
+  return !item.requiresPro || proMarketsEnabled();
+}
+
+export function getCuratedAliasMatch(value: string) {
   const trimmed = String(value || "").trim().toUpperCase();
   const canonical = canonicalSymbol(trimmed);
   const curated = CATALOG_BY_ALIAS.get(trimmed) || CATALOG_BY_ALIAS.get(canonical);
-  if (curated) return curated.resolved;
+  return curated ?? null;
+}
+
+export function normalizeRequestedSymbol(value: string): ResolvedSymbol {
+  const trimmed = String(value || "").trim().toUpperCase();
+  const canonical = canonicalSymbol(trimmed);
+  const curated = getCuratedAliasMatch(trimmed);
+  if (curated && isCuratedItemAvailable(curated)) return curated.resolved;
   if (/^[A-Z]{6}$/.test(canonical)) {
     return { symbol: `${canonical.slice(0, 3)}/${canonical.slice(3)}` };
   }
@@ -115,6 +131,7 @@ export function curatedItemsForQuery(query: string) {
   const lower = trimmed.toLowerCase();
 
   return CURATED_SYMBOLS
+    .filter((item) => isCuratedItemAvailable(item))
     .map((item) => {
       const symbol = item.symbol.toUpperCase();
       const symbolCanonical = canonicalSymbol(item.symbol);
