@@ -682,7 +682,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           <div className={styles.field}>
             <label>Side</label>
             <select value={positionSide} onChange={(e) => setPositionSide(e.target.value === "short" ? "short" : e.target.value === "long" ? "long" : "")}>
-              <option value="">Choose side</option>
+              <option value="">Long / Short</option>
               <option value="long">Long</option>
               <option value="short">Short</option>
             </select>
