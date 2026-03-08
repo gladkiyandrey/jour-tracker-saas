@@ -1,6 +1,5 @@
 "use client";
 
-import { toPng } from "html-to-image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./TradeShareBuilder.module.css";
 
@@ -317,92 +316,6 @@ function renderAssetGlyph(code: string) {
   return <span className={styles.assetText}>{code.slice(0, 2)}</span>;
 }
 
-function clipRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  const radius = Math.max(0, Math.min(r, w / 2, h / 2));
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + w - radius, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-  ctx.lineTo(x + w, y + h - radius);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-  ctx.lineTo(x + radius, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-}
-
-async function applyRoundedCornersToDataUrl(dataUrl: string, radiusPx: number): Promise<string> {
-  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const el = new Image();
-    el.onload = () => resolve(el);
-    el.onerror = () => reject(new Error("Failed to load exported card image"));
-    el.src = dataUrl;
-  });
-
-  const canvas = document.createElement("canvas");
-  canvas.width = img.width;
-  canvas.height = img.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) {
-    throw new Error("Failed to create export canvas");
-  }
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  clipRoundedRect(ctx, 0, 0, canvas.width, canvas.height, radiusPx);
-  ctx.save();
-  ctx.clip();
-  ctx.drawImage(img, 0, 0);
-  ctx.restore();
-
-  return canvas.toDataURL("image/png");
-}
-
-async function waitForCardAssets(root: HTMLElement) {
-  const fontsReady =
-    typeof document !== "undefined" && "fonts" in document ? (document.fonts.ready.catch(() => undefined) as Promise<unknown>) : Promise.resolve();
-
-  const imageNodes = Array.from(root.querySelectorAll("img"));
-  const imageReady = imageNodes.map(async (img) => {
-    if (img.complete && img.naturalWidth > 0) {
-      if ("decode" in img) {
-        try {
-          await img.decode();
-        } catch {
-          // ignore decode failures for already loaded images
-        }
-      }
-      return;
-    }
-
-    await new Promise<void>((resolve) => {
-      const cleanup = () => {
-        img.removeEventListener("load", onLoad);
-        img.removeEventListener("error", onLoad);
-      };
-      const onLoad = () => {
-        cleanup();
-        resolve();
-      };
-      img.addEventListener("load", onLoad, { once: true });
-      img.addEventListener("error", onLoad, { once: true });
-    });
-
-    if ("decode" in img) {
-      try {
-        await img.decode();
-      } catch {
-        // ignore decode failures after load
-      }
-    }
-  });
-
-  await Promise.all([fontsReady, ...imageReady]);
-
-  // Give layout/paint a full frame before rasterizing.
-  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
-}
-
 type TradeShareBuilderProps = {
   initialTimeZone: string;
 };
@@ -425,7 +338,6 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [showSymbolList, setShowSymbolList] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
-  const cardRef = useRef<HTMLDivElement | null>(null);
   const symbolBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -605,26 +517,33 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   }
 
   async function downloadCardPng() {
-    if (!cardRef.current || !data) return;
+    if (!data) return;
     try {
       setDownloading(true);
-      const pixelRatio = 2;
-      await waitForCardAssets(cardRef.current);
-      // Warm up html-to-image once so the saved PNG uses the fully resolved layout/effects.
-      await toPng(cardRef.current, {
-        cacheBust: true,
-        pixelRatio,
+      const res = await fetch("/api/trade-share/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          preview: data,
+          positionSide,
+          stopLoss,
+          riskPercent,
+          timeZone,
+        }),
       });
-      await waitForCardAssets(cardRef.current);
-      const dataUrl = await toPng(cardRef.current, {
-        cacheBust: true,
-        pixelRatio,
-      });
-      const roundedDataUrl = await applyRoundedCornersToDataUrl(dataUrl, 25 * pixelRatio);
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(json?.error || "Failed to export image");
+      }
+
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = roundedDataUrl;
+      a.href = objectUrl;
       a.download = `consist-trade-${(data.symbol || "card").replace(/[^\w-]+/g, "-").toLowerCase()}.png`;
       a.click();
+      URL.revokeObjectURL(objectUrl);
     } catch {
       setError("Failed to download image. Try again.");
     } finally {
@@ -831,7 +750,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       {data && chart ? (
         <div className={styles.cardViewport}>
           <div className={styles.cardScale}>
-            <div className={styles.figmaCard} ref={cardRef}>
+            <div className={styles.figmaCard}>
           <img className={styles.overlayNoise} src="/trade-share/figma-82-1109/overlay-noise.jpg" alt="" aria-hidden="true" />
           <div className={styles.innerGlow} />
 
