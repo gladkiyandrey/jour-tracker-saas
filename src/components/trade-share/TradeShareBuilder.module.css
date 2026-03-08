@@ -460,7 +460,7 @@
   top: 334px;
   width: 234px;
   display: grid;
-  gap: 4px;
+  gap: 8px;
   z-index: 5;
 }
 
@@ -475,14 +475,14 @@
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
-  line-height: 1;
+  line-height: 1.1;
   color: #d8d8d8;
   min-width: 0;
   white-space: nowrap;
 }
 
 .infoRow span {
-  width: 96px;
+  width: 73px;
   flex: 0 0 auto;
 }
 
@@ -497,6 +497,7 @@
   order: 3;
   text-align: left;
   font-variant-numeric: tabular-nums;
+  width: 91px;
   flex: 0 0 auto;
 }
 

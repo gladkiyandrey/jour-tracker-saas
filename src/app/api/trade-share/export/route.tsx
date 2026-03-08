@@ -328,7 +328,7 @@ export async function POST(req: Request) {
                 width: "234px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "4px",
+                gap: "8px",
                 color: "#d8d8d8",
               }}
             >
@@ -349,13 +349,13 @@ export async function POST(req: Request) {
                     alignItems: "center",
                     width: "234px",
                     fontSize: "14px",
-                    lineHeight: 1,
+                    lineHeight: 1.1,
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <div style={{ width: "96px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "73px", flex: "0 0 auto" }}>{label}</div>
                   <div style={{ width: "70px", flex: "0 0 auto" }} />
-                  <div style={{ flex: "0 0 auto" }}>{value}</div>
+                  <div style={{ width: "91px", flex: "0 0 auto" }}>{value}</div>
                 </div>
               ))}
             </div>
