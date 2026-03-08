@@ -726,12 +726,11 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <label>Interval</label>
             <select value={interval} onChange={(e) => setInterval(e.target.value)}>
               <option>1min</option>
+              <option>3min</option>
               <option>5min</option>
               <option>15min</option>
               <option>30min</option>
-              <option>45min</option>
               <option>1h</option>
-              <option>2h</option>
               <option>4h</option>
               <option>1day</option>
             </select>
