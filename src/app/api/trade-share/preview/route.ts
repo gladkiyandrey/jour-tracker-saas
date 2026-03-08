@@ -263,19 +263,16 @@ function intervalMs(interval: string) {
   }
 }
 
-function pickIndexAtOrBefore(points: Point[], timestamp: number) {
-  if (points.length === 0) return 0;
-  if (timestamp <= points[0].ts) return 0;
-
+function pickNearestIndex(points: Point[], timestamp: number) {
   let best = 0;
+  let bestDelta = Infinity;
   for (let i = 0; i < points.length; i += 1) {
-    if (points[i].ts <= timestamp) {
+    const delta = Math.abs(points[i].ts - timestamp);
+    if (delta < bestDelta) {
       best = i;
-      continue;
+      bestDelta = delta;
     }
-    break;
   }
-
   return best;
 }
 
@@ -400,8 +397,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Not enough candles for selected range" }, { status: 400 });
     }
 
-    const entryIndex = pickIndexAtOrBefore(points, entryTs);
-    const exitIndex = pickIndexAtOrBefore(points, exitTs);
+    const entryIndex = pickNearestIndex(points, entryTs);
+    const exitIndex = pickNearestIndex(points, exitTs);
     const tradeStart = Math.min(entryIndex, exitIndex);
     const tradeEnd = Math.max(entryIndex, exitIndex);
 
