@@ -328,7 +328,7 @@ export async function POST(req: Request) {
                 width: "234px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "10px",
+                gap: "4px",
                 color: "#d8d8d8",
               }}
             >
@@ -349,7 +349,7 @@ export async function POST(req: Request) {
                     alignItems: "center",
                     width: "234px",
                     fontSize: "14px",
-                    lineHeight: 1.1,
+                    lineHeight: 1,
                     whiteSpace: "nowrap",
                   }}
                 >

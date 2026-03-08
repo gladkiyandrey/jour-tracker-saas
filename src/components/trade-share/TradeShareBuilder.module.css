@@ -460,7 +460,7 @@
   top: 334px;
   width: 234px;
   display: grid;
-  gap: 8px;
+  gap: 4px;
   z-index: 5;
 }
 
@@ -475,7 +475,7 @@
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
-  line-height: 1.1;
+  line-height: 1;
   color: #d8d8d8;
   min-width: 0;
   white-space: nowrap;
