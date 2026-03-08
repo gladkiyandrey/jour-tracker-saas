@@ -293,6 +293,7 @@ export async function POST(req: Request) {
                 top: "0",
                 width: "382px",
                 height: "68px",
+                display: "flex",
               }}
             >
               <div
