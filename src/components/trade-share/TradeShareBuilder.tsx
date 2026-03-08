@@ -376,10 +376,19 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   const [downloading, setDownloading] = useState(false);
   const [data, setData] = useState<PreviewResponse | null>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  const symbolBlurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setTimeZone(initialTimeZone || "UTC");
   }, [initialTimeZone]);
+
+  useEffect(() => {
+    return () => {
+      if (symbolBlurTimerRef.current) {
+        clearTimeout(symbolBlurTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const q = symbol.trim();
@@ -644,8 +653,20 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <input
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
-              onFocus={() => setShowSymbolList(true)}
-              onBlur={() => setTimeout(() => setShowSymbolList(false), 120)}
+              onFocus={() => {
+                if (symbolBlurTimerRef.current) {
+                  clearTimeout(symbolBlurTimerRef.current);
+                }
+                setShowSymbolList(true);
+              }}
+              onClick={() => setShowSymbolList(true)}
+              onPointerDown={() => setShowSymbolList(true)}
+              onBlur={() => {
+                if (symbolBlurTimerRef.current) {
+                  clearTimeout(symbolBlurTimerRef.current);
+                }
+                symbolBlurTimerRef.current = setTimeout(() => setShowSymbolList(false), 120);
+              }}
               placeholder="EUR/USD"
               autoComplete="off"
             />
