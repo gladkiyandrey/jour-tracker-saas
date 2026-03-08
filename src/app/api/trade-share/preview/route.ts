@@ -288,7 +288,7 @@ export async function POST(req: Request) {
     if (curatedMatch && curatedMatch.requiresPro) {
       return NextResponse.json(
         {
-          error: "This market is not available on the current data plan. Upgrade Twelve Data or use a supported forex, metal, or crypto symbol.",
+          error: "This market is not supported in Trade Share on the current data plan. Use forex, metals, or crypto symbols.",
           suggestions: [],
         },
         { status: 400 }
@@ -345,7 +345,7 @@ export async function POST(req: Request) {
       if (/starting with Pro|Pro plan/i.test(message)) {
         return NextResponse.json(
           {
-            error: "This market is not available on the current data plan. Upgrade Twelve Data or use a supported forex, metal, or crypto symbol.",
+            error: "This market is not supported in Trade Share on the current data plan. Use forex, metals, or crypto symbols.",
             suggestions: [],
           },
           { status: 400 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { canonicalSymbol, curatedItemsForQuery, symbolVariants } from "@/lib/trade-share-symbol-catalog";
 
-const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd"];
+const ALLOWED_TYPE_WORDS = ["forex", "commodity", "metals", "metal", "cryptocurrency"];
 const BLOCKED_NAME_WORDS = [
   "warrant",
   "option",
@@ -21,8 +21,8 @@ function isLikelyTradableSpotSymbol(symbol: string) {
   const s = symbol.toUpperCase();
   if (/^[A-Z]{3}\/[A-Z]{3}$/.test(s)) return true; // EUR/USD
   if (/^[A-Z]{6}$/.test(s)) return true; // EURUSD
-  if (/^[A-Z]{2,5}\d{1,4}$/.test(s)) return true; // GER40, US500, NAS100
   if (/^X(AU|AG|PT|PD)\/USD$/.test(s)) return true; // metals
+  if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)\/USD$/.test(s)) return true; // crypto
   return false;
 }
 
