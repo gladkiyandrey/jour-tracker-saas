@@ -377,7 +377,6 @@ type TradeShareBuilderProps = {
 
 export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilderProps) {
   const [symbol, setSymbol] = useState("");
-  const [interval, setInterval] = useState("15min");
   const [timeZone, setTimeZone] = useState(initialTimeZone || "UTC");
   const [positionSide, setPositionSide] = useState<PositionSide | "">("");
   const [entryAt, setEntryAt] = useState("");
@@ -551,7 +550,6 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           symbol,
-          interval,
           entryAt,
           exitAt,
           timeZone,
@@ -671,7 +669,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     <section className={styles.wrap}>
       <div className={styles.panel}>
         <h1>Trade Share Builder (MVP)</h1>
-        <p>Build a trade card from your manual trade data. Timezone: {timeZone}</p>
+        <p>Build a trade card from your manual trade data. Timezone: {timeZone}. Chart resolution: Auto.</p>
 
         <div className={styles.formGrid}>
           <div className={`${styles.field} ${styles.fieldFull}`}>
@@ -723,20 +721,6 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             ) : null}
           </div>
           <div className={styles.field}>
-            <label>Interval</label>
-            <select value={interval} onChange={(e) => setInterval(e.target.value)}>
-              <option>1min</option>
-              <option>5min</option>
-              <option>15min</option>
-              <option>30min</option>
-              <option>45min</option>
-              <option>1h</option>
-              <option>2h</option>
-              <option>4h</option>
-              <option>1day</option>
-            </select>
-          </div>
-          <div className={styles.field}>
             <label>Side</label>
             <select value={positionSide} onChange={(e) => setPositionSide(e.target.value === "short" ? "short" : e.target.value === "long" ? "long" : "")}>
               <option value="">Choose side</option>
@@ -785,6 +769,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           </button>
           {error ? <span className={styles.error}>{error}</span> : null}
         </div>
+        {data ? <div className={styles.metaNote}>Rendered on {data.interval}</div> : null}
         {symbolSuggestions.length > 0 ? (
           <div className={styles.suggestions}>
             {symbolSuggestions.map((candidate) => (
