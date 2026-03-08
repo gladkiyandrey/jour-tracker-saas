@@ -665,17 +665,17 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     return `${n.toFixed(5)} USD`;
   }
 
-  function formatLongDate(value: string) {
+  function formatCompactDate(value: string) {
     const d = new Date(value);
     return d.toLocaleString("en-US", {
       timeZone,
-      month: "long",
+      day: "2-digit",
+      month: "short",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
       hour12: false,
-    });
+    }).replace(",", "");
   }
 
   function formatDuration(start: string, end: string) {
@@ -907,11 +907,11 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             </div>
             <div className={styles.infoRow}>
               <span>Open Date</span>
-              <strong>{formatLongDate(data.entryTime)}</strong>
+              <strong>{formatCompactDate(data.entryTime)}</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Close Date</span>
-              <strong>{formatLongDate(data.exitTime)}</strong>
+              <strong>{formatCompactDate(data.exitTime)}</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Duration</span>
