@@ -68,7 +68,7 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function buildChart(preview: PreviewPayload) {
+function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number) {
   const w = CARD_WIDTH;
   const h = CARD_HEIGHT;
   const left = 45;
@@ -95,7 +95,15 @@ function buildChart(preview: PreviewPayload) {
   const segPath = seg
     .map((p, i) => {
       const idx = preview.tradeStart + i;
-      return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
+      const isFirst = idx === preview.entryIndex;
+      const isLast = idx === preview.exitIndex;
+      const chartPrice =
+        isFirst && Number.isFinite(manualEntryPrice) && manualEntryPrice > 0
+          ? manualEntryPrice
+          : isLast && Number.isFinite(manualExitPrice) && manualExitPrice > 0
+            ? manualExitPrice
+            : p.c;
+      return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(chartPrice).toFixed(2)}`;
     })
     .join(" ");
 
@@ -147,7 +155,7 @@ export async function POST(req: Request) {
     const tradeOutcome =
       rrValue !== null && Number.isFinite(rrValue) ? (rrValue > 0 ? "profit" : rrValue < 0 ? "loss" : "breakeven") : "breakeven";
     const pnlPct = rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
-    const chart = buildChart(preview);
+    const chart = buildChart(preview, manualEntryPrice, manualExitPrice);
 
     const origin = new URL(req.url).origin;
     const noiseUrl = `${origin}/trade-share/figma-82-1109/overlay-noise.jpg`;
