@@ -489,6 +489,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       w,
       h,
       left,
+      right,
       top,
       innerW,
       innerH,
@@ -499,8 +500,10 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       fillPath,
       entryX: toX(data.entryIndex),
       exitX: toX(data.exitIndex),
+      entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : data.points[data.entryIndex].c),
+      exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : data.points[data.exitIndex].c),
     };
-  }, [data]);
+  }, [data, manualEntryPrice, manualExitPrice]);
 
   const pricePlaceholders = useMemo(() => getPricePlaceholders(symbol), [symbol]);
 
@@ -840,6 +843,20 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
             <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient)"} />
             <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.entryMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke="rgba(255, 210, 74, 0.45)"
+              strokeWidth="1.2"
+              strokeDasharray="5 5"
+            />
+            <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.exitMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke={tradeOutcome === "loss" ? "rgba(255, 107, 122, 0.45)" : "rgba(0, 255, 163, 0.45)"}
+              strokeWidth="1.2"
+              strokeDasharray="5 5"
+            />
+            <path
               d={chart.segPath}
               fill="none"
               stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"}
@@ -850,7 +867,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
             <circle
               cx={chart.entryX}
-              cy={chart.toY(data.points[data.entryIndex].c)}
+              cy={chart.entryMarkerY}
               r="6.5"
               fill="#0f1424"
               stroke="#ffd24a"
@@ -858,7 +875,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             />
             <circle
               cx={chart.exitX}
-              cy={chart.toY(data.points[data.exitIndex].c)}
+              cy={chart.exitMarkerY}
               r="6.5"
               fill="#0f1424"
               stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}

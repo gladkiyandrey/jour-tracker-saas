@@ -69,7 +69,7 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function buildChart(preview: PreviewPayload) {
+function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number) {
   const w = CARD_WIDTH;
   const h = CARD_HEIGHT;
   const left = 45;
@@ -115,6 +115,9 @@ function buildChart(preview: PreviewPayload) {
     fillPath,
     entryX: toX(preview.entryIndex),
     exitX: toX(preview.exitIndex),
+    right,
+    entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : preview.points[preview.entryIndex].c),
+    exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : preview.points[preview.exitIndex].c),
     toY,
   };
 }
@@ -148,7 +151,7 @@ export async function POST(req: Request) {
     const tradeOutcome =
       rrValue !== null && Number.isFinite(rrValue) ? (rrValue > 0 ? "profit" : rrValue < 0 ? "loss" : "breakeven") : "breakeven";
     const pnlPct = rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
-    const chart = buildChart(preview);
+    const chart = buildChart(preview, manualEntryPrice, manualExitPrice);
 
     const origin = new URL(req.url).origin;
     const noiseUrl = `${origin}/trade-share/figma-82-1109/overlay-noise.jpg`;
@@ -221,6 +224,20 @@ export async function POST(req: Request) {
             <path d={chart.fullPath} fill="none" stroke="rgba(160,167,180,0.55)" strokeWidth="2.5" />
             <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient)"} />
             <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.entryMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke="rgba(255,210,74,0.45)"
+              strokeWidth="1.2"
+              strokeDasharray="5 5"
+            />
+            <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.exitMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke={tradeOutcome === "loss" ? "rgba(255,107,122,0.45)" : "rgba(0,255,163,0.45)"}
+              strokeWidth="1.2"
+              strokeDasharray="5 5"
+            />
+            <path
               d={chart.segPath}
               fill="none"
               stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"}
@@ -229,10 +246,10 @@ export async function POST(req: Request) {
               filter="url(#position-glow-blur)"
             />
             <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
-            <circle cx={chart.entryX} cy={chart.toY(preview.points[preview.entryIndex].c)} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
+            <circle cx={chart.entryX} cy={chart.entryMarkerY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
             <circle
               cx={chart.exitX}
-              cy={chart.toY(preview.points[preview.exitIndex].c)}
+              cy={chart.exitMarkerY}
               r="6.5"
               fill="#0f1424"
               stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
