@@ -392,15 +392,17 @@
 
 .topRow {
   position: absolute;
-  left: 30px;
-  top: 26px;
-  right: 30px;
-  display: flex;
-  align-items: center;
+  left: 0;
+  top: 0;
+  width: 382px;
+  height: 68px;
   z-index: 5;
 }
 
 .ticker {
+  position: absolute;
+  left: 30px;
+  top: 27px;
   font-weight: 400;
   font-size: 22px;
   line-height: 1.05;
@@ -414,10 +416,12 @@
 }
 
 .sideBadge {
+  position: absolute;
+  left: 138px;
+  top: 31px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 20px;
+  gap: 4px;
   font-size: 14px;
   font-weight: 600;
   line-height: 1;
@@ -439,11 +443,15 @@
 }
 
 .resultBadge {
-  margin-left: auto;
+  position: absolute;
+  left: 262px;
+  top: 26px;
   font-size: 24px;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .profit {

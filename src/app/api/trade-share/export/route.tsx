@@ -289,15 +289,17 @@ export async function POST(req: Request) {
             <div
               style={{
                 position: "absolute",
-                left: "30px",
-                top: "26px",
-                right: "30px",
-                display: "flex",
-                alignItems: "center",
+                left: "0",
+                top: "0",
+                width: "382px",
+                height: "68px",
               }}
             >
               <div
                 style={{
+                  position: "absolute",
+                  left: "30px",
+                  top: "27px",
                   fontSize: "22px",
                   lineHeight: 1.05,
                   fontWeight: 400,
@@ -310,12 +312,38 @@ export async function POST(req: Request) {
               >
                 {preview.symbol}
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "20px", color: sideColor, fontSize: "14px", fontWeight: 600 }}>
+              <div
+                style={{
+                  position: "absolute",
+                  left: "138px",
+                  top: "31px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  color: sideColor,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={arrowUrl} alt="" width="11" height="11" style={{ display: "block" }} />
                 <span>{positionSide === "short" ? "Short" : "Long"}</span>
               </div>
-              <div style={{ marginLeft: "auto", fontSize: "24px", lineHeight: 1, fontWeight: 700, color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  left: "262px",
+                  top: "26px",
+                  fontSize: "24px",
+                  lineHeight: 1,
+                  fontWeight: 700,
+                  color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3",
+                  textAlign: "left",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {formatPct(pnlPct)}
               </div>
             </div>
