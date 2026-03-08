@@ -466,8 +466,10 @@
 
 .infoRow {
   display: grid;
-  grid-template-columns: 136px 98px;
+  grid-template-columns: max-content max-content;
+  column-gap: 70px;
   align-items: center;
+  justify-content: start;
 }
 
 .infoRow span,
@@ -478,11 +480,11 @@
   line-height: 1.1;
   color: #d8d8d8;
   min-width: 0;
+  white-space: nowrap;
 }
 
 .infoRow strong {
   text-align: left;
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
