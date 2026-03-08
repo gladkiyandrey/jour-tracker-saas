@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,6 +13,10 @@ const CHART_LEFT = 30;
 const CHART_RIGHT = 352;
 const CHART_TOP = 79;
 const CHART_BOTTOM = 252;
+const inter400 = readFile(join(process.cwd(), "public/inter-400.ttf"));
+const inter500 = readFile(join(process.cwd(), "public/inter-500.ttf"));
+const inter600 = readFile(join(process.cwd(), "public/inter-600.ttf"));
+const inter700 = readFile(join(process.cwd(), "public/inter-700.ttf"));
 
 type Point = { t: string; ts: number; c: number };
 
@@ -154,6 +160,7 @@ export async function POST(req: Request) {
     const chart = buildChart(preview);
     const segmentColor = tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3";
     const sideColor = positionSide === "short" ? "#E84A6A" : "#00FFA3";
+    const [font400, font500, font600, font700] = await Promise.all([inter400, inter500, inter600, inter700]);
 
     const origin = new URL(req.url).origin;
     const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
@@ -192,7 +199,7 @@ export async function POST(req: Request) {
               alt=""
               width="140"
               height="38"
-              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.1 }}
+              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.14 }}
             />
 
             <svg width={CARD_WIDTH} height={CARD_HEIGHT} viewBox={`0 0 ${CARD_WIDTH} ${CARD_HEIGHT}`} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -289,8 +296,8 @@ export async function POST(req: Request) {
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", width: "234px", fontSize: "14px", lineHeight: 1.05 }}>
-                  <div style={{ width: "117px", flex: "0 0 auto" }}>{label}</div>
-                  <div style={{ width: "117px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                  <div style={{ width: "143px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "91px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -305,6 +312,12 @@ export async function POST(req: Request) {
           "cache-control": "no-store, max-age=0",
           "content-disposition": `attachment; filename="consist-trade-${(preview.symbol || "card").replace(/[^\w-]+/g, "-").toLowerCase()}.png"`,
         },
+        fonts: [
+          { name: "Inter", data: font400, weight: 400, style: "normal" },
+          { name: "Inter", data: font500, weight: 500, style: "normal" },
+          { name: "Inter", data: font600, weight: 600, style: "normal" },
+          { name: "Inter", data: font700, weight: 700, style: "normal" },
+        ],
       },
     );
   } catch (error) {

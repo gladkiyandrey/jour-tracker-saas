@@ -374,7 +374,7 @@
   top: 279px;
   width: 140px;
   height: 38px;
-  opacity: 0.1;
+  opacity: 0.14;
   object-fit: contain;
   pointer-events: none;
   z-index: 2;
@@ -475,7 +475,7 @@
 
 .infoRow {
   display: grid;
-  grid-template-columns: 117px 117px;
+  grid-template-columns: 143px 91px;
   align-items: center;
 }
 
