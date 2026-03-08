@@ -22,7 +22,7 @@ const ALLOWED_INTERVALS = new Set([
 
 type PreviewRequest = {
   symbol: string;
-  interval?: string;
+  interval: string;
   entryAt: string;
   exitAt: string;
   timeZone?: string;
@@ -263,42 +263,6 @@ function intervalMs(interval: string) {
   }
 }
 
-function selectAutoInterval(tradeDurationMs: number) {
-  const candidates = [
-    "1min",
-    "5min",
-    "15min",
-    "30min",
-    "45min",
-    "1h",
-    "2h",
-    "4h",
-    "1day",
-  ];
-  const targetCandles = 12;
-  const minCandles = 5;
-  const maxCandles = 24;
-
-  let best = candidates[0];
-  let bestScore = Infinity;
-
-  for (const interval of candidates) {
-    const candles = tradeDurationMs / intervalMs(interval);
-    if (candles <= 0) continue;
-
-    let score = Math.abs(candles - targetCandles);
-    if (candles < minCandles) score += (minCandles - candles) * 3;
-    if (candles > maxCandles) score += (candles - maxCandles) * 1.5;
-
-    if (score < bestScore) {
-      best = interval;
-      bestScore = score;
-    }
-  }
-
-  return best;
-}
-
 function pickNearestIndex(points: Point[], timestamp: number) {
   let best = 0;
   let bestDelta = Infinity;
@@ -331,10 +295,14 @@ export async function POST(req: Request) {
       );
     }
     const resolved = normalizeRequestedSymbol(body.symbol || "");
+    const interval = String(body.interval || "").trim();
     const timeZone = String(body.timeZone || "UTC").trim();
 
     if (!resolved.symbol) {
       return NextResponse.json({ error: "Symbol is required" }, { status: 400 });
+    }
+    if (!ALLOWED_INTERVALS.has(interval)) {
+      return NextResponse.json({ error: "Unsupported interval" }, { status: 400 });
     }
     if (!isValidTimeZone(timeZone)) {
       return NextResponse.json({ error: "Unsupported timezone" }, { status: 400 });
@@ -347,10 +315,6 @@ export async function POST(req: Request) {
     const exitTs = Date.parse(exitAtIso);
     const tradeStartTs = Math.min(entryTs, exitTs);
     const tradeEndTs = Math.max(entryTs, exitTs);
-    const tradeDurationMs = Math.max(60 * 1000, tradeEndTs - tradeStartTs);
-    const requestedInterval = String(body.interval || "").trim();
-    const interval =
-      requestedInterval && ALLOWED_INTERVALS.has(requestedInterval) ? requestedInterval : selectAutoInterval(tradeDurationMs);
     const step = intervalMs(interval);
     const contextBefore = 48;
     const minContextAfter = 48;
