@@ -39,6 +39,13 @@ type PreviewError = {
 
 type PositionSide = "long" | "short";
 
+const CARD_WIDTH = 382;
+const CARD_HEIGHT = 531;
+const CHART_LEFT = 30;
+const CHART_RIGHT = 352;
+const CHART_TOP = 79;
+const CHART_BOTTOM = 252;
+
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
@@ -448,12 +455,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       return null;
     }
 
-    const w = 450;
-    const h = 600;
-    const left = 45;
-    const right = 405;
-    const top = 84;
-    const bottom = 265;
+    const w = CARD_WIDTH;
+    const h = CARD_HEIGHT;
+    const left = CHART_LEFT;
+    const right = CHART_RIGHT;
+    const top = CHART_TOP;
+    const bottom = CHART_BOTTOM;
     const innerW = right - left;
     const innerH = bottom - top;
 
@@ -488,23 +495,17 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     return {
       w,
       h,
-      left,
       right,
-      top,
-      innerW,
-      innerH,
       toX,
-      toY,
       fullPath,
       segPath,
       fillPath,
       entryX: toX(data.entryIndex),
       exitX: toX(data.exitIndex),
-      entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : data.points[data.entryIndex].c),
-      exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : data.points[data.exitIndex].c),
-      stopMarkerY: toY(Number.isFinite(manualStopLoss) && manualStopLoss > 0 ? manualStopLoss : data.points[data.entryIndex].c),
+      entryMarkerY: toY(data.points[data.entryIndex].c),
+      exitMarkerY: toY(data.points[data.exitIndex].c),
     };
-  }, [data, manualEntryPrice, manualExitPrice, manualStopLoss]);
+  }, [data]);
 
   const pricePlaceholders = useMemo(() => getPricePlaceholders(symbol), [symbol]);
 
@@ -637,6 +638,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
   const resultClass = tradeOutcome === "loss" ? styles.loss : styles.profit;
   const sideClass = positionSide === "short" ? styles.sideShort : styles.sideLong;
+  const segmentColor = tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3";
+  const areaGradientId = tradeOutcome === "loss" ? "trade-gradient-loss" : "trade-gradient-profit";
 
   function formatPrice(v: number | string | null) {
     const n = Number(v);
@@ -646,16 +649,19 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
 
   function formatCompactDate(value: string) {
     const d = new Date(value);
-    return d.toLocaleString("en-US", {
+    const parts = new Intl.DateTimeFormat("en-US", {
       timeZone,
-      weekday: "short",
       day: "2-digit",
       month: "short",
-      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
-    }).replace(",", "");
+    }).formatToParts(d);
+    const day = parts.find((part) => part.type === "day")?.value || "";
+    const month = parts.find((part) => part.type === "month")?.value || "";
+    const hour = parts.find((part) => part.type === "hour")?.value || "";
+    const minute = parts.find((part) => part.type === "minute")?.value || "";
+    return `${day} ${month}, ${hour}:${minute}`;
   }
 
   function formatDuration(start: string, end: string) {
@@ -810,84 +816,77 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         <div className={styles.cardViewport}>
           <div className={styles.cardScale}>
             <div className={styles.figmaCard}>
-          <img className={styles.overlayNoise} src="/trade-share/figma-82-1109/overlay-noise.jpg" alt="" aria-hidden="true" />
-          <div className={styles.innerGlow} />
-
-          <img className={styles.logoWatermark} src="/brand/consist-logo-white.svg" alt="" aria-hidden="true" />
-          <img className={styles.cornerGlow} src="/trade-share/figma-82-1109/corner-ring.svg" alt="" aria-hidden="true" />
+          <div className={styles.cardAmbientGlow} />
+          <img className={styles.logoWatermark} src="/trade-share/redesign/consist-watermark.svg" alt="" aria-hidden="true" />
 
           <div className={styles.topRow}>
             <div className={styles.ticker}>{data.symbol}</div>
             <div className={`${styles.sideBadge} ${sideClass}`}>
-              <span className={styles.sideArrow} aria-hidden="true">
-                {positionSide === "short" ? "↘" : "↗"}
-              </span>
+              <img
+                className={styles.sideArrow}
+                src={positionSide === "short" ? "/trade-share/redesign/short-arrow.svg" : "/trade-share/redesign/long-arrow.svg"}
+                alt=""
+                aria-hidden="true"
+              />
               <span>{tradeDirection}</span>
             </div>
-            <div className={`${styles.resultBadge} ${resultClass}`}>{formatPct(pnlPct)}</div>
+              <div className={`${styles.resultBadge} ${resultClass}`}>{formatPct(pnlPct)}</div>
           </div>
 
           <svg className={styles.figmaChart} viewBox={`0 0 ${chart.w} ${chart.h}`} aria-label="Trade chart">
             <defs>
-              <linearGradient id="trade-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.4" />
+              <linearGradient id="trade-gradient-profit" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.28" />
                 <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
               </linearGradient>
               <linearGradient id="trade-gradient-loss" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FF6B7A" stopOpacity="0.42" />
-                <stop offset="100%" stopColor="#FF6B7A" stopOpacity="0" />
+                <stop offset="0%" stopColor="#E84A6A" stopOpacity="0.28" />
+                <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
               </linearGradient>
-              <filter id="position-glow-blur" x="-15%" y="-20%" width="130%" height="160%">
-                <feGaussianBlur stdDeviation="2" />
+              <filter id="position-glow-blur" x="-20%" y="-25%" width="140%" height="180%">
+                <feGaussianBlur stdDeviation="3.2" />
               </filter>
             </defs>
-            <path d={chart.fullPath} fill="none" stroke="rgba(160, 167, 180, 0.55)" strokeWidth="2.5" />
-            <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient)"} />
+            <path d={chart.fullPath} fill="none" stroke="rgba(129, 129, 129, 0.58)" strokeWidth="1.9" />
+            <path d={chart.fillPath} fill={`url(#${areaGradientId})`} />
             <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.entryMarkerY.toFixed(2)}`}
+              d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
               fill="none"
-              stroke="rgba(255, 210, 74, 0.45)"
-              strokeWidth="1.2"
-              strokeDasharray="5 5"
+              stroke="rgba(247, 213, 0, 0.7)"
+              strokeWidth="1.15"
+              strokeDasharray="5 6"
             />
             <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.exitMarkerY.toFixed(2)}`}
+              d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
               fill="none"
-              stroke={tradeOutcome === "loss" ? "rgba(255, 107, 122, 0.45)" : "rgba(0, 255, 163, 0.45)"}
-              strokeWidth="1.2"
-              strokeDasharray="5 5"
-            />
-            <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.stopMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.stopMarkerY.toFixed(2)}`}
-              fill="none"
-              stroke="rgba(255, 107, 122, 0.28)"
-              strokeWidth="1"
-              strokeDasharray="4 6"
+              stroke={tradeOutcome === "loss" ? "rgba(232, 74, 106, 0.72)" : "rgba(0, 255, 163, 0.72)"}
+              strokeWidth="1.15"
+              strokeDasharray="5 6"
             />
             <path
               d={chart.segPath}
               fill="none"
-              stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"}
-              strokeWidth="2"
-              opacity="0.8"
+              stroke={segmentColor}
+              strokeWidth="3.8"
+              opacity="0.62"
               filter="url(#position-glow-blur)"
             />
-            <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
+            <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="3.2" />
             <circle
               cx={chart.entryX}
               cy={chart.entryMarkerY}
-              r="6.5"
-              fill="#0f1424"
-              stroke="#ffd24a"
-              strokeWidth="4"
+              r="4.35"
+              fill="#1c1c1c"
+              stroke="#F7D500"
+              strokeWidth="3.2"
             />
             <circle
               cx={chart.exitX}
               cy={chart.exitMarkerY}
-              r="6.5"
-              fill="#0f1424"
-              stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
-              strokeWidth="4"
+              r="4.35"
+              fill="#1c1c1c"
+              stroke={segmentColor}
+              strokeWidth="3.2"
             />
           </svg>
 
@@ -899,10 +898,6 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <div className={styles.infoRow}>
               <span>Exit price</span>
               <strong>{formatPrice(data.exitPriceInput)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Stop loss</span>
-              <strong>{formatPrice(stopLoss)}</strong>
             </div>
             <div className={styles.infoRow}>
               <span>Open Date</span>

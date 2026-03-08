@@ -4,9 +4,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const CARD_WIDTH = 450;
-const CARD_HEIGHT = 600;
-const EXPORT_SCALE = 2;
+const CARD_WIDTH = 382;
+const CARD_HEIGHT = 531;
+const EXPORT_SCALE = 3;
+const CHART_LEFT = 30;
+const CHART_RIGHT = 352;
+const CHART_TOP = 79;
+const CHART_BOTTOM = 252;
 
 type Point = { t: string; ts: number; c: number };
 
@@ -42,18 +46,19 @@ function formatPrice(v: number | string | null) {
 
 function formatCompactDate(value: string, timeZone: string) {
   const d = new Date(value);
-  return d
-    .toLocaleString("en-US", {
-      timeZone,
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    })
-    .replace(",", "");
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(d);
+  const day = parts.find((part) => part.type === "day")?.value || "";
+  const month = parts.find((part) => part.type === "month")?.value || "";
+  const hour = parts.find((part) => part.type === "hour")?.value || "";
+  const minute = parts.find((part) => part.type === "minute")?.value || "";
+  return `${day} ${month}, ${hour}:${minute}`;
 }
 
 function formatDuration(start: string, end: string) {
@@ -69,31 +74,24 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number, manualStopLoss: number) {
-  const w = CARD_WIDTH;
-  const h = CARD_HEIGHT;
-  const left = 45;
-  const right = 405;
-  const top = 84;
-  const bottom = 265;
-  const innerW = right - left;
-  const innerH = bottom - top;
-
+function buildChart(preview: PreviewPayload) {
   const safeMin = preview.min;
   const safeMax = preview.max === preview.min ? preview.max + 1 : preview.max;
+  const innerW = CHART_RIGHT - CHART_LEFT;
+  const innerH = CHART_BOTTOM - CHART_TOP;
 
-  const toX = (index: number) => left + (index / (preview.points.length - 1)) * innerW;
+  const toX = (index: number) => CHART_LEFT + (index / (preview.points.length - 1)) * innerW;
   const toY = (price: number) => {
-    const y = top + ((safeMax - price) / (safeMax - safeMin)) * innerH;
-    return Math.max(top, Math.min(bottom, y));
+    const y = CHART_TOP + ((safeMax - price) / (safeMax - safeMin)) * innerH;
+    return Math.max(CHART_TOP, Math.min(CHART_BOTTOM, y));
   };
 
   const fullPath = preview.points
     .map((p, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)} ${toY(p.c).toFixed(2)}`)
     .join(" ");
 
-  const seg = preview.points.slice(preview.tradeStart, preview.tradeEnd + 1);
-  const segPath = seg
+  const segment = preview.points.slice(preview.tradeStart, preview.tradeEnd + 1);
+  const segPath = segment
     .map((p, i) => {
       const idx = preview.tradeStart + i;
       return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
@@ -102,24 +100,19 @@ function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExi
 
   const fillPath = [
     segPath,
-    `L ${toX(preview.tradeEnd).toFixed(2)} ${(top + innerH).toFixed(2)}`,
-    `L ${toX(preview.tradeStart).toFixed(2)} ${(top + innerH).toFixed(2)}`,
+    `L ${toX(preview.tradeEnd).toFixed(2)} ${CHART_BOTTOM.toFixed(2)}`,
+    `L ${toX(preview.tradeStart).toFixed(2)} ${CHART_BOTTOM.toFixed(2)}`,
     "Z",
   ].join(" ");
 
   return {
-    w,
-    h,
     fullPath,
     segPath,
     fillPath,
     entryX: toX(preview.entryIndex),
     exitX: toX(preview.exitIndex),
-    right,
-    entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : preview.points[preview.entryIndex].c),
-    exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : preview.points[preview.exitIndex].c),
-    stopMarkerY: toY(Number.isFinite(manualStopLoss) && manualStopLoss > 0 ? manualStopLoss : preview.points[preview.entryIndex].c),
-    toY,
+    entryMarkerY: toY(preview.points[preview.entryIndex].c),
+    exitMarkerY: toY(preview.points[preview.exitIndex].c),
   };
 }
 
@@ -150,14 +143,21 @@ export async function POST(req: Request) {
           : (manualExitPrice - manualEntryPrice) / (manualEntryPrice - manualStopLoss)
         : null;
     const tradeOutcome =
-      rrValue !== null && Number.isFinite(rrValue) ? (rrValue > 0 ? "profit" : rrValue < 0 ? "loss" : "breakeven") : "breakeven";
+      rrValue !== null && Number.isFinite(rrValue)
+        ? rrValue > 0
+          ? "profit"
+          : rrValue < 0
+            ? "loss"
+            : "breakeven"
+        : "breakeven";
     const pnlPct = rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
-    const chart = buildChart(preview, manualEntryPrice, manualExitPrice, manualStopLoss);
+    const chart = buildChart(preview);
+    const segmentColor = tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3";
+    const sideColor = positionSide === "short" ? "#E84A6A" : "#00FFA3";
 
     const origin = new URL(req.url).origin;
-    const noiseUrl = `${origin}/trade-share/figma-82-1109/overlay-noise.jpg`;
-    const logoUrl = `${origin}/brand/consist-logo-white.svg`;
-    const cornerGlowUrl = `${origin}/trade-share/figma-82-1109/corner-ring.svg`;
+    const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
+    const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/short-arrow.svg" : "/trade-share/redesign/long-arrow.svg"}`;
 
     return new ImageResponse(
       (
@@ -179,109 +179,88 @@ export async function POST(req: Request) {
               position: "relative",
               overflow: "hidden",
               borderRadius: "25px",
-              background: "#131722",
-              color: "#fff",
+              background: "#1c1c1c",
+              color: "#d8d8d8",
               fontFamily: "Inter, Arial, sans-serif",
-              boxShadow: "inset 5px 5px 21.9px rgba(255,255,255,0.1)",
               transform: `scale(${EXPORT_SCALE})`,
               transformOrigin: "top left",
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={noiseUrl} alt="" width="526" height="1051" style={{ position: "absolute", left: "-8px", top: "-9px", opacity: 1 }} />
             <div
               style={{
                 position: "absolute",
-                inset: 0,
-                borderRadius: "25px",
-                boxShadow: "inset 5px 5px 21.9px rgba(255,255,255,0.1)",
+                right: "-54px",
+                bottom: "-58px",
+                width: "190px",
+                height: "220px",
+                borderRadius: "999px",
+                background: "radial-gradient(circle at 28% 72%, rgba(0,255,163,0.22), rgba(0,255,163,0) 58%), linear-gradient(180deg, rgba(0,255,163,0), rgba(0,255,163,0.12))",
+                filter: "blur(24px)",
+                opacity: 0.82,
               }}
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={logoUrl}
+              src={watermarkUrl}
               alt=""
-              width="400"
-              height="110"
-              style={{ position: "absolute", left: "25px", top: "245px", opacity: 0.15 }}
+              width="140"
+              height="38"
+              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.1 }}
             />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={cornerGlowUrl} alt="" width="74" height="74" style={{ position: "absolute", left: "386px", top: "526px", opacity: 0.9 }} />
 
-            <svg width="450" height="600" viewBox="0 0 450 600" style={{ position: "absolute", left: 0, top: 0 }}>
-            <defs>
-              <linearGradient id="trade-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.4" />
-                <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
-              </linearGradient>
-              <linearGradient id="trade-gradient-loss" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FF6B7A" stopOpacity="0.42" />
-                <stop offset="100%" stopColor="#FF6B7A" stopOpacity="0" />
-              </linearGradient>
-              <filter id="position-glow-blur" x="-15%" y="-20%" width="130%" height="160%">
-                <feGaussianBlur stdDeviation="2" />
-              </filter>
-            </defs>
-            <path d={chart.fullPath} fill="none" stroke="rgba(160,167,180,0.55)" strokeWidth="2.5" />
-            <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient)"} />
-            <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.entryMarkerY.toFixed(2)}`}
-              fill="none"
-              stroke="rgba(255,210,74,0.45)"
-              strokeWidth="1.2"
-              strokeDasharray="5 5"
-            />
-            <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.exitMarkerY.toFixed(2)}`}
-              fill="none"
-              stroke={tradeOutcome === "loss" ? "rgba(255,107,122,0.45)" : "rgba(0,255,163,0.45)"}
-              strokeWidth="1.2"
-              strokeDasharray="5 5"
-            />
-            <path
-              d={`M ${chart.entryX.toFixed(2)} ${chart.stopMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.stopMarkerY.toFixed(2)}`}
-              fill="none"
-              stroke="rgba(255,107,122,0.28)"
-              strokeWidth="1"
-              strokeDasharray="4 6"
-            />
-            <path
-              d={chart.segPath}
-              fill="none"
-              stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"}
-              strokeWidth="2"
-              opacity="0.8"
-              filter="url(#position-glow-blur)"
-            />
-            <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
-            <circle cx={chart.entryX} cy={chart.entryMarkerY} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
-            <circle
-              cx={chart.exitX}
-              cy={chart.exitMarkerY}
-              r="6.5"
-              fill="#0f1424"
-              stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
-              strokeWidth="4"
-            />
+            <svg width={CARD_WIDTH} height={CARD_HEIGHT} viewBox={`0 0 ${CARD_WIDTH} ${CARD_HEIGHT}`} style={{ position: "absolute", left: 0, top: 0 }}>
+              <defs>
+                <linearGradient id="trade-gradient-profit" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
+                </linearGradient>
+                <linearGradient id="trade-gradient-loss" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#E84A6A" stopOpacity="0.28" />
+                  <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
+                </linearGradient>
+                <filter id="position-glow-blur" x="-20%" y="-25%" width="140%" height="180%">
+                  <feGaussianBlur stdDeviation="3.2" />
+                </filter>
+              </defs>
+              <path d={chart.fullPath} fill="none" stroke="rgba(129,129,129,0.58)" strokeWidth="1.9" />
+              <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient-profit)"} />
+              <path
+                d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
+                fill="none"
+                stroke="rgba(247,213,0,0.7)"
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              <path
+                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
+                fill="none"
+                stroke={tradeOutcome === "loss" ? "rgba(232,74,106,0.72)" : "rgba(0,255,163,0.72)"}
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="3.8" opacity="0.62" filter="url(#position-glow-blur)" />
+              <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="3.2" />
+              <circle cx={chart.entryX} cy={chart.entryMarkerY} r="4.35" fill="#1c1c1c" stroke="#F7D500" strokeWidth="3.2" />
+              <circle cx={chart.exitX} cy={chart.exitMarkerY} r="4.35" fill="#1c1c1c" stroke={segmentColor} strokeWidth="3.2" />
             </svg>
 
             <div
               style={{
                 position: "absolute",
-                left: "34px",
-                top: "40px",
-                right: "34px",
+                left: "30px",
+                top: "26px",
+                right: "30px",
                 display: "flex",
                 alignItems: "center",
-                gap: "10px",
               }}
             >
               <div
                 style={{
                   fontSize: "22px",
-                  lineHeight: 1.1,
-                  fontWeight: 500,
-                  maxWidth: "170px",
+                  lineHeight: 1.05,
+                  fontWeight: 400,
+                  color: "#d8d8d8",
+                  maxWidth: "120px",
                   overflow: "hidden",
                   whiteSpace: "nowrap",
                   textOverflow: "ellipsis",
@@ -289,41 +268,12 @@ export async function POST(req: Request) {
               >
                 {preview.symbol}
               </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  marginLeft: "14px",
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: positionSide === "short" ? "#ffb36f" : "#6fd7ff",
-                }}
-              >
-                <span>{positionSide === "short" ? "↘" : "↗"}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "20px", color: sideColor, fontSize: "14px", fontWeight: 600 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={arrowUrl} alt="" width="13" height="13" style={{ display: "block" }} />
                 <span>{positionSide === "short" ? "Short" : "Long"}</span>
               </div>
-              <div
-                style={{
-                  marginLeft: "auto",
-                  minWidth: "78px",
-                  maxWidth: "92px",
-                  height: "30px",
-                  padding: "0 10px",
-                  borderRadius: "999px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  color: tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3",
-                  background: tradeOutcome === "loss" ? "rgba(255,107,122,0.12)" : "rgba(0,255,163,0.1)",
-                  border: `1px solid ${tradeOutcome === "loss" ? "rgba(255,107,122,0.26)" : "rgba(0,255,163,0.24)"}`,
-                }}
-              >
+              <div style={{ marginLeft: "auto", fontSize: "24px", lineHeight: 1, fontWeight: 700, color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3" }}>
                 {formatPct(pnlPct)}
               </div>
             </div>
@@ -331,58 +281,27 @@ export async function POST(req: Request) {
             <div
               style={{
                 position: "absolute",
-                left: "35px",
-                top: "333px",
-                width: "326px",
+                left: "74px",
+                top: "334px",
+                width: "234px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "8px",
+                gap: "10px",
+                color: "#d8d8d8",
               }}
             >
               {[
                 ["Entry price", formatPrice(preview.entryPriceInput)],
                 ["Exit price", formatPrice(preview.exitPriceInput)],
-                ["Stop loss", formatPrice(body.stopLoss)],
                 ["Open Date", formatCompactDate(preview.entryTime, timeZone)],
                 ["Close Date", formatCompactDate(preview.exitTime, timeZone)],
                 ["Duration", formatDuration(preview.entryTime, preview.exitTime)],
-                ["Risk", `${body.riskPercent || "0.00"}%`],
+                ["Risk", `${riskValue || 0}%`],
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
-                <div
-                  key={label}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    width: "326px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: "143px",
-                      flexShrink: 0,
-                      fontSize: "16px",
-                      lineHeight: 1.18,
-                      color: "#fff",
-                    }}
-                  >
-                    {label}
-                  </span>
-                  <strong
-                    style={{
-                      width: "183px",
-                      flexShrink: 0,
-                      fontSize: "16px",
-                      lineHeight: 1.18,
-                      color: "#fff",
-                      fontWeight: 400,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {value}
-                  </strong>
+                <div key={label} style={{ display: "flex", width: "234px", fontSize: "14px", lineHeight: 1.05 }}>
+                  <div style={{ width: "117px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "117px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -392,12 +311,16 @@ export async function POST(req: Request) {
       {
         width: CARD_WIDTH * EXPORT_SCALE,
         height: CARD_HEIGHT * EXPORT_SCALE,
-      }
+        headers: {
+          "content-type": "image/png",
+          "cache-control": "no-store, max-age=0",
+          "content-disposition": `attachment; filename="consist-trade-${(preview.symbol || "card").replace(/[^\w-]+/g, "-").toLowerCase()}.png"`,
+        },
+      },
     );
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to export card";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 400,
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Failed to render image" }), {
+      status: 500,
       headers: { "content-type": "application/json" },
     });
   }
