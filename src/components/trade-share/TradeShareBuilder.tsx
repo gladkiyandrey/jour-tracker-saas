@@ -45,6 +45,7 @@ const CHART_LEFT = 30;
 const CHART_RIGHT = 352;
 const CHART_TOP = 79;
 const CHART_BOTTOM = 252;
+const MARKER_SIZE = 9;
 
 const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
@@ -378,6 +379,29 @@ function renderAssetGlyph(code: string) {
   return <span className={styles.assetText}>{code.slice(0, 2)}</span>;
 }
 
+function buildSmoothPath(points: Array<{ x: number; y: number }>) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  let d = `M${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C${cp1x.toFixed(2)} ${cp1y.toFixed(2)} ${cp2x.toFixed(2)} ${cp2y.toFixed(2)} ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+
+  return d;
+}
+
 type TradeShareBuilderProps = {
   initialTimeZone: string;
 };
@@ -473,17 +497,15 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       return Math.max(top, Math.min(bottom, y));
     };
 
-    const fullPath = data.points
-      .map((p, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)} ${toY(p.c).toFixed(2)}`)
-      .join(" ");
+    const fullCurvePoints = data.points.map((p, i) => ({ x: toX(i), y: toY(p.c) }));
+    const fullPath = buildSmoothPath(fullCurvePoints);
 
     const seg = data.points.slice(data.tradeStart, data.tradeEnd + 1);
-    const segPath = seg
-      .map((p, i) => {
-        const idx = data.tradeStart + i;
-        return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
-      })
-      .join(" ");
+    const segCurvePoints = seg.map((p, i) => {
+      const idx = data.tradeStart + i;
+      return { x: toX(idx), y: toY(p.c) };
+    });
+    const segPath = buildSmoothPath(segCurvePoints);
 
     const fillPath = [
       segPath,
@@ -859,29 +881,42 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               strokeWidth="1.15"
               strokeDasharray="5 6"
             />
-            <path
-              d={chart.segPath}
-              fill="none"
-              stroke={segmentColor}
-              strokeWidth="2"
-            />
-            <circle
-              cx={chart.entryX}
-              cy={chart.entryMarkerY}
-              r="4.35"
-              fill="#1c1c1c"
-              stroke="#F7D500"
-              strokeWidth="3.2"
-            />
-            <circle
-              cx={chart.exitX}
-              cy={chart.exitMarkerY}
-              r="4.35"
-              fill="#1c1c1c"
-              stroke={segmentColor}
-              strokeWidth="3.2"
-            />
+              <path
+                d={chart.segPath}
+                fill="none"
+                stroke={segmentColor}
+                strokeWidth="2"
+              />
           </svg>
+
+          <img
+            src="/trade-share/redesign/entry.svg?v=1"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: `${chart.entryX - MARKER_SIZE / 2}px`,
+              top: `${chart.entryMarkerY - MARKER_SIZE / 2}px`,
+              width: `${MARKER_SIZE}px`,
+              height: `${MARKER_SIZE}px`,
+              zIndex: 6,
+              pointerEvents: "none",
+            }}
+          />
+          <img
+            src="/trade-share/redesign/exit.svg?v=1"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: `${chart.exitX - MARKER_SIZE / 2}px`,
+              top: `${chart.exitMarkerY - MARKER_SIZE / 2}px`,
+              width: `${MARKER_SIZE}px`,
+              height: `${MARKER_SIZE}px`,
+              zIndex: 6,
+              pointerEvents: "none",
+            }}
+          />
 
           <div className={styles.infoGrid}>
             <div className={styles.infoRow}>

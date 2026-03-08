@@ -13,6 +13,7 @@ const CHART_LEFT = 30;
 const CHART_RIGHT = 352;
 const CHART_TOP = 79;
 const CHART_BOTTOM = 252;
+const MARKER_SIZE = 9;
 const inter400 = readFile(join(process.cwd(), "public/inter-400.ttf"));
 const inter500 = readFile(join(process.cwd(), "public/inter-500.ttf"));
 const inter600 = readFile(join(process.cwd(), "public/inter-600.ttf"));
@@ -80,6 +81,29 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
+function buildSmoothPath(points: Array<{ x: number; y: number }>) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  let d = `M${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C${cp1x.toFixed(2)} ${cp1y.toFixed(2)} ${cp2x.toFixed(2)} ${cp2y.toFixed(2)} ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+  }
+
+  return d;
+}
+
 function buildChart(preview: PreviewPayload) {
   const safeMin = preview.min;
   const safeMax = preview.max === preview.min ? preview.max + 1 : preview.max;
@@ -92,17 +116,15 @@ function buildChart(preview: PreviewPayload) {
     return Math.max(CHART_TOP, Math.min(CHART_BOTTOM, y));
   };
 
-  const fullPath = preview.points
-    .map((p, i) => `${i === 0 ? "M" : "L"}${toX(i).toFixed(2)} ${toY(p.c).toFixed(2)}`)
-    .join(" ");
+  const fullCurvePoints = preview.points.map((p, i) => ({ x: toX(i), y: toY(p.c) }));
+  const fullPath = buildSmoothPath(fullCurvePoints);
 
   const segment = preview.points.slice(preview.tradeStart, preview.tradeEnd + 1);
-  const segPath = segment
-    .map((p, i) => {
-      const idx = preview.tradeStart + i;
-      return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
-    })
-    .join(" ");
+  const segCurvePoints = segment.map((p, i) => {
+    const idx = preview.tradeStart + i;
+    return { x: toX(idx), y: toY(p.c) };
+  });
+  const segPath = buildSmoothPath(segCurvePoints);
 
   const fillPath = [
     segPath,
@@ -165,6 +187,8 @@ export async function POST(req: Request) {
     const origin = new URL(req.url).origin;
     const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
     const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/shorticon.svg?v=2" : "/trade-share/redesign/longicon.svg?v=2"}`;
+    const entryMarkerUrl = `${origin}/trade-share/redesign/entry.svg?v=1`;
+    const exitMarkerUrl = `${origin}/trade-share/redesign/exit.svg?v=1`;
 
     return new ImageResponse(
       (
@@ -230,9 +254,36 @@ export async function POST(req: Request) {
                 strokeDasharray="5 6"
               />
               <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="2" />
-              <circle cx={chart.entryX} cy={chart.entryMarkerY} r="4.35" fill="#1c1c1c" stroke="#F7D500" strokeWidth="3.2" />
-              <circle cx={chart.exitX} cy={chart.exitMarkerY} r="4.35" fill="#1c1c1c" stroke={segmentColor} strokeWidth="3.2" />
             </svg>
+
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={entryMarkerUrl}
+              alt=""
+              width="9"
+              height="9"
+              style={{
+                position: "absolute",
+                left: `${chart.entryX - MARKER_SIZE / 2}px`,
+                top: `${chart.entryMarkerY - MARKER_SIZE / 2}px`,
+                width: "9px",
+                height: "9px",
+              }}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={exitMarkerUrl}
+              alt=""
+              width="9"
+              height="9"
+              style={{
+                position: "absolute",
+                left: `${chart.exitX - MARKER_SIZE / 2}px`,
+                top: `${chart.exitMarkerY - MARKER_SIZE / 2}px`,
+                width: "9px",
+                height: "9px",
+              }}
+            />
 
             <div
               style={{
