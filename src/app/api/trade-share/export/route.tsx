@@ -331,10 +331,29 @@ export async function POST(req: Request) {
                 ["Risk", `${body.riskPercent || "0.00"}%`],
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
-                <div key={label} style={{ display: "grid", gridTemplateColumns: "143px 183px", alignItems: "center" }}>
-                  <span style={{ fontSize: "16px", lineHeight: 1.18, color: "#fff" }}>{label}</span>
+                <div
+                  key={label}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "326px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "143px",
+                      flexShrink: 0,
+                      fontSize: "16px",
+                      lineHeight: 1.18,
+                      color: "#fff",
+                    }}
+                  >
+                    {label}
+                  </span>
                   <strong
                     style={{
+                      width: "183px",
+                      flexShrink: 0,
                       fontSize: "16px",
                       lineHeight: 1.18,
                       color: "#fff",
