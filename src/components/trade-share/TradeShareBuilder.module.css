@@ -265,6 +265,24 @@
   padding: 0 14px;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease,
+    filter 140ms ease;
+  box-shadow: 0 8px 20px rgba(73, 119, 231, 0.22);
+}
+
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 12px 24px rgba(73, 119, 231, 0.3);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.98);
+  box-shadow: 0 6px 16px rgba(73, 119, 231, 0.22);
 }
 
 .button:disabled {
@@ -286,6 +304,25 @@
   font-weight: 600;
   cursor: pointer;
   background: rgba(9, 13, 25, 0.72);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
+  box-shadow: 0 8px 18px rgba(4, 9, 19, 0.22);
+}
+
+.buttonSecondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(160, 182, 245, 0.75);
+  background: rgba(18, 25, 46, 0.9);
+  box-shadow: 0 12px 24px rgba(6, 12, 25, 0.3);
+}
+
+.buttonSecondary:active:not(:disabled) {
+  transform: translateY(0);
+  background: rgba(13, 19, 36, 0.86);
+  box-shadow: 0 6px 14px rgba(6, 12, 25, 0.22);
 }
 
 .buttonSecondary:disabled {
