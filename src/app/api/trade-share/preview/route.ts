@@ -125,10 +125,8 @@ async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<
 
 async function fetchTimeSeries(apiKey: string, resolved: ResolvedSymbol, interval: string, startAtIso: string, endAtIso: string) {
   const url = new URL("https://api.twelvedata.com/time_series");
-  url.searchParams.set("symbol", resolved.symbol);
-  if (resolved.exchange) {
-    url.searchParams.set("exchange", resolved.exchange);
-  }
+  const symbolQuery = resolved.exchange ? `${resolved.symbol}:${resolved.exchange}` : resolved.symbol;
+  url.searchParams.set("symbol", symbolQuery);
   url.searchParams.set("interval", interval);
   url.searchParams.set("start_date", startAtIso);
   url.searchParams.set("end_date", endAtIso);
