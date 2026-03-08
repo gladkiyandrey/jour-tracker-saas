@@ -10,7 +10,6 @@ import {
 
 const ALLOWED_INTERVALS = new Set([
   "1min",
-  "3min",
   "5min",
   "15min",
   "30min",
@@ -241,8 +240,6 @@ function intervalMs(interval: string) {
   switch (interval) {
     case "1min":
       return 60 * 1000;
-    case "3min":
-      return 3 * 60 * 1000;
     case "5min":
       return 5 * 60 * 1000;
     case "15min":
