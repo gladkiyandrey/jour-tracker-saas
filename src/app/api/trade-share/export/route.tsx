@@ -13,6 +13,8 @@ const CHART_LEFT = 30;
 const CHART_RIGHT = 352;
 const CHART_TOP = 79;
 const CHART_BOTTOM = 252;
+const ARROW_PATH =
+  "M11.7456 5.39004L11.7406 5.38505L6.62595 0.23768C6.5853 0.197057 6.5404 0.160965 6.49204 0.130033L6.34477 0.0492897L6.24435 0.0156362H6.1707C6.05784 -0.00521206 5.94214 -0.00521206 5.82927 0.0156362H5.682L5.56818 0.0761935C5.50475 0.110823 5.44621 0.153815 5.39411 0.204026L0.259344 5.38505C-0.0844984 5.7279 -0.0867264 6.286 0.254386 6.63159L0.259344 6.63657C0.605949 6.96894 1.15123 6.96894 1.49786 6.63657L4.5573 3.56833C4.68929 3.43826 4.90124 3.44034 5.03065 3.57303C5.09088 3.63475 5.12514 3.71741 5.12634 3.80384V13.8227C5.1263 14.3095 5.51891 14.7042 6.00328 14.7042C6.48765 14.7043 6.88029 14.3097 6.88035 13.8228V3.80384C6.88296 3.61807 7.0349 3.46955 7.21974 3.47217C7.30572 3.4734 7.38797 3.50781 7.44939 3.56833L10.4955 6.63657C10.8429 6.97323 11.3932 6.97323 11.7407 6.63657C12.0845 6.29373 12.0867 5.73562 11.7456 5.39004Z";
 const inter400 = readFile(join(process.cwd(), "public/inter-400.ttf"));
 const inter500 = readFile(join(process.cwd(), "public/inter-500.ttf"));
 const inter600 = readFile(join(process.cwd(), "public/inter-600.ttf"));
@@ -164,7 +166,6 @@ export async function POST(req: Request) {
 
     const origin = new URL(req.url).origin;
     const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
-    const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/short-arrow.svg" : "/trade-share/redesign/long-arrow.svg"}`;
 
     return new ImageResponse(
       (
@@ -199,7 +200,7 @@ export async function POST(req: Request) {
               alt=""
               width="140"
               height="38"
-              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.14 }}
+              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.18 }}
             />
 
             <svg width={CARD_WIDTH} height={CARD_HEIGHT} viewBox={`0 0 ${CARD_WIDTH} ${CARD_HEIGHT}`} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -259,14 +260,14 @@ export async function POST(req: Request) {
                 {preview.symbol}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "20px", color: sideColor, fontSize: "14px", fontWeight: 600 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={arrowUrl}
-                  alt=""
+                <svg
                   width="13"
                   height="13"
+                  viewBox="0 0 12 14.7042"
                   style={{ display: "block", transform: positionSide === "short" ? "rotate(135deg)" : "rotate(45deg)" }}
-                />
+                >
+                  <path d={ARROW_PATH} fill={sideColor} />
+                </svg>
                 <span>{positionSide === "short" ? "Short" : "Long"}</span>
               </div>
               <div style={{ marginLeft: "auto", fontSize: "24px", lineHeight: 1, fontWeight: 700, color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3" }}>
@@ -295,9 +296,9 @@ export async function POST(req: Request) {
                 ["Risk", `${riskValue || 0}%`],
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
-                <div key={label} style={{ display: "flex", width: "234px", fontSize: "14px", lineHeight: 1.05 }}>
-                  <div style={{ width: "143px", flex: "0 0 auto" }}>{label}</div>
-                  <div style={{ width: "91px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                <div key={label} style={{ display: "flex", width: "234px", fontSize: "12px", lineHeight: 1.1 }}>
+                  <div style={{ width: "125px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "109px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                 </div>
               ))}
             </div>

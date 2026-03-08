@@ -374,7 +374,7 @@
   top: 279px;
   width: 140px;
   height: 38px;
-  opacity: 0.14;
+  opacity: 0.18;
   object-fit: contain;
   pointer-events: none;
   z-index: 2;
@@ -429,6 +429,7 @@
   height: 13px;
   display: block;
   transform-origin: center;
+  overflow: visible;
 }
 
 .sideArrowLong {
@@ -469,13 +470,13 @@
   top: 334px;
   width: 234px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   z-index: 5;
 }
 
 .infoRow {
   display: grid;
-  grid-template-columns: 143px 91px;
+  grid-template-columns: 125px 109px;
   align-items: center;
 }
 
@@ -483,8 +484,8 @@
 .infoRow strong {
   font-style: normal;
   font-weight: 400;
-  font-size: 14px;
-  line-height: 1.05;
+  font-size: 12px;
+  line-height: 1.1;
   color: #d8d8d8;
   min-width: 0;
 }
