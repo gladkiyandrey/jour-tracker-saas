@@ -164,7 +164,7 @@ export async function POST(req: Request) {
 
     const origin = new URL(req.url).origin;
     const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
-    const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/shorticon.svg" : "/trade-share/redesign/longicon.svg"}`;
+    const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/shorticon.svg?v=2" : "/trade-share/redesign/longicon.svg?v=2"}`;
 
     return new ImageResponse(
       (
@@ -290,8 +290,8 @@ export async function POST(req: Request) {
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", width: "234px", fontSize: "14px", lineHeight: 1.1 }}>
-                  <div style={{ width: "143px", flex: "0 0 auto" }}>{label}</div>
-                  <div style={{ width: "91px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                  <div style={{ width: "136px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "98px", flex: "0 0 auto", whiteSpace: "nowrap" }}>{value}</div>
                 </div>
               ))}
             </div>

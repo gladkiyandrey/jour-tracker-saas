@@ -466,7 +466,7 @@
 
 .infoRow {
   display: grid;
-  grid-template-columns: 143px 91px;
+  grid-template-columns: 136px 98px;
   align-items: center;
 }
 
@@ -483,8 +483,6 @@
 .infoRow strong {
   text-align: left;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
 }
 
