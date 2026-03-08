@@ -449,6 +449,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       setDownloading(true);
       const pixelRatio = 2;
       await waitForCardAssets(cardRef.current);
+      // Warm up html-to-image once so the saved PNG uses the fully resolved layout/effects.
+      await toPng(cardRef.current, {
+        cacheBust: true,
+        pixelRatio,
+      });
+      await waitForCardAssets(cardRef.current);
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
         pixelRatio,
@@ -515,8 +521,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     const diffSec = Math.max(0, Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 1000));
     const h = Math.floor(diffSec / 3600);
     const m = Math.floor((diffSec % 3600) / 60);
-    const s = diffSec % 60;
-    return `${h}h ${m}m ${s}s`;
+    return `${h}h ${m}m`;
   }
 
   function formatPct(value: number | null) {
@@ -624,7 +629,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             className={styles.buttonSecondary}
             type="button"
             onClick={downloadCardPng}
-            disabled={!data || downloading}
+            disabled={!data || downloading || loading}
           >
             {downloading ? "Exporting..." : "Download card (PNG)"}
           </button>
