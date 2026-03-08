@@ -200,7 +200,7 @@ export async function POST(req: Request) {
               alt=""
               width="140"
               height="38"
-              style={{ position: "absolute", left: "121px", top: "279px", opacity: 0.18 }}
+              style={{ position: "absolute", left: "121px", top: "279px", opacity: 1 }}
             />
 
             <svg width={CARD_WIDTH} height={CARD_HEIGHT} viewBox={`0 0 ${CARD_WIDTH} ${CARD_HEIGHT}`} style={{ position: "absolute", left: 0, top: 0 }}>
@@ -297,8 +297,8 @@ export async function POST(req: Request) {
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
               ].map(([label, value]) => (
                 <div key={label} style={{ display: "flex", width: "234px", fontSize: "12px", lineHeight: 1.1 }}>
-                  <div style={{ width: "125px", flex: "0 0 auto" }}>{label}</div>
-                  <div style={{ width: "109px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
+                  <div style={{ width: "143px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "91px", flex: "0 0 auto", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{value}</div>
                 </div>
               ))}
             </div>
