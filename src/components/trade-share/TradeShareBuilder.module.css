@@ -167,12 +167,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
-.symbolCoin img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .flagGlyph {
   width: 100%;
   height: 100%;
@@ -181,11 +175,31 @@
   background-position: center;
 }
 
-.symbolCoin span {
+.assetText {
   color: #e7efff;
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.symbolCoinFlag {
+  background: #162347;
+}
+
+.symbolCoinCommodity {
+  background: linear-gradient(180deg, #e1b100, #9f7400);
+  border-color: rgba(255, 216, 94, 0.38);
+}
+
+.symbolCoinCrypto {
+  background: linear-gradient(180deg, #263a8a, #162347);
+  border-color: rgba(145, 175, 255, 0.38);
+}
+
+.symbolCoinGeneric {
+  background: linear-gradient(180deg, #2d3655, #17203a);
+  border-color: rgba(133, 161, 238, 0.3);
 }
 
 .symbolCoinOffset {

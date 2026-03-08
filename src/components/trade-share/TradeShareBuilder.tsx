@@ -60,6 +60,54 @@ const FOREX_FLAG_MAP: Record<string, string> = {
   CAD: "ca",
   AUD: "au",
   NZD: "nz",
+  SEK: "se",
+  NOK: "no",
+  DKK: "dk",
+  SGD: "sg",
+  HKD: "hk",
+  CNH: "cn",
+  CNY: "cn",
+  MXN: "mx",
+  TRY: "tr",
+  ZAR: "za",
+  PLN: "pl",
+  HUF: "hu",
+  CZK: "cz",
+  ILS: "il",
+  AED: "ae",
+  SAR: "sa",
+  THB: "th",
+  INR: "in",
+  KRW: "kr",
+  BRL: "br",
+};
+
+const METAL_LABEL_MAP: Record<string, string> = {
+  XAU: "Au",
+  XAG: "Ag",
+  XPT: "Pt",
+  XPD: "Pd",
+  XCU: "Cu",
+  XNI: "Ni",
+};
+
+const CRYPTO_LABEL_MAP: Record<string, string> = {
+  BTC: "B",
+  ETH: "E",
+  SOL: "S",
+  XRP: "X",
+  ADA: "A",
+  DOGE: "D",
+  LTC: "L",
+  BCH: "BC",
+  BNB: "BN",
+  TRX: "T",
+  AVAX: "AV",
+  LINK: "LI",
+  DOT: "DO",
+  MATIC: "MA",
+  SUI: "SU",
+  TON: "TO",
 };
 
 function canonicalSymbol(value: string) {
@@ -74,10 +122,27 @@ function formatSymbolDisplay(value: string) {
   return value.toUpperCase();
 }
 
-function getForexCurrencies(symbol: string) {
+function splitPairSymbol(symbol: string) {
+  const raw = String(symbol || "").trim().toUpperCase();
+  if (raw.includes("/")) {
+    const [base, quote] = raw.split("/");
+    if (base && quote) return [base, quote] as const;
+  }
   const normalized = canonicalSymbol(symbol);
-  if (!/^[A-Z]{6}$/.test(normalized)) return null;
-  return [normalized.slice(0, 3), normalized.slice(3)] as const;
+  if (/^[A-Z]{6}$/.test(normalized)) {
+    return [normalized.slice(0, 3), normalized.slice(3)] as const;
+  }
+  return null;
+}
+
+function getForexCurrencies(symbol: string) {
+  const pair = splitPairSymbol(symbol);
+  if (!pair) return null;
+  const [base, quote] = pair;
+  if (FOREX_FLAG_MAP[base] && FOREX_FLAG_MAP[quote]) {
+    return [base, quote] as const;
+  }
+  return null;
 }
 
 function countryFlag(code: string) {
@@ -87,8 +152,10 @@ function countryFlag(code: string) {
 function inferSymbolType(item: SymbolItem) {
   const explicit = (item.type || "").toLowerCase();
   if (explicit) return explicit;
+  const pair = splitPairSymbol(item.symbol);
   if (getForexCurrencies(item.symbol)) return "forex";
-  if (/^X(AU|AG|PT|PD)(USD)?$/i.test(canonicalSymbol(item.symbol))) return "commodity";
+  if (pair && (METAL_LABEL_MAP[pair[0]] || METAL_LABEL_MAP[pair[1]])) return "commodity";
+  if (/^X(AU|AG|PT|PD|CU|NI)(USD)?$/i.test(canonicalSymbol(item.symbol))) return "commodity";
   if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)/i.test(canonicalSymbol(item.symbol))) return "cryptocurrency";
   return "";
 }
@@ -119,6 +186,7 @@ function symbolBadge(item: SymbolItem) {
 
 function renderSymbolLogo(item: SymbolItem) {
   const type = inferSymbolType(item);
+  const pair = splitPairSymbol(item.symbol);
   const forexCurrencies = getForexCurrencies(item.symbol);
 
   if (forexCurrencies) {
@@ -134,6 +202,16 @@ function renderSymbolLogo(item: SymbolItem) {
         <span className={`${styles.symbolCoin} ${styles.symbolCoinOffset}`}>
           {quoteFlag ? <span className={`fi fi-${quoteFlag} ${styles.flagGlyph}`} /> : <span>{quote}</span>}
         </span>
+      </span>
+    );
+  }
+
+  if (pair) {
+    const [base, quote] = pair;
+    return (
+      <span className={styles.symbolPairLogo} aria-hidden="true">
+        <span className={`${styles.symbolCoin} ${assetCoinClass(base)}`}>{renderAssetGlyph(base)}</span>
+        <span className={`${styles.symbolCoin} ${styles.symbolCoinOffset} ${assetCoinClass(quote)}`}>{renderAssetGlyph(quote)}</span>
       </span>
     );
   }
@@ -163,6 +241,30 @@ function renderSymbolLogo(item: SymbolItem) {
   }
 
   return <span className={styles.symbolLogo}>{symbolBadge(item)}</span>;
+}
+
+function assetCoinClass(code: string) {
+  if (countryFlag(code)) return styles.symbolCoinFlag;
+  if (METAL_LABEL_MAP[code]) return styles.symbolCoinCommodity;
+  if (CRYPTO_LABEL_MAP[code]) return styles.symbolCoinCrypto;
+  return styles.symbolCoinGeneric;
+}
+
+function renderAssetGlyph(code: string) {
+  const flag = countryFlag(code);
+  if (flag) {
+    return <span className={`fi fi-${flag} ${styles.flagGlyph}`} />;
+  }
+
+  if (METAL_LABEL_MAP[code]) {
+    return <span className={styles.assetText}>{METAL_LABEL_MAP[code]}</span>;
+  }
+
+  if (CRYPTO_LABEL_MAP[code]) {
+    return <span className={styles.assetText}>{CRYPTO_LABEL_MAP[code]}</span>;
+  }
+
+  return <span className={styles.assetText}>{code.slice(0, 2)}</span>;
 }
 
 function clipRoundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
