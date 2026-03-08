@@ -32,11 +32,39 @@ const SYMBOL_ALIASES: Record<string, string> = {
   GER30: "GDAXI",
   GER40: "GDAXI",
   DAX: "GDAXI",
+  DE40: "GDAXI",
+  FRA40: "FCHI",
+  CAC40: "FCHI",
+  UK100: "FTSE",
+  FTSE100: "FTSE",
+  JP225: "N225",
+  NIKKEI: "N225",
+  NIKKEI225: "N225",
+  HK50: "HSI",
+  HANGSENG: "HSI",
+  AU200: "AXJO",
+  ASX200: "AXJO",
+  ESP35: "IBEX",
+  IBEX35: "IBEX",
+  EU50: "STOXX50E",
+  ESTX50: "STOXX50E",
 };
 
 function normalizeRequestedSymbol(value: string) {
   const trimmed = String(value || "").trim().toUpperCase();
-  return SYMBOL_ALIASES[trimmed] || trimmed;
+  const canonical = trimmed.replace(/[^A-Z0-9]/g, "");
+  if (SYMBOL_ALIASES[trimmed]) return SYMBOL_ALIASES[trimmed];
+  if (SYMBOL_ALIASES[canonical]) return SYMBOL_ALIASES[canonical];
+  if (/^[A-Z]{6}$/.test(canonical)) {
+    return `${canonical.slice(0, 3)}/${canonical.slice(3)}`;
+  }
+  if (/^X(AU|AG|PT|PD)USD$/.test(canonical)) {
+    return `${canonical.slice(0, 3)}/${canonical.slice(3)}`;
+  }
+  if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical)) {
+    return `${canonical.slice(0, canonical.length - 3)}/USD`;
+  }
+  return trimmed;
 }
 
 async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<string[]> {
