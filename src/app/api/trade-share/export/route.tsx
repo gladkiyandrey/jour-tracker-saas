@@ -186,19 +186,6 @@ export async function POST(req: Request) {
               transformOrigin: "top left",
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                right: "-54px",
-                bottom: "-58px",
-                width: "190px",
-                height: "220px",
-                borderRadius: "999px",
-                background: "radial-gradient(circle at 28% 72%, rgba(0,255,163,0.22), rgba(0,255,163,0) 58%), linear-gradient(180deg, rgba(0,255,163,0), rgba(0,255,163,0.12))",
-                filter: "blur(24px)",
-                opacity: 0.82,
-              }}
-            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={watermarkUrl}
@@ -211,19 +198,16 @@ export async function POST(req: Request) {
             <svg width={CARD_WIDTH} height={CARD_HEIGHT} viewBox={`0 0 ${CARD_WIDTH} ${CARD_HEIGHT}`} style={{ position: "absolute", left: 0, top: 0 }}>
               <defs>
                 <linearGradient id="trade-gradient-profit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.28" />
+                  <stop offset="-36.13%" stopColor="#00FFA3" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
                 </linearGradient>
                 <linearGradient id="trade-gradient-loss" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#E84A6A" stopOpacity="0.28" />
+                  <stop offset="-36.13%" stopColor="#E84A6A" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
                 </linearGradient>
-                <filter id="position-glow-blur" x="-20%" y="-25%" width="140%" height="180%">
-                  <feGaussianBlur stdDeviation="3.2" />
-                </filter>
               </defs>
               <path d={chart.fullPath} fill="none" stroke="rgba(129,129,129,0.58)" strokeWidth="1.9" />
-              <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient-profit)"} />
+              <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient-profit)"} style={{ mixBlendMode: "color-dodge" }} />
               <path
                 d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
                 fill="none"
@@ -238,8 +222,7 @@ export async function POST(req: Request) {
                 strokeWidth="1.15"
                 strokeDasharray="5 6"
               />
-              <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="3.8" opacity="0.62" filter="url(#position-glow-blur)" />
-              <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="3.2" />
+              <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="2" />
               <circle cx={chart.entryX} cy={chart.entryMarkerY} r="4.35" fill="#1c1c1c" stroke="#F7D500" strokeWidth="3.2" />
               <circle cx={chart.exitX} cy={chart.exitMarkerY} r="4.35" fill="#1c1c1c" stroke={segmentColor} strokeWidth="3.2" />
             </svg>
@@ -270,7 +253,13 @@ export async function POST(req: Request) {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginLeft: "20px", color: sideColor, fontSize: "14px", fontWeight: 600 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={arrowUrl} alt="" width="13" height="13" style={{ display: "block" }} />
+                <img
+                  src={arrowUrl}
+                  alt=""
+                  width="13"
+                  height="13"
+                  style={{ display: "block", transform: positionSide === "short" ? "rotate(135deg)" : "rotate(45deg)" }}
+                />
                 <span>{positionSide === "short" ? "Short" : "Long"}</span>
               </div>
               <div style={{ marginLeft: "auto", fontSize: "24px", lineHeight: 1, fontWeight: 700, color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3" }}>
