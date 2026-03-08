@@ -69,7 +69,7 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number) {
+function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number, manualStopLoss: number) {
   const w = CARD_WIDTH;
   const h = CARD_HEIGHT;
   const left = 45;
@@ -118,6 +118,7 @@ function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExi
     right,
     entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : preview.points[preview.entryIndex].c),
     exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : preview.points[preview.exitIndex].c),
+    stopMarkerY: toY(Number.isFinite(manualStopLoss) && manualStopLoss > 0 ? manualStopLoss : preview.points[preview.entryIndex].c),
     toY,
   };
 }
@@ -151,7 +152,7 @@ export async function POST(req: Request) {
     const tradeOutcome =
       rrValue !== null && Number.isFinite(rrValue) ? (rrValue > 0 ? "profit" : rrValue < 0 ? "loss" : "breakeven") : "breakeven";
     const pnlPct = rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
-    const chart = buildChart(preview, manualEntryPrice, manualExitPrice);
+    const chart = buildChart(preview, manualEntryPrice, manualExitPrice, manualStopLoss);
 
     const origin = new URL(req.url).origin;
     const noiseUrl = `${origin}/trade-share/figma-82-1109/overlay-noise.jpg`;
@@ -236,6 +237,13 @@ export async function POST(req: Request) {
               stroke={tradeOutcome === "loss" ? "rgba(255,107,122,0.45)" : "rgba(0,255,163,0.45)"}
               strokeWidth="1.2"
               strokeDasharray="5 5"
+            />
+            <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.stopMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.stopMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke="rgba(255,107,122,0.28)"
+              strokeWidth="1"
+              strokeDasharray="4 6"
             />
             <path
               d={chart.segPath}

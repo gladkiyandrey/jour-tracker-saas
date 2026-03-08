@@ -502,8 +502,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       exitX: toX(data.exitIndex),
       entryMarkerY: toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : data.points[data.entryIndex].c),
       exitMarkerY: toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : data.points[data.exitIndex].c),
+      stopMarkerY: toY(Number.isFinite(manualStopLoss) && manualStopLoss > 0 ? manualStopLoss : data.points[data.entryIndex].c),
     };
-  }, [data, manualEntryPrice, manualExitPrice]);
+  }, [data, manualEntryPrice, manualExitPrice, manualStopLoss]);
 
   const pricePlaceholders = useMemo(() => getPricePlaceholders(symbol), [symbol]);
 
@@ -855,6 +856,13 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               stroke={tradeOutcome === "loss" ? "rgba(255, 107, 122, 0.45)" : "rgba(0, 255, 163, 0.45)"}
               strokeWidth="1.2"
               strokeDasharray="5 5"
+            />
+            <path
+              d={`M ${chart.entryX.toFixed(2)} ${chart.stopMarkerY.toFixed(2)} L ${chart.right.toFixed(2)} ${chart.stopMarkerY.toFixed(2)}`}
+              fill="none"
+              stroke="rgba(255, 107, 122, 0.28)"
+              strokeWidth="1"
+              strokeDasharray="4 6"
             />
             <path
               d={chart.segPath}
