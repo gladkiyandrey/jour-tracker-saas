@@ -91,6 +91,11 @@ const METAL_LABEL_MAP: Record<string, string> = {
   XNI: "Ni",
 };
 
+const METAL_ICON_MAP: Record<string, string> = {
+  XAU: "/trade-share/symbol-icons/xau.svg",
+  XAG: "/trade-share/symbol-icons/xag.svg",
+};
+
 const CRYPTO_LABEL_MAP: Record<string, string> = {
   BTC: "B",
   ETH: "E",
@@ -254,6 +259,10 @@ function renderAssetGlyph(code: string) {
   const flag = countryFlag(code);
   if (flag) {
     return <span className={`fi fi-${flag} ${styles.flagGlyph}`} />;
+  }
+
+  if (METAL_ICON_MAP[code]) {
+    return <img className={styles.assetIcon} src={METAL_ICON_MAP[code]} alt="" aria-hidden="true" />;
   }
 
   if (METAL_LABEL_MAP[code]) {
