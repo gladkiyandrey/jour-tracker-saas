@@ -45,6 +45,7 @@ function formatCompactDate(value: string, timeZone: string) {
   return d
     .toLocaleString("en-US", {
       timeZone,
+      weekday: "short",
       day: "2-digit",
       month: "short",
       year: "numeric",

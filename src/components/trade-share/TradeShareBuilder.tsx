@@ -652,6 +652,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     const d = new Date(value);
     return d.toLocaleString("en-US", {
       timeZone,
+      weekday: "short",
       day: "2-digit",
       month: "short",
       year: "numeric",
