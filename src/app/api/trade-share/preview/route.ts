@@ -36,69 +36,75 @@ type SearchItem = {
   type?: string;
 };
 
+type ResolvedSymbol = {
+  symbol: string;
+  exchange?: string;
+};
+
 const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd", "cryptocurrency"];
 const BLOCKED_NAME_WORDS = ["warrant", "option", "future", "futures", "fund", "etf", "etn", "bond", "certificate", "rights", "note", "swap"];
 
-const SYMBOL_ALIASES: Record<string, string> = {
-  GER30: "GDAXI",
-  GER40: "GDAXI",
-  DAX: "GDAXI",
-  DE40: "GDAXI",
-  FRA40: "FCHI",
-  CAC40: "FCHI",
-  UK100: "FTSE",
-  FTSE100: "FTSE",
-  JP225: "N225",
-  NIKKEI: "N225",
-  NIKKEI225: "N225",
-  HK50: "HSI",
-  HANGSENG: "HSI",
-  AU200: "AXJO",
-  ASX200: "AXJO",
-  ESP35: "IBEX",
-  IBEX35: "IBEX",
-  EU50: "STOXX50E",
-  ESTX50: "STOXX50E",
-  US30: "DJI",
-  DJ30: "DJI",
-  WALLSTREET30: "DJI",
-  US100: "NDX",
-  NAS100: "NDX",
-  NASDAQ100: "NDX",
-  US500: "GSPC",
-  SPX500: "GSPC",
-  SP500: "GSPC",
-  SPX: "GSPC",
+const SYMBOL_ALIASES: Record<string, ResolvedSymbol> = {
+  GER30: { symbol: "GDAXI", exchange: "XETR" },
+  GER40: { symbol: "GDAXI", exchange: "XETR" },
+  DAX: { symbol: "GDAXI", exchange: "XETR" },
+  DE40: { symbol: "GDAXI", exchange: "XETR" },
+  FRA40: { symbol: "FCHI", exchange: "Euronext" },
+  CAC40: { symbol: "FCHI", exchange: "Euronext" },
+  UK100: { symbol: "FTSE", exchange: "LSE" },
+  FTSE100: { symbol: "FTSE", exchange: "LSE" },
+  JP225: { symbol: "N225", exchange: "JPX" },
+  NIKKEI: { symbol: "N225", exchange: "JPX" },
+  NIKKEI225: { symbol: "N225", exchange: "JPX" },
+  HK50: { symbol: "HSI", exchange: "HKEX" },
+  HANGSENG: { symbol: "HSI", exchange: "HKEX" },
+  AU200: { symbol: "AXJO", exchange: "ASX" },
+  ASX200: { symbol: "AXJO", exchange: "ASX" },
+  ESP35: { symbol: "IBEX", exchange: "BME" },
+  IBEX35: { symbol: "IBEX", exchange: "BME" },
+  EU50: { symbol: "STOXX50E", exchange: "SIX" },
+  ESTX50: { symbol: "STOXX50E", exchange: "SIX" },
+  US30: { symbol: "DJI" },
+  DJ30: { symbol: "DJI" },
+  WALLSTREET30: { symbol: "DJI" },
+  US100: { symbol: "NDX" },
+  NAS100: { symbol: "NDX" },
+  NASDAQ100: { symbol: "NDX" },
+  US500: { symbol: "GSPC" },
+  SPX500: { symbol: "GSPC" },
+  SP500: { symbol: "GSPC" },
+  SPX: { symbol: "GSPC" },
 };
 
 function canonicalSymbol(value: string) {
   return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
 }
 
-function normalizeRequestedSymbol(value: string) {
+function normalizeRequestedSymbol(value: string): ResolvedSymbol {
   const trimmed = String(value || "").trim().toUpperCase();
   const canonical = canonicalSymbol(trimmed);
   if (SYMBOL_ALIASES[trimmed]) return SYMBOL_ALIASES[trimmed];
   if (SYMBOL_ALIASES[canonical]) return SYMBOL_ALIASES[canonical];
   if (/^[A-Z]{6}$/.test(canonical)) {
-    return `${canonical.slice(0, 3)}/${canonical.slice(3)}`;
+    return { symbol: `${canonical.slice(0, 3)}/${canonical.slice(3)}` };
   }
   if (/^X(AU|AG|PT|PD)USD$/.test(canonical)) {
-    return `${canonical.slice(0, 3)}/${canonical.slice(3)}`;
+    return { symbol: `${canonical.slice(0, 3)}/${canonical.slice(3)}` };
   }
   if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical)) {
-    return `${canonical.slice(0, canonical.length - 3)}/USD`;
+    return { symbol: `${canonical.slice(0, canonical.length - 3)}/USD` };
   }
-  return trimmed;
+  return { symbol: trimmed };
 }
 
 function symbolVariants(value: string) {
   const trimmed = String(value || "").trim().toUpperCase();
   const canonical = canonicalSymbol(trimmed);
+  const normalized = normalizeRequestedSymbol(trimmed);
   const variants = [
     trimmed,
     canonical,
-    normalizeRequestedSymbol(trimmed),
+    normalized.symbol,
     /^[A-Z]{6}$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
     /^X(AU|AG|PT|PD)USD$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
     /^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical) ? `${canonical.slice(0, canonical.length - 3)}/USD` : "",
@@ -151,7 +157,7 @@ function scoreSearchCandidate(query: string, item: SearchItem) {
   return score;
 }
 
-async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<string | null> {
+async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<ResolvedSymbol | null> {
   const variants = symbolVariants(rawQuery);
 
   for (const query of variants) {
@@ -168,9 +174,13 @@ async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<
         .map((item) => ({ item, score: scoreSearchCandidate(query, item) }))
         .filter((row) => row.score >= 0)
         .sort((a, b) => b.score - a.score);
-      const best = ranked[0]?.item?.symbol?.trim();
-      if (best) {
-        return best.toUpperCase();
+      const best = ranked[0]?.item;
+      const bestSymbol = best?.symbol?.trim();
+      if (bestSymbol) {
+        return {
+          symbol: bestSymbol.toUpperCase(),
+          exchange: best?.exchange?.trim() || undefined,
+        };
       }
     } catch {
       // keep trying next variant
@@ -180,9 +190,12 @@ async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<
   return null;
 }
 
-async function fetchTimeSeries(apiKey: string, symbol: string, interval: string, startAtIso: string, endAtIso: string) {
+async function fetchTimeSeries(apiKey: string, resolved: ResolvedSymbol, interval: string, startAtIso: string, endAtIso: string) {
   const url = new URL("https://api.twelvedata.com/time_series");
-  url.searchParams.set("symbol", symbol);
+  url.searchParams.set("symbol", resolved.symbol);
+  if (resolved.exchange) {
+    url.searchParams.set("exchange", resolved.exchange);
+  }
   url.searchParams.set("interval", interval);
   url.searchParams.set("start_date", startAtIso);
   url.searchParams.set("end_date", endAtIso);
@@ -338,11 +351,11 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json()) as PreviewRequest;
-    const symbol = normalizeRequestedSymbol(body.symbol || "");
+    const resolved = normalizeRequestedSymbol(body.symbol || "");
     const interval = String(body.interval || "").trim();
     const timeZone = String(body.timeZone || "UTC").trim();
 
-    if (!symbol) {
+    if (!resolved.symbol) {
       return NextResponse.json({ error: "Symbol is required" }, { status: 400 });
     }
     if (!ALLOWED_INTERVALS.has(interval)) {
@@ -377,7 +390,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "entryAt/exitAt range is invalid" }, { status: 400 });
     }
 
-    let resolvedSymbol = symbol;
+    let resolvedSymbol = resolved;
     let upstream = await fetchTimeSeries(apiKey, resolvedSymbol, interval, startAtIso, endAtIso);
     if (!upstream.ok) {
       return NextResponse.json({ error: `Twelve Data HTTP ${upstream.status}` }, { status: 502 });
@@ -389,7 +402,7 @@ export async function POST(req: Request) {
       const symbolIssue = /symbol|figi|missing|invalid/i.test(message);
       if (symbolIssue) {
         const fallback = await searchCanonicalSymbol(apiKey, String(body.symbol || ""));
-        if (fallback && fallback !== resolvedSymbol) {
+        if (fallback && (fallback.symbol !== resolvedSymbol.symbol || fallback.exchange !== resolvedSymbol.exchange)) {
           resolvedSymbol = fallback;
           upstream = await fetchTimeSeries(apiKey, resolvedSymbol, interval, startAtIso, endAtIso);
           if (!upstream.ok) {
@@ -404,7 +417,7 @@ export async function POST(req: Request) {
       const message = raw.message || "Twelve Data error";
       const symbolIssue = /symbol|figi|missing|invalid/i.test(message);
       if (symbolIssue) {
-        const suggestions = await fetchSymbolSuggestions(apiKey, symbol);
+        const suggestions = await fetchSymbolSuggestions(apiKey, resolved.symbol);
         return NextResponse.json(
           {
             error: message,
@@ -441,7 +454,7 @@ export async function POST(req: Request) {
     const max = Math.max(...points.map((p) => p.c));
 
     const payload = {
-      symbol: resolvedSymbol,
+      symbol: resolvedSymbol.symbol,
       interval,
       points,
       min,
