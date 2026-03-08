@@ -465,11 +465,9 @@
 }
 
 .infoRow {
-  display: grid;
-  grid-template-columns: max-content max-content;
-  column-gap: 70px;
+  display: flex;
+  justify-content: flex-start;
   align-items: center;
-  justify-content: start;
 }
 
 .infoRow span,
@@ -483,9 +481,23 @@
   white-space: nowrap;
 }
 
+.infoRow span {
+  width: 96px;
+  flex: 0 0 auto;
+}
+
+.infoRow::before {
+  content: "";
+  width: 70px;
+  flex: 0 0 auto;
+  order: 2;
+}
+
 .infoRow strong {
+  order: 3;
   text-align: left;
   font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 960px) {
