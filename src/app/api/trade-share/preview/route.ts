@@ -28,6 +28,17 @@ type Point = {
   c: number;
 };
 
+type SearchItem = {
+  symbol?: string;
+  instrument_name?: string;
+  exchange?: string;
+  currency?: string;
+  type?: string;
+};
+
+const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd", "cryptocurrency"];
+const BLOCKED_NAME_WORDS = ["warrant", "option", "future", "futures", "fund", "etf", "etn", "bond", "certificate", "rights", "note", "swap"];
+
 const SYMBOL_ALIASES: Record<string, string> = {
   GER30: "GDAXI",
   GER40: "GDAXI",
@@ -48,11 +59,25 @@ const SYMBOL_ALIASES: Record<string, string> = {
   IBEX35: "IBEX",
   EU50: "STOXX50E",
   ESTX50: "STOXX50E",
+  US30: "DJI",
+  DJ30: "DJI",
+  WALLSTREET30: "DJI",
+  US100: "NDX",
+  NAS100: "NDX",
+  NASDAQ100: "NDX",
+  US500: "GSPC",
+  SPX500: "GSPC",
+  SP500: "GSPC",
+  SPX: "GSPC",
 };
+
+function canonicalSymbol(value: string) {
+  return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+}
 
 function normalizeRequestedSymbol(value: string) {
   const trimmed = String(value || "").trim().toUpperCase();
-  const canonical = trimmed.replace(/[^A-Z0-9]/g, "");
+  const canonical = canonicalSymbol(trimmed);
   if (SYMBOL_ALIASES[trimmed]) return SYMBOL_ALIASES[trimmed];
   if (SYMBOL_ALIASES[canonical]) return SYMBOL_ALIASES[canonical];
   if (/^[A-Z]{6}$/.test(canonical)) {
@@ -67,27 +92,146 @@ function normalizeRequestedSymbol(value: string) {
   return trimmed;
 }
 
+function symbolVariants(value: string) {
+  const trimmed = String(value || "").trim().toUpperCase();
+  const canonical = canonicalSymbol(trimmed);
+  const variants = [
+    trimmed,
+    canonical,
+    normalizeRequestedSymbol(trimmed),
+    /^[A-Z]{6}$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
+    /^X(AU|AG|PT|PD)USD$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
+    /^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical) ? `${canonical.slice(0, canonical.length - 3)}/USD` : "",
+  ].filter(Boolean);
+
+  return [...new Set(variants)];
+}
+
+function isLikelyTradableSpotSymbol(symbol: string) {
+  const s = symbol.toUpperCase();
+  if (/^[A-Z]{3}\/[A-Z]{3}$/.test(s)) return true;
+  if (/^[A-Z]{6}$/.test(s)) return true;
+  if (/^[A-Z]{2,6}\d{1,4}$/.test(s)) return true;
+  if (/^X(AU|AG|PT|PD)\/USD$/.test(s)) return true;
+  if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)\/USD$/.test(s)) return true;
+  return false;
+}
+
+function matchesAllowedType(type: string) {
+  const t = (type || "").toLowerCase();
+  if (!t) return false;
+  return ALLOWED_TYPE_WORDS.some((w) => t.includes(w));
+}
+
+function containsBlockedName(name: string) {
+  const n = (name || "").toLowerCase();
+  if (!n) return false;
+  return BLOCKED_NAME_WORDS.some((w) => n.includes(w));
+}
+
+function scoreSearchCandidate(query: string, item: SearchItem) {
+  const q = canonicalSymbol(query);
+  const symbol = String(item.symbol || "").trim().toUpperCase();
+  const canonical = canonicalSymbol(symbol);
+  const type = String(item.type || "").toLowerCase();
+  const name = String(item.instrument_name || "").toLowerCase();
+
+  let score = 0;
+  if (!symbol) return -1;
+  if (containsBlockedName(name)) return -1;
+  if (matchesAllowedType(type)) score += 30;
+  if (isLikelyTradableSpotSymbol(symbol)) score += 20;
+  if (canonical === q) score += 100;
+  else if (symbol === query.toUpperCase()) score += 90;
+  else if (canonical.startsWith(q)) score += 50;
+  else if (canonical.includes(q)) score += 30;
+  if (name.includes("index")) score += 10;
+  if (name.includes("spot")) score += 10;
+  if (type.includes("forex") || type.includes("index") || type.includes("commodity") || type.includes("cryptocurrency")) score += 15;
+  return score;
+}
+
+async function searchCanonicalSymbol(apiKey: string, rawQuery: string): Promise<string | null> {
+  const variants = symbolVariants(rawQuery);
+
+  for (const query of variants) {
+    try {
+      const url = new URL("https://api.twelvedata.com/symbol_search");
+      url.searchParams.set("symbol", query);
+      url.searchParams.set("apikey", apiKey);
+      url.searchParams.set("outputsize", "30");
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      if (!res.ok) continue;
+      const raw = (await res.json()) as { data?: SearchItem[]; status?: string };
+      const rows = Array.isArray(raw.data) ? raw.data : [];
+      const ranked = rows
+        .map((item) => ({ item, score: scoreSearchCandidate(query, item) }))
+        .filter((row) => row.score >= 0)
+        .sort((a, b) => b.score - a.score);
+      const best = ranked[0]?.item?.symbol?.trim();
+      if (best) {
+        return best.toUpperCase();
+      }
+    } catch {
+      // keep trying next variant
+    }
+  }
+
+  return null;
+}
+
+async function fetchTimeSeries(apiKey: string, symbol: string, interval: string, startAtIso: string, endAtIso: string) {
+  const url = new URL("https://api.twelvedata.com/time_series");
+  url.searchParams.set("symbol", symbol);
+  url.searchParams.set("interval", interval);
+  url.searchParams.set("start_date", startAtIso);
+  url.searchParams.set("end_date", endAtIso);
+  url.searchParams.set("order", "ASC");
+  url.searchParams.set("timezone", "UTC");
+  url.searchParams.set("format", "JSON");
+  url.searchParams.set("apikey", apiKey);
+
+  const upstream = await fetch(url.toString(), { cache: "no-store" });
+  if (!upstream.ok) {
+    return { ok: false as const, status: upstream.status, raw: null as null };
+  }
+
+  const raw = (await upstream.json()) as {
+    status?: string;
+    message?: string;
+    values?: Array<{ datetime: string; close: string }>;
+    code?: number;
+  };
+
+  return { ok: true as const, status: upstream.status, raw };
+}
+
 async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<string[]> {
   const q = query.trim();
   if (!q) return [];
 
   try {
-    const url = new URL("https://api.twelvedata.com/symbol_search");
-    url.searchParams.set("symbol", q);
-    url.searchParams.set("apikey", apiKey);
-    url.searchParams.set("outputsize", "8");
+    const variants = symbolVariants(q);
+    const picks: string[] = [];
+    for (const variant of variants) {
+      const url = new URL("https://api.twelvedata.com/symbol_search");
+      url.searchParams.set("symbol", variant);
+      url.searchParams.set("apikey", apiKey);
+      url.searchParams.set("outputsize", "8");
 
-    const res = await fetch(url.toString(), { cache: "no-store" });
-    if (!res.ok) return [];
-    const raw = (await res.json()) as {
-      data?: Array<{ symbol?: string; instrument_name?: string; exchange?: string }>;
-    };
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      if (!res.ok) continue;
+      const raw = (await res.json()) as { data?: SearchItem[] };
+      const ranked = (raw.data || [])
+        .map((item) => ({ item, score: scoreSearchCandidate(variant, item) }))
+        .filter((row) => row.score >= 0)
+        .sort((a, b) => b.score - a.score)
+        .map((row) => row.item.symbol)
+        .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+      picks.push(...ranked);
+    }
 
-    const picks = (raw.data || [])
-      .map((item) => item.symbol)
-      .filter((s): s is string => typeof s === "string" && s.trim().length > 0);
-
-    return [...new Set(picks)].slice(0, 5);
+    return [...new Set(picks.map((x) => x.toUpperCase()))].slice(0, 5);
   } catch {
     return [];
   }
@@ -233,27 +377,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "entryAt/exitAt range is invalid" }, { status: 400 });
     }
 
-    const url = new URL("https://api.twelvedata.com/time_series");
-    url.searchParams.set("symbol", symbol);
-    url.searchParams.set("interval", interval);
-    url.searchParams.set("start_date", startAtIso);
-    url.searchParams.set("end_date", endAtIso);
-    url.searchParams.set("order", "ASC");
-    url.searchParams.set("timezone", "UTC");
-    url.searchParams.set("format", "JSON");
-    url.searchParams.set("apikey", apiKey);
-
-    const upstream = await fetch(url.toString(), { cache: "no-store" });
+    let resolvedSymbol = symbol;
+    let upstream = await fetchTimeSeries(apiKey, resolvedSymbol, interval, startAtIso, endAtIso);
     if (!upstream.ok) {
       return NextResponse.json({ error: `Twelve Data HTTP ${upstream.status}` }, { status: 502 });
     }
+    let raw = upstream.raw;
 
-    const raw = (await upstream.json()) as {
-      status?: string;
-      message?: string;
-      values?: Array<{ datetime: string; close: string }>;
-      code?: number;
-    };
+    if (raw.status === "error") {
+      const message = raw.message || "Twelve Data error";
+      const symbolIssue = /symbol|figi|missing|invalid/i.test(message);
+      if (symbolIssue) {
+        const fallback = await searchCanonicalSymbol(apiKey, String(body.symbol || ""));
+        if (fallback && fallback !== resolvedSymbol) {
+          resolvedSymbol = fallback;
+          upstream = await fetchTimeSeries(apiKey, resolvedSymbol, interval, startAtIso, endAtIso);
+          if (!upstream.ok) {
+            return NextResponse.json({ error: `Twelve Data HTTP ${upstream.status}` }, { status: 502 });
+          }
+          raw = upstream.raw;
+        }
+      }
+    }
 
     if (raw.status === "error") {
       const message = raw.message || "Twelve Data error";
@@ -296,7 +441,7 @@ export async function POST(req: Request) {
     const max = Math.max(...points.map((p) => p.c));
 
     const payload = {
-      symbol,
+      symbol: resolvedSymbol,
       interval,
       points,
       min,
