@@ -58,6 +58,8 @@ export async function GET(req: Request) {
       currency: item.currency || "",
       type: item.type.toLowerCase(),
     }));
+    const canonicalQuery = canonicalSymbol(q);
+    const strongCuratedMatch = curatedItems.some((item) => canonicalSymbol(item.symbol) === canonicalQuery);
 
     const upstreamItems: Array<{
       symbol: string;
@@ -67,7 +69,7 @@ export async function GET(req: Request) {
       type: string;
     }> = [];
 
-    for (const variant of symbolVariants(q)) {
+    for (const variant of strongCuratedMatch ? [] : symbolVariants(q)) {
       const upstream = new URL("https://api.twelvedata.com/symbol_search");
       upstream.searchParams.set("symbol", variant);
       upstream.searchParams.set("outputsize", "60");
@@ -120,6 +122,14 @@ export async function GET(req: Request) {
     const normalizedQ = q.toUpperCase();
     const items = [...curatedItems, ...upstreamItems]
       .filter((x) => x.symbol)
+      .filter((x) => {
+        const symbol = canonicalSymbol(x.symbol);
+        const name = (x.name || "").toLowerCase();
+        if (strongCuratedMatch) {
+          return symbol.includes(canonicalQuery) || name.includes(q.toLowerCase());
+        }
+        return true;
+      })
       .sort((a, b) => {
         const as = (a.symbol || "").toUpperCase();
         const bs = (b.symbol || "").toUpperCase();

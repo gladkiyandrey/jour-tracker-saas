@@ -292,8 +292,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         if (!res.ok || !Array.isArray(json.items)) {
           return;
         }
-        const base = { symbol: formatSymbolDisplay(q) };
-        const merged = [base, ...json.items, ...POPULAR_SYMBOLS];
+        const merged = [...json.items, ...POPULAR_SYMBOLS];
         const seen = new Set<string>();
         const dedup = merged.filter((x) => {
           const key = x.symbol ? canonicalSymbol(x.symbol) : "";
