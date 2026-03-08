@@ -654,7 +654,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       </div>
 
       {data && chart ? (
-        <div className={styles.figmaCard} ref={cardRef}>
+        <div className={styles.cardViewport}>
+          <div className={styles.cardScale}>
+            <div className={styles.figmaCard} ref={cardRef}>
           <img className={styles.overlayNoise} src="/trade-share/figma-82-1109/overlay-noise.jpg" alt="" aria-hidden="true" />
           <div className={styles.innerGlow} />
 
@@ -747,6 +749,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <div className={styles.infoRow}>
               <span>RR</span>
               <strong>{rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"}</strong>
+            </div>
+          </div>
             </div>
           </div>
         </div>

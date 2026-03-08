@@ -292,6 +292,20 @@
   border-color: rgba(150, 173, 255, 0.8);
 }
 
+.cardViewport {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: visible;
+}
+
+.cardScale {
+  width: 450px;
+  height: 600px;
+  flex: 0 0 auto;
+}
+
 .figmaCard {
   position: relative;
   width: 450px;
@@ -523,15 +537,10 @@
     grid-template-columns: 1fr;
   }
 
-  .figmaCard {
-    width: 100%;
-    max-width: 450px;
-    height: auto;
-    aspect-ratio: 3 / 4;
-    border-radius: 25px !important;
-  }
-
-  .infoGrid {
-    width: calc(100% - 70px);
+  .cardViewport {
+    justify-content: flex-start;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
   }
 }
