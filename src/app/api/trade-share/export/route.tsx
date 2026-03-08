@@ -328,7 +328,7 @@ export async function POST(req: Request) {
                 width: "234px",
                 display: "flex",
                 flexDirection: "column",
-                gap: "8px",
+                gap: "10px",
                 color: "#d8d8d8",
               }}
             >
