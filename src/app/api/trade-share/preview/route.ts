@@ -28,6 +28,17 @@ type Point = {
   c: number;
 };
 
+const SYMBOL_ALIASES: Record<string, string> = {
+  GER30: "GDAXI",
+  GER40: "GDAXI",
+  DAX: "GDAXI",
+};
+
+function normalizeRequestedSymbol(value: string) {
+  const trimmed = String(value || "").trim().toUpperCase();
+  return SYMBOL_ALIASES[trimmed] || trimmed;
+}
+
 async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<string[]> {
   const q = query.trim();
   if (!q) return [];
@@ -155,7 +166,7 @@ export async function POST(req: Request) {
     }
 
     const body = (await req.json()) as PreviewRequest;
-    const symbol = String(body.symbol || "").trim().toUpperCase();
+    const symbol = normalizeRequestedSymbol(body.symbol || "");
     const interval = String(body.interval || "").trim();
     const timeZone = String(body.timeZone || "UTC").trim();
 
