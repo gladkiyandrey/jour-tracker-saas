@@ -69,7 +69,7 @@ function formatPct(value: number | null) {
   return `${sign}${value.toFixed(2)}%`;
 }
 
-function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExitPrice: number) {
+function buildChart(preview: PreviewPayload) {
   const w = CARD_WIDTH;
   const h = CARD_HEIGHT;
   const left = 45;
@@ -96,15 +96,7 @@ function buildChart(preview: PreviewPayload, manualEntryPrice: number, manualExi
   const segPath = seg
     .map((p, i) => {
       const idx = preview.tradeStart + i;
-      const isFirst = idx === preview.entryIndex;
-      const isLast = idx === preview.exitIndex;
-      const chartPrice =
-        isFirst && Number.isFinite(manualEntryPrice) && manualEntryPrice > 0
-          ? manualEntryPrice
-          : isLast && Number.isFinite(manualExitPrice) && manualExitPrice > 0
-            ? manualExitPrice
-            : p.c;
-      return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(chartPrice).toFixed(2)}`;
+      return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
     })
     .join(" ");
 
@@ -156,7 +148,7 @@ export async function POST(req: Request) {
     const tradeOutcome =
       rrValue !== null && Number.isFinite(rrValue) ? (rrValue > 0 ? "profit" : rrValue < 0 ? "loss" : "breakeven") : "breakeven";
     const pnlPct = rrValue !== null && Number.isFinite(rrValue) ? riskValue * rrValue : null;
-    const chart = buildChart(preview, manualEntryPrice, manualExitPrice);
+    const chart = buildChart(preview);
 
     const origin = new URL(req.url).origin;
     const noiseUrl = `${origin}/trade-share/figma-82-1109/overlay-noise.jpg`;
@@ -237,10 +229,10 @@ export async function POST(req: Request) {
               filter="url(#position-glow-blur)"
             />
             <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
-            <circle cx={chart.entryX} cy={chart.toY(manualEntryPrice || preview.points[preview.entryIndex].c)} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
+            <circle cx={chart.entryX} cy={chart.toY(preview.points[preview.entryIndex].c)} r="6.5" fill="#0f1424" stroke="#ffd24a" strokeWidth="4" />
             <circle
               cx={chart.exitX}
-              cy={chart.toY(manualExitPrice || preview.points[preview.exitIndex].c)}
+              cy={chart.toY(preview.points[preview.exitIndex].c)}
               r="6.5"
               fill="#0f1424"
               stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}

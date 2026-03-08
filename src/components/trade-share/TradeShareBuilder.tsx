@@ -474,15 +474,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
     const segPath = seg
       .map((p, i) => {
         const idx = data.tradeStart + i;
-        const isFirst = idx === data.entryIndex;
-        const isLast = idx === data.exitIndex;
-        const chartPrice =
-          isFirst && Number.isFinite(manualEntryPrice) && manualEntryPrice > 0
-            ? manualEntryPrice
-            : isLast && Number.isFinite(manualExitPrice) && manualExitPrice > 0
-              ? manualExitPrice
-              : p.c;
-        return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(chartPrice).toFixed(2)}`;
+        return `${i === 0 ? "M" : "L"}${toX(idx).toFixed(2)} ${toY(p.c).toFixed(2)}`;
       })
       .join(" ");
 
@@ -508,7 +500,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       entryX: toX(data.entryIndex),
       exitX: toX(data.exitIndex),
     };
-  }, [data, manualEntryPrice, manualExitPrice]);
+  }, [data]);
 
   const pricePlaceholders = useMemo(() => getPricePlaceholders(symbol), [symbol]);
 
@@ -860,7 +852,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             <path d={chart.segPath} fill="none" stroke={tradeOutcome === "loss" ? "#FF6B7A" : "#00FFA3"} strokeWidth="3.4" />
             <circle
               cx={chart.entryX}
-              cy={chart.toY(Number.isFinite(manualEntryPrice) && manualEntryPrice > 0 ? manualEntryPrice : data.points[data.entryIndex].c)}
+              cy={chart.toY(data.points[data.entryIndex].c)}
               r="6.5"
               fill="#0f1424"
               stroke="#ffd24a"
@@ -868,7 +860,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             />
             <circle
               cx={chart.exitX}
-              cy={chart.toY(Number.isFinite(manualExitPrice) && manualExitPrice > 0 ? manualExitPrice : data.points[data.exitIndex].c)}
+              cy={chart.toY(data.points[data.exitIndex].c)}
               r="6.5"
               fill="#0f1424"
               stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
