@@ -17,20 +17,42 @@ export function isValidTimeZone(value: string) {
   }
 }
 
+function normalizeUserSettings(data?: { timezone?: unknown; start_deposit?: unknown } | null): UserSettingsRecord {
+  const timezone = typeof data?.timezone === "string" && isValidTimeZone(data.timezone) ? data.timezone : DEFAULT_USER_TIMEZONE;
+  const startDeposit = Number(data?.start_deposit);
+
+  return {
+    timezone,
+    startDeposit: Number.isFinite(startDeposit) && startDeposit > 0 ? startDeposit : DEFAULT_START_DEPOSIT,
+  };
+}
+
 export async function getUserSettings(userId: string): Promise<UserSettingsRecord> {
   const supabase = getSupabaseAdmin();
-  const { data, error } = await supabase.from("user_settings").select("timezone,start_deposit").eq("user_id", userId).maybeSingle();
+  const load = async () => supabase.from("user_settings").select("timezone,start_deposit").eq("user_id", userId).maybeSingle();
+
+  let { data, error } = await load();
+  if (error) {
+    const retry = await load();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error) {
     throw new Error(`Failed to load user settings: ${error.message}`);
   }
 
-  const timezone = typeof data?.timezone === "string" && isValidTimeZone(data.timezone) ? data.timezone : DEFAULT_USER_TIMEZONE;
-  const startDeposit = Number(data?.start_deposit);
-  return {
-    timezone,
-    startDeposit: Number.isFinite(startDeposit) && startDeposit > 0 ? startDeposit : DEFAULT_START_DEPOSIT,
-  };
+  const normalized = normalizeUserSettings(data);
+
+  if (!data) {
+    return upsertUserSettings(userId, normalized);
+  }
+
+  if (data.timezone !== normalized.timezone || Number(data.start_deposit) !== normalized.startDeposit) {
+    return upsertUserSettings(userId, normalized);
+  }
+
+  return normalized;
 }
 
 export async function upsertUserSettings(userId: string, settings: Partial<UserSettingsRecord>) {
