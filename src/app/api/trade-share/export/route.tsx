@@ -344,18 +344,18 @@ export async function POST(req: Request) {
                 <div
                   key={label}
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "max-content max-content",
-                    columnGap: "70px",
-                    justifyContent: "start",
+                    display: "flex",
+                    justifyContent: "flex-start",
+                    alignItems: "center",
                     width: "234px",
                     fontSize: "14px",
                     lineHeight: 1.1,
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <div>{label}</div>
-                  <div>{value}</div>
+                  <div style={{ width: "96px", flex: "0 0 auto" }}>{label}</div>
+                  <div style={{ width: "70px", flex: "0 0 auto" }} />
+                  <div style={{ flex: "0 0 auto" }}>{value}</div>
                 </div>
               ))}
             </div>
