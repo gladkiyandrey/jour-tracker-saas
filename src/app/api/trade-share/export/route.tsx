@@ -4,6 +4,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const CARD_WIDTH = 450;
+const CARD_HEIGHT = 600;
+const EXPORT_SCALE = 2;
+
 type Point = { t: string; ts: number; c: number };
 
 type PreviewPayload = {
@@ -65,8 +69,8 @@ function formatPct(value: number | null) {
 }
 
 function buildChart(preview: PreviewPayload) {
-  const w = 450;
-  const h = 600;
+  const w = CARD_WIDTH;
+  const h = CARD_HEIGHT;
   const left = 45;
   const right = 405;
   const top = 84;
@@ -154,40 +158,52 @@ export async function POST(req: Request) {
       (
         <div
           style={{
-            width: "450px",
-            height: "600px",
+            width: `${CARD_WIDTH * EXPORT_SCALE}px`,
+            height: `${CARD_HEIGHT * EXPORT_SCALE}px`,
             display: "flex",
             position: "relative",
             overflow: "hidden",
-            borderRadius: "25px",
-            background: "#131722",
-            color: "#fff",
-            fontFamily: "Inter, Arial, sans-serif",
-            boxShadow: "inset 5px 5px 21.9px rgba(255,255,255,0.1)",
+            background: "transparent",
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={noiseUrl} alt="" width="526" height="1051" style={{ position: "absolute", left: "-8px", top: "-9px", opacity: 1 }} />
           <div
             style={{
-              position: "absolute",
-              inset: 0,
+              width: `${CARD_WIDTH}px`,
+              height: `${CARD_HEIGHT}px`,
+              display: "flex",
+              position: "relative",
+              overflow: "hidden",
               borderRadius: "25px",
+              background: "#131722",
+              color: "#fff",
+              fontFamily: "Inter, Arial, sans-serif",
               boxShadow: "inset 5px 5px 21.9px rgba(255,255,255,0.1)",
+              transform: `scale(${EXPORT_SCALE})`,
+              transformOrigin: "top left",
             }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={logoUrl}
-            alt=""
-            width="400"
-            height="110"
-            style={{ position: "absolute", left: "25px", top: "245px", opacity: 0.15 }}
-          />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={cornerGlowUrl} alt="" width="74" height="74" style={{ position: "absolute", left: "386px", top: "526px", opacity: 0.9 }} />
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={noiseUrl} alt="" width="526" height="1051" style={{ position: "absolute", left: "-8px", top: "-9px", opacity: 1 }} />
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "25px",
+                boxShadow: "inset 5px 5px 21.9px rgba(255,255,255,0.1)",
+              }}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={logoUrl}
+              alt=""
+              width="400"
+              height="110"
+              style={{ position: "absolute", left: "25px", top: "245px", opacity: 0.15 }}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={cornerGlowUrl} alt="" width="74" height="74" style={{ position: "absolute", left: "386px", top: "526px", opacity: 0.9 }} />
 
-          <svg width="450" height="600" viewBox="0 0 450 600" style={{ position: "absolute", left: 0, top: 0 }}>
+            <svg width="450" height="600" viewBox="0 0 450 600" style={{ position: "absolute", left: 0, top: 0 }}>
             <defs>
               <linearGradient id="trade-gradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.4" />
@@ -221,95 +237,116 @@ export async function POST(req: Request) {
               stroke={tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3"}
               strokeWidth="4"
             />
-          </svg>
+            </svg>
 
-          <div style={{ position: "absolute", left: "34px", top: "40px", right: "34px", display: "flex", alignItems: "center", gap: "10px" }}>
             <div
               style={{
-                fontSize: "22px",
-                lineHeight: 1.1,
-                fontWeight: 500,
-                maxWidth: "170px",
-                overflow: "hidden",
-                whiteSpace: "nowrap",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {preview.symbol}
-            </div>
-            <div
-              style={{
+                position: "absolute",
+                left: "34px",
+                top: "40px",
+                right: "34px",
                 display: "flex",
                 alignItems: "center",
-                gap: "5px",
-                marginLeft: "14px",
-                fontSize: "14px",
-                fontWeight: 600,
-                color: positionSide === "short" ? "#ffb36f" : "#6fd7ff",
+                gap: "10px",
               }}
             >
-              <span>{positionSide === "short" ? "↘" : "↗"}</span>
-              <span>{positionSide === "short" ? "Short" : "Long"}</span>
-            </div>
-            <div
-              style={{
-                marginLeft: "auto",
-                minWidth: "78px",
-                maxWidth: "92px",
-                height: "30px",
-                padding: "0 10px",
-                borderRadius: "999px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "13px",
-                fontWeight: 700,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                color: tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3",
-                background: tradeOutcome === "loss" ? "rgba(255,107,122,0.12)" : "rgba(0,255,163,0.1)",
-                border: `1px solid ${tradeOutcome === "loss" ? "rgba(255,107,122,0.26)" : "rgba(0,255,163,0.24)"}`,
-              }}
-            >
-              {formatPct(pnlPct)}
-            </div>
-          </div>
-
-          <div style={{ position: "absolute", left: "35px", top: "333px", width: "326px", display: "flex", flexDirection: "column", gap: "8px" }}>
-            {[
-              ["Entry price", formatPrice(preview.entryPriceInput)],
-              ["Exit price", formatPrice(preview.exitPriceInput)],
-              ["Stop loss", formatPrice(body.stopLoss)],
-              ["Open Date", formatCompactDate(preview.entryTime, timeZone)],
-              ["Close Date", formatCompactDate(preview.exitTime, timeZone)],
-              ["Duration", formatDuration(preview.entryTime, preview.exitTime)],
-              ["Risk", `${body.riskPercent || "0.00"}%`],
-              ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
-            ].map(([label, value]) => (
-              <div key={label} style={{ display: "grid", gridTemplateColumns: "143px 183px", alignItems: "center" }}>
-                <span style={{ fontSize: "16px", lineHeight: 1.18, color: "#fff" }}>{label}</span>
-                <strong
-                  style={{
-                    fontSize: "16px",
-                    lineHeight: 1.18,
-                    color: "#fff",
-                    fontWeight: 400,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {value}
-                </strong>
+              <div
+                style={{
+                  fontSize: "22px",
+                  lineHeight: 1.1,
+                  fontWeight: 500,
+                  maxWidth: "170px",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {preview.symbol}
               </div>
-            ))}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  marginLeft: "14px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: positionSide === "short" ? "#ffb36f" : "#6fd7ff",
+                }}
+              >
+                <span>{positionSide === "short" ? "↘" : "↗"}</span>
+                <span>{positionSide === "short" ? "Short" : "Long"}</span>
+              </div>
+              <div
+                style={{
+                  marginLeft: "auto",
+                  minWidth: "78px",
+                  maxWidth: "92px",
+                  height: "30px",
+                  padding: "0 10px",
+                  borderRadius: "999px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "13px",
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  color: tradeOutcome === "loss" ? "#ff6b7a" : "#00ffa3",
+                  background: tradeOutcome === "loss" ? "rgba(255,107,122,0.12)" : "rgba(0,255,163,0.1)",
+                  border: `1px solid ${tradeOutcome === "loss" ? "rgba(255,107,122,0.26)" : "rgba(0,255,163,0.24)"}`,
+                }}
+              >
+                {formatPct(pnlPct)}
+              </div>
+            </div>
+
+            <div
+              style={{
+                position: "absolute",
+                left: "35px",
+                top: "333px",
+                width: "326px",
+                display: "flex",
+                flexDirection: "column",
+                gap: "8px",
+              }}
+            >
+              {[
+                ["Entry price", formatPrice(preview.entryPriceInput)],
+                ["Exit price", formatPrice(preview.exitPriceInput)],
+                ["Stop loss", formatPrice(body.stopLoss)],
+                ["Open Date", formatCompactDate(preview.entryTime, timeZone)],
+                ["Close Date", formatCompactDate(preview.exitTime, timeZone)],
+                ["Duration", formatDuration(preview.entryTime, preview.exitTime)],
+                ["Risk", `${body.riskPercent || "0.00"}%`],
+                ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
+              ].map(([label, value]) => (
+                <div key={label} style={{ display: "grid", gridTemplateColumns: "143px 183px", alignItems: "center" }}>
+                  <span style={{ fontSize: "16px", lineHeight: 1.18, color: "#fff" }}>{label}</span>
+                  <strong
+                    style={{
+                      fontSize: "16px",
+                      lineHeight: 1.18,
+                      color: "#fff",
+                      fontWeight: 400,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {value}
+                  </strong>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ),
       {
-        width: 450,
-        height: 600,
+        width: CARD_WIDTH * EXPORT_SCALE,
+        height: CARD_HEIGHT * EXPORT_SCALE,
       }
     );
   } catch (error) {
