@@ -80,7 +80,30 @@ function getForexCurrencies(symbol: string) {
 }
 
 function countryFlag(code: string) {
-  return FOREX_FLAG_MAP[code] ? `https://flagcdn.com/w40/${FOREX_FLAG_MAP[code]}.png` : null;
+  return FOREX_FLAG_MAP[code] || null;
+}
+
+function inferSymbolType(item: SymbolItem) {
+  const explicit = (item.type || "").toLowerCase();
+  if (explicit) return explicit;
+  if (getForexCurrencies(item.symbol)) return "forex";
+  if (/^X(AU|AG|PT|PD)(USD)?$/i.test(canonicalSymbol(item.symbol))) return "commodity";
+  if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)/i.test(canonicalSymbol(item.symbol))) return "cryptocurrency";
+  return "";
+}
+
+function getIndexFlagCode(symbol: string) {
+  const normalized = canonicalSymbol(symbol);
+  if (/^(US|SPX|NAS|DJI|DJT|NDX|US30|US100|US500)/.test(normalized)) return "us";
+  if (/^(GER|DE|DAX|EU)/.test(normalized)) return "de";
+  if (/^(UK|FTSE)/.test(normalized)) return "gb";
+  if (/^(JP|JPN|NIK|NKY)/.test(normalized)) return "jp";
+  if (/^(HK|HSI)/.test(normalized)) return "hk";
+  if (/^(FRA|CAC)/.test(normalized)) return "fr";
+  if (/^(ESP|IBEX)/.test(normalized)) return "es";
+  if (/^(AUS|ASX)/.test(normalized)) return "au";
+  if (/^(CHN|CSI|SSE)/.test(normalized)) return "cn";
+  return null;
 }
 
 function symbolBadge(item: SymbolItem) {
@@ -94,8 +117,8 @@ function symbolBadge(item: SymbolItem) {
 }
 
 function renderSymbolLogo(item: SymbolItem) {
-  const type = (item.type || "").toLowerCase();
-  const forexCurrencies = type.includes("forex") ? getForexCurrencies(item.symbol) : null;
+  const type = inferSymbolType(item);
+  const forexCurrencies = getForexCurrencies(item.symbol);
 
   if (forexCurrencies) {
     const [base, quote] = forexCurrencies;
@@ -105,13 +128,37 @@ function renderSymbolLogo(item: SymbolItem) {
     return (
       <span className={styles.symbolPairLogo} aria-hidden="true">
         <span className={styles.symbolCoin}>
-          {baseFlag ? <img src={baseFlag} alt="" /> : <span>{base}</span>}
+          {baseFlag ? <span className={`fi fi-${baseFlag} ${styles.flagGlyph}`} /> : <span>{base}</span>}
         </span>
         <span className={`${styles.symbolCoin} ${styles.symbolCoinOffset}`}>
-          {quoteFlag ? <img src={quoteFlag} alt="" /> : <span>{quote}</span>}
+          {quoteFlag ? <span className={`fi fi-${quoteFlag} ${styles.flagGlyph}`} /> : <span>{quote}</span>}
         </span>
       </span>
     );
+  }
+
+  if (type.includes("index")) {
+    const flagCode = getIndexFlagCode(item.symbol);
+    if (flagCode) {
+      return (
+        <span className={styles.symbolLogo} aria-hidden="true">
+          <span className={`fi fi-${flagCode} ${styles.flagGlyph}`} />
+        </span>
+      );
+    }
+  }
+
+  if (type.includes("commodity")) {
+    const normalized = canonicalSymbol(item.symbol);
+    const metalLabel =
+      normalized.startsWith("XAU") ? "Au" : normalized.startsWith("XAG") ? "Ag" : normalized.startsWith("XPT") ? "Pt" : normalized.startsWith("XPD") ? "Pd" : "CM";
+    return <span className={`${styles.symbolLogo} ${styles.symbolCommodity}`}>{metalLabel}</span>;
+  }
+
+  if (type.includes("crypto")) {
+    const normalized = canonicalSymbol(item.symbol);
+    const cryptoLabel = normalized.startsWith("BTC") ? "B" : normalized.startsWith("ETH") ? "E" : normalized.slice(0, 2);
+    return <span className={`${styles.symbolLogo} ${styles.symbolCrypto}`}>{cryptoLabel}</span>;
   }
 
   return <span className={styles.symbolLogo}>{symbolBadge(item)}</span>;
