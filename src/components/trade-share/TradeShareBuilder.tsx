@@ -547,6 +547,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               placeholder="EUR/USD"
               autoComplete="off"
             />
+            <span className={styles.fieldHint}>Supported: forex, metals, crypto</span>
             {showSymbolList ? (
               <div className={styles.symbolList} role="listbox" aria-label="Symbols">
                 {lookupSuggestions.map((item) => (

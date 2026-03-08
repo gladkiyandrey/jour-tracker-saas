@@ -52,6 +52,13 @@
   color: #afbbdf;
 }
 
+.fieldHint {
+  margin-top: -2px;
+  font-size: 11px;
+  line-height: 1.3;
+  color: #8693b9;
+}
+
 .field input,
 .field select {
   width: 100%;
