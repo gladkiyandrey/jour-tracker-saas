@@ -1,4 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  canonicalSymbol,
+  curatedSuggestionsForQuery,
+  normalizeRequestedSymbol,
+  symbolVariants,
+  type ResolvedSymbol,
+} from "@/lib/trade-share-symbol-catalog";
 
 const ALLOWED_INTERVALS = new Set([
   "1min",
@@ -36,82 +43,8 @@ type SearchItem = {
   type?: string;
 };
 
-type ResolvedSymbol = {
-  symbol: string;
-  exchange?: string;
-};
-
 const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd", "cryptocurrency"];
 const BLOCKED_NAME_WORDS = ["warrant", "option", "future", "futures", "fund", "etf", "etn", "bond", "certificate", "rights", "note", "swap"];
-
-const SYMBOL_ALIASES: Record<string, ResolvedSymbol> = {
-  GER30: { symbol: "GDAXI", exchange: "XETR" },
-  GER40: { symbol: "GDAXI", exchange: "XETR" },
-  DAX: { symbol: "GDAXI", exchange: "XETR" },
-  DE40: { symbol: "GDAXI", exchange: "XETR" },
-  FRA40: { symbol: "FCHI", exchange: "Euronext" },
-  CAC40: { symbol: "FCHI", exchange: "Euronext" },
-  UK100: { symbol: "FTSE", exchange: "LSE" },
-  FTSE100: { symbol: "FTSE", exchange: "LSE" },
-  JP225: { symbol: "N225", exchange: "JPX" },
-  NIKKEI: { symbol: "N225", exchange: "JPX" },
-  NIKKEI225: { symbol: "N225", exchange: "JPX" },
-  HK50: { symbol: "HSI", exchange: "HKEX" },
-  HANGSENG: { symbol: "HSI", exchange: "HKEX" },
-  AU200: { symbol: "AXJO", exchange: "ASX" },
-  ASX200: { symbol: "AXJO", exchange: "ASX" },
-  ESP35: { symbol: "IBEX", exchange: "BME" },
-  IBEX35: { symbol: "IBEX", exchange: "BME" },
-  EU50: { symbol: "STOXX50E", exchange: "SIX" },
-  ESTX50: { symbol: "STOXX50E", exchange: "SIX" },
-  US30: { symbol: "DJI" },
-  DJ30: { symbol: "DJI" },
-  WALLSTREET30: { symbol: "DJI" },
-  US100: { symbol: "NDX" },
-  NAS100: { symbol: "NDX" },
-  NASDAQ100: { symbol: "NDX" },
-  US500: { symbol: "GSPC" },
-  SPX500: { symbol: "GSPC" },
-  SP500: { symbol: "GSPC" },
-  SPX: { symbol: "GSPC" },
-};
-
-function canonicalSymbol(value: string) {
-  return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
-}
-
-function normalizeRequestedSymbol(value: string): ResolvedSymbol {
-  const trimmed = String(value || "").trim().toUpperCase();
-  const canonical = canonicalSymbol(trimmed);
-  if (SYMBOL_ALIASES[trimmed]) return SYMBOL_ALIASES[trimmed];
-  if (SYMBOL_ALIASES[canonical]) return SYMBOL_ALIASES[canonical];
-  if (/^[A-Z]{6}$/.test(canonical)) {
-    return { symbol: `${canonical.slice(0, 3)}/${canonical.slice(3)}` };
-  }
-  if (/^X(AU|AG|PT|PD)USD$/.test(canonical)) {
-    return { symbol: `${canonical.slice(0, 3)}/${canonical.slice(3)}` };
-  }
-  if (/^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical)) {
-    return { symbol: `${canonical.slice(0, canonical.length - 3)}/USD` };
-  }
-  return { symbol: trimmed };
-}
-
-function symbolVariants(value: string) {
-  const trimmed = String(value || "").trim().toUpperCase();
-  const canonical = canonicalSymbol(trimmed);
-  const normalized = normalizeRequestedSymbol(trimmed);
-  const variants = [
-    trimmed,
-    canonical,
-    normalized.symbol,
-    /^[A-Z]{6}$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
-    /^X(AU|AG|PT|PD)USD$/.test(canonical) ? `${canonical.slice(0, 3)}/${canonical.slice(3)}` : "",
-    /^(BTC|ETH|SOL|XRP|ADA|DOGE)USD$/.test(canonical) ? `${canonical.slice(0, canonical.length - 3)}/USD` : "",
-  ].filter(Boolean);
-
-  return [...new Set(variants)];
-}
 
 function isLikelyTradableSpotSymbol(symbol: string) {
   const s = symbol.toUpperCase();
@@ -225,6 +158,7 @@ async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<st
 
   try {
     const variants = symbolVariants(q);
+    const curated = curatedSuggestionsForQuery(q);
     const picks: string[] = [];
     for (const variant of variants) {
       const url = new URL("https://api.twelvedata.com/symbol_search");
@@ -244,9 +178,9 @@ async function fetchSymbolSuggestions(apiKey: string, query: string): Promise<st
       picks.push(...ranked);
     }
 
-    return [...new Set(picks.map((x) => x.toUpperCase()))].slice(0, 5);
+    return [...new Set([...curated, ...picks.map((x) => x.toUpperCase())])].slice(0, 5);
   } catch {
-    return [];
+    return curatedSuggestionsForQuery(q).slice(0, 5);
   }
 }
 

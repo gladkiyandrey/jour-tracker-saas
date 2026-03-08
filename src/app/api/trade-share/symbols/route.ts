@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { canonicalSymbol, curatedItemsForQuery, symbolVariants } from "@/lib/trade-share-symbol-catalog";
 
 const ALLOWED_TYPE_WORDS = ["forex", "index", "indices", "commodity", "metals", "metal", "cfd"];
 const BLOCKED_NAME_WORDS = [
@@ -50,52 +51,84 @@ export async function GET(req: Request) {
       return NextResponse.json({ items: [] });
     }
 
-    const upstream = new URL("https://api.twelvedata.com/symbol_search");
-    upstream.searchParams.set("symbol", q);
-    upstream.searchParams.set("outputsize", "100");
-    upstream.searchParams.set("apikey", apiKey);
+    const curatedItems = curatedItemsForQuery(q).map((item) => ({
+      symbol: item.symbol,
+      name: item.name,
+      exchange: item.exchange || item.resolved.exchange || "",
+      currency: item.currency || "",
+      type: item.type.toLowerCase(),
+    }));
 
-    const res = await fetch(upstream.toString(), { cache: "no-store" });
-    if (!res.ok) {
-      return NextResponse.json({ error: `Twelve Data HTTP ${res.status}` }, { status: 502 });
-    }
+    const upstreamItems: Array<{
+      symbol: string;
+      name: string;
+      exchange: string;
+      currency: string;
+      type: string;
+    }> = [];
 
-    const raw = (await res.json()) as {
-      data?: Array<{
-        symbol?: string;
-        instrument_name?: string;
-        exchange?: string;
-        currency?: string;
-        type?: string;
-      }>;
-      status?: string;
-      message?: string;
-    };
+    for (const variant of symbolVariants(q)) {
+      const upstream = new URL("https://api.twelvedata.com/symbol_search");
+      upstream.searchParams.set("symbol", variant);
+      upstream.searchParams.set("outputsize", "60");
+      upstream.searchParams.set("apikey", apiKey);
 
-    if (raw.status === "error") {
-      return NextResponse.json({ error: raw.message || "Twelve Data error" }, { status: 400 });
+      const res = await fetch(upstream.toString(), { cache: "no-store" });
+      if (!res.ok) {
+        continue;
+      }
+
+      const raw = (await res.json()) as {
+        data?: Array<{
+          symbol?: string;
+          instrument_name?: string;
+          exchange?: string;
+          currency?: string;
+          type?: string;
+        }>;
+        status?: string;
+        message?: string;
+      };
+
+      if (raw.status === "error") {
+        continue;
+      }
+
+      upstreamItems.push(
+        ...(raw.data || [])
+          .filter((x) => x.symbol)
+          .filter((x) => {
+            const symbol = (x.symbol || "").trim();
+            const type = (x.type || "").trim();
+            const name = (x.instrument_name || "").trim();
+
+            if (!symbol) return false;
+            if (!matchesAllowedType(type) && !isLikelyTradableSpotSymbol(symbol)) return false;
+            if (containsBlockedName(name)) return false;
+            return true;
+          })
+          .map((x) => ({
+            symbol: x.symbol as string,
+            name: x.instrument_name || "",
+            exchange: x.exchange || "",
+            currency: x.currency || "",
+            type: (x.type || "").toLowerCase(),
+          }))
+      );
     }
 
     const normalizedQ = q.toUpperCase();
-
-    const items = (raw.data || [])
+    const items = [...curatedItems, ...upstreamItems]
       .filter((x) => x.symbol)
-      .filter((x) => {
-        const symbol = (x.symbol || "").trim();
-        const type = (x.type || "").trim();
-        const name = (x.instrument_name || "").trim();
-
-        if (!symbol) return false;
-        if (!matchesAllowedType(type) && !isLikelyTradableSpotSymbol(symbol)) return false;
-        if (containsBlockedName(name)) return false;
-        return true;
-      })
       .sort((a, b) => {
         const as = (a.symbol || "").toUpperCase();
         const bs = (b.symbol || "").toUpperCase();
+        const ac = canonicalSymbol(as);
+        const bc = canonicalSymbol(bs);
+        const qc = canonicalSymbol(normalizedQ);
 
-        const aStarts = as.startsWith(normalizedQ) ? 2 : as.includes(normalizedQ) ? 1 : 0;
-        const bStarts = bs.startsWith(normalizedQ) ? 2 : bs.includes(normalizedQ) ? 1 : 0;
+        const aStarts = as.startsWith(normalizedQ) || ac.startsWith(qc) ? 2 : as.includes(normalizedQ) || ac.includes(qc) ? 1 : 0;
+        const bStarts = bs.startsWith(normalizedQ) || bc.startsWith(qc) ? 2 : bs.includes(normalizedQ) || bc.includes(qc) ? 1 : 0;
         if (aStarts !== bStarts) return bStarts - aStarts;
 
         const aGood = isLikelyTradableSpotSymbol(as) ? 1 : 0;
@@ -104,10 +137,14 @@ export async function GET(req: Request) {
 
         return as.localeCompare(bs, "en");
       })
+      .filter((item, index, arr) => {
+        const current = canonicalSymbol(item.symbol);
+        return arr.findIndex((candidate) => canonicalSymbol(candidate.symbol) === current) === index;
+      })
       .slice(0, 60)
       .map((x) => ({
-        symbol: x.symbol as string,
-        name: x.instrument_name || "",
+        symbol: x.symbol,
+        name: x.name || "",
         exchange: x.exchange || "",
         currency: x.currency || "",
         type: (x.type || "").toLowerCase(),
