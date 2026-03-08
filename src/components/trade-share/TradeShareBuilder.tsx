@@ -116,10 +116,23 @@ const CRYPTO_LABEL_MAP: Record<string, string> = {
 };
 
 const CRYPTO_ICON_MAP: Record<string, string> = {
+  ADA: "/trade-share/symbol-icons/ada.svg",
+  AVAX: "/trade-share/symbol-icons/avax.svg",
+  BCH: "/trade-share/symbol-icons/bch.svg",
+  BNB: "/trade-share/symbol-icons/bnb.svg",
   BTC: "/trade-share/symbol-icons/btc.svg",
+  DOGE: "/trade-share/symbol-icons/doge.svg",
+  DOT: "/trade-share/symbol-icons/dot.svg",
   ETH: "/trade-share/symbol-icons/eth.svg",
+  LINK: "/trade-share/symbol-icons/link.svg",
+  LTC: "/trade-share/symbol-icons/ltc.svg",
+  MATIC: "/trade-share/symbol-icons/matic.svg",
   SOL: "/trade-share/symbol-icons/sol.svg",
+  SUI: "/trade-share/symbol-icons/sui.svg",
+  TON: "/trade-share/symbol-icons/ton.svg",
+  TRX: "/trade-share/symbol-icons/trx.svg",
   USDT: "/trade-share/symbol-icons/usdt.svg",
+  XRP: "/trade-share/symbol-icons/xrp.svg",
 };
 
 function canonicalSymbol(value: string) {
