@@ -201,6 +201,61 @@ function inferSymbolType(item: SymbolItem) {
   return "";
 }
 
+function getPricePlaceholders(symbol: string) {
+  const pair = splitPairSymbol(symbol);
+  const canonical = canonicalSymbol(symbol);
+  const base = pair?.[0] || canonical.slice(0, 3);
+  const quote = pair?.[1] || canonical.slice(3);
+
+  const byBase: Record<string, { entry: string; exit: string; stop: string }> = {
+    XAU: { entry: "2935.40", exit: "2958.10", stop: "2918.80" },
+    XAG: { entry: "32.480", exit: "33.120", stop: "31.960" },
+    XPT: { entry: "982.50", exit: "995.80", stop: "971.20" },
+    XPD: { entry: "1048.50", exit: "1076.20", stop: "1029.40" },
+    XCU: { entry: "4.1820", exit: "4.2460", stop: "4.1410" },
+    XNI: { entry: "16.420", exit: "16.980", stop: "16.080" },
+    BTC: { entry: "64250.00", exit: "65880.00", stop: "63120.00" },
+    ETH: { entry: "3485.00", exit: "3620.00", stop: "3395.00" },
+    SOL: { entry: "146.20", exit: "154.80", stop: "140.40" },
+    XRP: { entry: "0.6120", exit: "0.6480", stop: "0.5880" },
+    ADA: { entry: "0.7420", exit: "0.7860", stop: "0.7080" },
+    DOGE: { entry: "0.1840", exit: "0.2010", stop: "0.1730" },
+    LTC: { entry: "82.40", exit: "86.90", stop: "79.60" },
+    BCH: { entry: "468.00", exit: "492.00", stop: "452.00" },
+    BNB: { entry: "585.00", exit: "612.00", stop: "566.00" },
+    TRX: { entry: "0.1320", exit: "0.1410", stop: "0.1260" },
+    AVAX: { entry: "38.20", exit: "41.70", stop: "36.60" },
+    LINK: { entry: "18.40", exit: "19.90", stop: "17.70" },
+    DOT: { entry: "7.420", exit: "7.980", stop: "7.110" },
+    MATIC: { entry: "0.9620", exit: "1.0240", stop: "0.9180" },
+    SUI: { entry: "1.6200", exit: "1.7600", stop: "1.5400" },
+    TON: { entry: "6.120", exit: "6.540", stop: "5.940" },
+  };
+
+  if (byBase[base]) {
+    return byBase[base];
+  }
+
+  if (getForexCurrencies(symbol)) {
+    if (quote === "JPY") {
+      return { entry: "145.280", exit: "145.860", stop: "144.920" };
+    }
+    if (quote === "CHF") {
+      return { entry: "0.88420", exit: "0.88960", stop: "0.88040" };
+    }
+    if (quote === "CAD") {
+      return { entry: "1.35840", exit: "1.36420", stop: "1.35380" };
+    }
+    return { entry: "1.08452", exit: "1.08632", stop: "1.08200" };
+  }
+
+  if (quote === "USDT") {
+    return { entry: "64250.00", exit: "65880.00", stop: "63120.00" };
+  }
+
+  return { entry: "1.08452", exit: "1.08632", stop: "1.08200" };
+}
+
 function getIndexFlagCode(symbol: string) {
   const normalized = canonicalSymbol(symbol);
   if (/^(US|SPX|NAS|DJI|DJT|NDX|US30|US100|US500)/.test(normalized)) return "us";
@@ -443,6 +498,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       exitY: toY(data.points[data.exitIndex].c),
     };
   }, [data]);
+
+  const pricePlaceholders = useMemo(() => getPricePlaceholders(symbol), [symbol]);
 
   async function loadPreview() {
     if (!symbol.trim()) {
@@ -698,15 +755,15 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
 
           <div className={styles.field}>
             <label>Entry price</label>
-            <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder="1.08452" />
+            <input value={entryPrice} onChange={(e) => setEntryPrice(e.target.value)} placeholder={pricePlaceholders.entry} />
           </div>
           <div className={styles.field}>
             <label>Exit price</label>
-            <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder="1.08632" />
+            <input value={exitPrice} onChange={(e) => setExitPrice(e.target.value)} placeholder={pricePlaceholders.exit} />
           </div>
           <div className={styles.field}>
             <label>Stop loss</label>
-            <input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder="1.08200" />
+            <input value={stopLoss} onChange={(e) => setStopLoss(e.target.value)} placeholder={pricePlaceholders.stop} />
           </div>
           <div className={styles.field}>
             <label>Risk (%)</label>
