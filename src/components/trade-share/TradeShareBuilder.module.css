@@ -444,13 +444,13 @@
 
 .resultBadge {
   position: absolute;
-  left: 262px;
+  right: 30px;
   top: 26px;
   font-size: 24px;
   line-height: 1;
   font-weight: 700;
   letter-spacing: 0;
-  text-align: left;
+  text-align: right;
   white-space: nowrap;
 }
 

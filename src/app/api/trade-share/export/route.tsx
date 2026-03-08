@@ -335,13 +335,13 @@ export async function POST(req: Request) {
               <div
                 style={{
                   position: "absolute",
-                  left: "262px",
+                  right: "30px",
                   top: "26px",
                   fontSize: "24px",
                   lineHeight: 1,
                   fontWeight: 700,
                   color: tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3",
-                  textAlign: "left",
+                  textAlign: "right",
                   whiteSpace: "nowrap",
                 }}
               >
