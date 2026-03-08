@@ -1096,7 +1096,7 @@ a {
 }
 
 .trade-share-modal {
-  width: min(1220px, 100%);
+  width: min(1040px, 100%);
   max-height: min(92vh, 980px);
   overflow: auto;
   border: 1px solid rgba(120, 136, 190, 0.3);
@@ -1113,7 +1113,7 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 18px 18px 14px;
+  padding: 16px 16px 12px;
   border-bottom: 1px solid rgba(120, 136, 190, 0.22);
   background: linear-gradient(180deg, rgba(15, 19, 34, 0.97), rgba(12, 16, 29, 0.92));
 }
@@ -1148,7 +1148,7 @@ a {
 }
 
 .trade-share-modal-body {
-  padding: 18px;
+  padding: 16px;
 }
 
 .footer-note {
