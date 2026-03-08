@@ -374,7 +374,7 @@
   top: 279px;
   width: 140px;
   height: 38px;
-  opacity: 1;
+  opacity: 0.84;
   object-fit: contain;
   pointer-events: none;
   z-index: 2;
@@ -425,19 +425,9 @@
 }
 
 .sideArrow {
-  width: 13px;
-  height: 13px;
+  width: 11px;
+  height: 11px;
   display: block;
-  transform-origin: center;
-  overflow: visible;
-}
-
-.sideArrowLong {
-  transform: rotate(45deg);
-}
-
-.sideArrowShort {
-  transform: rotate(135deg);
 }
 
 .sideLong {
@@ -484,7 +474,7 @@
 .infoRow strong {
   font-style: normal;
   font-weight: 400;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.1;
   color: #d8d8d8;
   min-width: 0;
