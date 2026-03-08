@@ -1,4 +1,1 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="32" cy="32" r="32" fill="#0098EA"/>
-  <text x="32" y="38" text-anchor="middle" fill="white" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="0.02em">To</text>
-</svg>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="#0098EA"/><path d="M22 18H42C44.1 18 45.3 20.4 44.1 22L33.5 46.5C32.8 47.9 31.2 47.9 30.5 46.5L19.9 22C18.7 20.4 19.9 18 22 18ZM26.5 22L32 38.8L37.5 22H26.5Z" fill="white"/></svg>

@@ -80,6 +80,19 @@ const FOREX_FLAG_MAP: Record<string, string> = {
   INR: "in",
   KRW: "kr",
   BRL: "br",
+  RUB: "ru",
+  RON: "ro",
+  BGN: "bg",
+  HRK: "hr",
+  ISK: "is",
+  MYR: "my",
+  PHP: "ph",
+  IDR: "id",
+  TWD: "tw",
+  PKR: "pk",
+  CLP: "cl",
+  COP: "co",
+  ARS: "ar",
 };
 
 const METAL_LABEL_MAP: Record<string, string> = {
@@ -94,6 +107,10 @@ const METAL_LABEL_MAP: Record<string, string> = {
 const METAL_ICON_MAP: Record<string, string> = {
   XAU: "/trade-share/symbol-icons/xau.svg",
   XAG: "/trade-share/symbol-icons/xag.svg",
+  XPT: "/trade-share/symbol-icons/xpt.svg",
+  XPD: "/trade-share/symbol-icons/xpd.svg",
+  XCU: "/trade-share/symbol-icons/xcu.svg",
+  XNI: "/trade-share/symbol-icons/xni.svg",
 };
 
 const CRYPTO_LABEL_MAP: Record<string, string> = {

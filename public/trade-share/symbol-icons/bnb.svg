@@ -1,4 +1,1 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="32" cy="32" r="32" fill="#F0B90B"/>
-  <text x="32" y="38" text-anchor="middle" fill="white" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="0.02em">BN</text>
-</svg>
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="#F0B90B"/><path d="M32 18L38 24L32 30L26 24L32 18ZM22 28L28 34L22 40L16 34L22 28ZM42 28L48 34L42 40L36 34L42 28ZM32 30L38 36L32 42L26 36L32 30ZM32 42L36 46L32 50L28 46L32 42Z" fill="white"/></svg>
