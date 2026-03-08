@@ -115,6 +115,13 @@ const CRYPTO_LABEL_MAP: Record<string, string> = {
   TON: "TO",
 };
 
+const CRYPTO_ICON_MAP: Record<string, string> = {
+  BTC: "/trade-share/symbol-icons/btc.svg",
+  ETH: "/trade-share/symbol-icons/eth.svg",
+  SOL: "/trade-share/symbol-icons/sol.svg",
+  USDT: "/trade-share/symbol-icons/usdt.svg",
+};
+
 function canonicalSymbol(value: string) {
   return value.replace(/[^A-Z0-9]/gi, "").toUpperCase();
 }
@@ -263,6 +270,10 @@ function renderAssetGlyph(code: string) {
 
   if (METAL_ICON_MAP[code]) {
     return <img className={styles.assetIcon} src={METAL_ICON_MAP[code]} alt="" aria-hidden="true" />;
+  }
+
+  if (CRYPTO_ICON_MAP[code]) {
+    return <img className={styles.assetIcon} src={CRYPTO_ICON_MAP[code]} alt="" aria-hidden="true" />;
   }
 
   if (METAL_LABEL_MAP[code]) {
