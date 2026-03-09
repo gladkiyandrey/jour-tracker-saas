@@ -53,7 +53,6 @@ const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
   { symbol: "USD/JPY", name: "US Dollar / Yen", type: "forex" },
   { symbol: "XAU/USD", name: "Gold / US Dollar", type: "commodity" },
-  { symbol: "XAG/USD", name: "Silver / US Dollar", type: "commodity" },
   { symbol: "BTC/USD", name: "Bitcoin / US Dollar", type: "cryptocurrency" },
   { symbol: "ETH/USD", name: "Ethereum / US Dollar", type: "cryptocurrency" },
   { symbol: "SOL/USD", name: "Solana / US Dollar", type: "cryptocurrency" },
@@ -189,7 +188,7 @@ function isBlockedTradeShareSymbol(symbol: string) {
   const normalized = canonicalSymbol(symbol);
   if (!normalized) return false;
 
-  if (normalized === "XAUUSD" || normalized === "XAGUSD") return false;
+  if (normalized === "XAUUSD") return false;
   if (/^X(PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
   if (/^X(AU|AG)/i.test(normalized)) return true;
   if (/^(GER|DE|DAX|US30|US100|US500|SPX|NAS|NDX|DJI|DJ30|FTSE|UK100|JP225|NIKKEI|HK50|HSI|AU200|ASX200|ESP35|IBEX35|EU50|ESTX50)/i.test(normalized)) {
@@ -200,7 +199,7 @@ function isBlockedTradeShareSymbol(symbol: string) {
   if (!pair) return false;
   const [base, quote] = pair;
 
-  if ((METAL_LABEL_MAP[base] && base !== "XAU" && base !== "XAG") || (METAL_LABEL_MAP[quote] && quote !== "XAU" && quote !== "XAG")) return true;
+  if ((METAL_LABEL_MAP[base] && base !== "XAU") || (METAL_LABEL_MAP[quote] && quote !== "XAU")) return true;
   return false;
 }
 
@@ -237,7 +236,6 @@ function getPricePlaceholders(symbol: string) {
 
   const byBase: Record<string, { entry: string; exit: string; stop: string }> = {
     XAU: { entry: "2935.40", exit: "2958.10", stop: "2918.80" },
-    XAG: { entry: "32.480", exit: "33.120", stop: "31.960" },
     XPT: { entry: "982.50", exit: "995.80", stop: "971.20" },
     XPD: { entry: "1048.50", exit: "1076.20", stop: "1029.40" },
     XCU: { entry: "4.1820", exit: "4.2460", stop: "4.1410" },
@@ -754,7 +752,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               placeholder="EUR/USD"
               autoComplete="off"
             />
-            <span className={styles.fieldHint}>Supported: forex, crypto, XAU/USD, XAG/USD</span>
+            <span className={styles.fieldHint}>Supported: forex, crypto, XAU/USD</span>
             {showSymbolList ? (
               <div className={styles.symbolList} role="listbox" aria-label="Symbols">
                 {lookupSuggestions.map((item) => (

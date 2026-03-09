@@ -28,7 +28,7 @@ function isLikelyTradableSpotSymbol(symbol: string) {
 function isSupportedTradeShareSymbol(symbol: string) {
   const s = canonicalSymbol(symbol);
   if (!s) return false;
-  if (s === "XAUUSD" || s === "XAGUSD") return true;
+  if (s === "XAUUSD") return true;
   if (/^XAU/.test(s)) return false;
   if (/^XAG/.test(s)) return false;
   if (/^X(PT|PD|CU|NI)/.test(s)) return false;
