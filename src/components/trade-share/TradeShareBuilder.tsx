@@ -941,17 +941,11 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           ) : (
             <div className={`${styles.figmaCard} ${styles.placeholderCard}`}>
               <div className={styles.placeholderArt} aria-hidden="true">
+                <div className={styles.placeholderHeadGhost} />
+                <div className={styles.placeholderSideGhost} />
+                <div className={styles.placeholderPnlGhost} />
                 <div className={styles.placeholderGlow} />
                 <div className={styles.placeholderWatermark}>Consist</div>
-                <div className={styles.placeholderInfo}>
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                  <span />
-                </div>
               </div>
               <div className={styles.placeholderContent}>
                 <span className={styles.placeholderEyebrow}>Trade Share Preview</span>
