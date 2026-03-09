@@ -25,6 +25,20 @@ function isLikelyTradableSpotSymbol(symbol: string) {
   return false;
 }
 
+function isSupportedTradeShareSymbol(symbol: string) {
+  const s = canonicalSymbol(symbol);
+  if (!s) return false;
+  if (s === "XAUUSD") return true;
+  if (/^X(AG|PT|PD|CU|NI)/.test(s)) return false;
+  if (/^(GER|DE|DAX|US30|US100|US500|SPX|NAS|NDX|DJI|DJ30|FTSE|UK100|JP225|NIKKEI|HK50|HSI|AU200|ASX200|ESP35|IBEX35|EU50|ESTX50)/.test(s)) {
+    return false;
+  }
+  if (/^[A-Z]{6}$/.test(s)) return true; // forex like EURUSD
+  if (/^[A-Z]{3}USD$/.test(s) && /^(BTC|ETH|SOL|XRP|ADA|DOGE)/.test(s)) return true;
+  if (/^[A-Z]{3}\/[A-Z]{3}$/.test(String(symbol).toUpperCase())) return true;
+  return false;
+}
+
 function matchesAllowedType(type: string) {
   const t = (type || "").toLowerCase();
   if (!t) return false;
@@ -105,6 +119,7 @@ export async function GET(req: Request) {
 
             if (!symbol) return false;
             if (!matchesAllowedType(type) && !isLikelyTradableSpotSymbol(symbol)) return false;
+            if (!isSupportedTradeShareSymbol(symbol)) return false;
             if (containsBlockedName(name)) return false;
             return true;
           })
@@ -121,6 +136,7 @@ export async function GET(req: Request) {
     const normalizedQ = q.toUpperCase();
     const items = [...curatedItems, ...upstreamItems]
       .filter((x) => x.symbol)
+      .filter((x) => isSupportedTradeShareSymbol(x.symbol))
       .filter((x) => {
         const symbol = canonicalSymbol(x.symbol);
         const name = (x.name || "").toLowerCase();
