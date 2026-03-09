@@ -907,7 +907,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             }}
           />
           <img
-            src="/trade-share/redesign/exit.svg?v=1"
+            src={tradeOutcome === "loss" ? "/trade-share/redesign/exit-loss.svg?v=1" : "/trade-share/redesign/exit.svg?v=1"}
             alt=""
             aria-hidden="true"
             style={{

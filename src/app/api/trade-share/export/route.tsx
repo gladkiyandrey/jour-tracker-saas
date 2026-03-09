@@ -189,7 +189,7 @@ export async function POST(req: Request) {
     const watermarkUrl = `${origin}/trade-share/redesign/consist-watermark.svg`;
     const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/shorticon.svg?v=2" : "/trade-share/redesign/longicon.svg?v=2"}`;
     const entryMarkerUrl = `${origin}/trade-share/redesign/entry.svg?v=1`;
-    const exitMarkerUrl = `${origin}/trade-share/redesign/exit.svg?v=1`;
+    const exitMarkerUrl = `${origin}${tradeOutcome === "loss" ? "/trade-share/redesign/exit-loss.svg?v=1" : "/trade-share/redesign/exit.svg?v=1"}`;
 
     return new ImageResponse(
       (
