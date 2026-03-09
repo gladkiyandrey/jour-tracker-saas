@@ -53,6 +53,7 @@ const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
   { symbol: "USD/JPY", name: "US Dollar / Yen", type: "forex" },
   { symbol: "XAU/USD", name: "Gold / US Dollar", type: "commodity" },
+  { symbol: "XAG/USD", name: "Silver / US Dollar", type: "commodity" },
   { symbol: "BTC/USD", name: "Bitcoin / US Dollar", type: "cryptocurrency" },
   { symbol: "ETH/USD", name: "Ethereum / US Dollar", type: "cryptocurrency" },
   { symbol: "SOL/USD", name: "Solana / US Dollar", type: "cryptocurrency" },
@@ -188,7 +189,9 @@ function isBlockedTradeShareSymbol(symbol: string) {
   const normalized = canonicalSymbol(symbol);
   if (!normalized) return false;
 
-  if (/^X(AG|PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
+  if (normalized === "XAUUSD" || normalized === "XAGUSD") return false;
+  if (/^X(PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
+  if (/^X(AU|AG)/i.test(normalized)) return true;
   if (/^(GER|DE|DAX|US30|US100|US500|SPX|NAS|NDX|DJI|DJ30|FTSE|UK100|JP225|NIKKEI|HK50|HSI|AU200|ASX200|ESP35|IBEX35|EU50|ESTX50)/i.test(normalized)) {
     return true;
   }
@@ -197,7 +200,7 @@ function isBlockedTradeShareSymbol(symbol: string) {
   if (!pair) return false;
   const [base, quote] = pair;
 
-  if ((METAL_LABEL_MAP[base] && base !== "XAU") || (METAL_LABEL_MAP[quote] && quote !== "XAU")) return true;
+  if ((METAL_LABEL_MAP[base] && base !== "XAU" && base !== "XAG") || (METAL_LABEL_MAP[quote] && quote !== "XAU" && quote !== "XAG")) return true;
   return false;
 }
 
@@ -751,7 +754,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               placeholder="EUR/USD"
               autoComplete="off"
             />
-            <span className={styles.fieldHint}>Supported: forex, crypto, XAU/USD</span>
+            <span className={styles.fieldHint}>Supported: forex, crypto, XAU/USD, XAG/USD</span>
             {showSymbolList ? (
               <div className={styles.symbolList} role="listbox" aria-label="Symbols">
                 {lookupSuggestions.map((item) => (
