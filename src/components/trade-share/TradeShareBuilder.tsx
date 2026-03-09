@@ -835,9 +835,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         ) : null}
       </div>
 
-      {data && chart ? (
-        <div className={styles.cardViewport}>
-          <div className={styles.cardScale}>
+      <div className={styles.cardViewport}>
+        <div className={styles.cardScale}>
+          {data && chart ? (
             <div className={styles.figmaCard}>
           <img className={styles.logoWatermark} src="/trade-share/redesign/consist-watermark.svg" alt="" aria-hidden="true" />
 
@@ -938,9 +938,30 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
             ))}
           </div>
             </div>
-          </div>
+          ) : (
+            <div className={`${styles.figmaCard} ${styles.placeholderCard}`}>
+              <div className={styles.placeholderArt} aria-hidden="true">
+                <div className={styles.placeholderGlow} />
+                <div className={styles.placeholderWatermark}>Consist</div>
+                <div className={styles.placeholderInfo}>
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+              <div className={styles.placeholderContent}>
+                <span className={styles.placeholderEyebrow}>Trade Share Preview</span>
+                <strong>Generate your trade card</strong>
+                <p>Your card will appear here after you fill the trade data and click Build preview.</p>
+              </div>
+            </div>
+          )}
         </div>
-      ) : null}
+      </div>
     </section>
   );
 }
