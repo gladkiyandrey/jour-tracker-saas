@@ -105,6 +105,45 @@ function buildSmoothPath(points: Array<{ x: number; y: number }>) {
   return d;
 }
 
+const FOREX_FLAG_MAP: Record<string, string> = {
+  USD: "us", EUR: "eu", GBP: "gb", JPY: "jp", CHF: "ch", CAD: "ca", AUD: "au", NZD: "nz",
+  SEK: "se", NOK: "no", DKK: "dk", SGD: "sg", HKD: "hk", CNH: "cn", CNY: "cn", MXN: "mx",
+  TRY: "tr", ZAR: "za", PLN: "pl", HUF: "hu", CZK: "cz", ILS: "il", AED: "ae", SAR: "sa",
+  THB: "th", INR: "in", KRW: "kr", BRL: "br", RUB: "ru", RON: "ro", BGN: "bg", HRK: "hr",
+  ISK: "is", MYR: "my", PHP: "ph", IDR: "id", TWD: "tw", PKR: "pk", CLP: "cl", COP: "co", ARS: "ar",
+};
+const METAL_ICON_MAP: Record<string, string> = {
+  XAU: "/trade-share/symbol-icons/xau.svg", XAG: "/trade-share/symbol-icons/xag.svg", XPT: "/trade-share/symbol-icons/xpt.svg",
+  XPD: "/trade-share/symbol-icons/xpd.svg", XCU: "/trade-share/symbol-icons/xcu.svg", XNI: "/trade-share/symbol-icons/xni.svg",
+};
+const CRYPTO_ICON_MAP: Record<string, string> = {
+  ADA: "/trade-share/symbol-icons/ada.svg", AVAX: "/trade-share/symbol-icons/avax.svg", BCH: "/trade-share/symbol-icons/bch.svg",
+  BNB: "/trade-share/symbol-icons/bnb.svg", BTC: "/trade-share/symbol-icons/btc.svg", DOGE: "/trade-share/symbol-icons/doge.svg",
+  DOT: "/trade-share/symbol-icons/dot.svg", ETH: "/trade-share/symbol-icons/eth.svg", LINK: "/trade-share/symbol-icons/link.svg",
+  LTC: "/trade-share/symbol-icons/ltc.svg", MATIC: "/trade-share/symbol-icons/matic.svg", SOL: "/trade-share/symbol-icons/sol.svg",
+  SUI: "/trade-share/symbol-icons/sui.svg", TON: "/trade-share/symbol-icons/ton.svg", TRX: "/trade-share/symbol-icons/trx.svg",
+  USDT: "/trade-share/symbol-icons/usdt.svg", XRP: "/trade-share/symbol-icons/xrp.svg",
+};
+function canonicalSymbol(value: string) { return value.replace(/[^A-Z0-9]/gi, "").toUpperCase(); }
+function splitPairSymbol(symbol: string) {
+  const raw = String(symbol || "").trim().toUpperCase();
+  if (raw.includes("/")) {
+    const [base, quote] = raw.split("/");
+    if (base && quote) return [base, quote] as const;
+  }
+  const normalized = canonicalSymbol(symbol);
+  if (/^[A-Z]{6}$/.test(normalized)) return [normalized.slice(0, 3), normalized.slice(3)] as const;
+  return null;
+}
+function getForexCurrencies(symbol: string) {
+  const pair = splitPairSymbol(symbol);
+  if (!pair) return null;
+  const [base, quote] = pair;
+  if (FOREX_FLAG_MAP[base] && FOREX_FLAG_MAP[quote]) return [base, quote] as const;
+  return null;
+}
+function assetIconPath(code: string) { return METAL_ICON_MAP[code] || CRYPTO_ICON_MAP[code] || null; }
+
 function buildChart(preview: PreviewPayload) {
   const safeMin = preview.min;
   const safeMax = preview.max === preview.min ? preview.max + 1 : preview.max;
@@ -190,6 +229,8 @@ export async function POST(req: Request) {
     const arrowUrl = `${origin}${positionSide === "short" ? "/trade-share/redesign/shorticon.svg?v=2" : "/trade-share/redesign/longicon.svg?v=2"}`;
     const entryMarkerUrl = `${origin}/trade-share/redesign/entry.svg?v=1`;
     const exitMarkerUrl = `${origin}/trade-share/redesign/exit.svg?v=1`;
+    const pair = splitPairSymbol(preview.symbol);
+    const forexCurrencies = getForexCurrencies(preview.symbol);
 
     return new ImageResponse(
       (
@@ -302,18 +343,38 @@ export async function POST(req: Request) {
                 style={{
                   position: "absolute",
                   left: "30px",
-                  top: "27px",
-                  fontSize: "22px",
-                  lineHeight: 1.05,
-                  fontWeight: 400,
-                  color: "#d8d8d8",
-                  maxWidth: "120px",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
-                  textOverflow: "ellipsis",
+                  top: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
                 }}
               >
-                {preview.symbol}
+                {forexCurrencies ? (
+                  <div style={{ position: "relative", width: "26px", height: "18px", display: "flex" }}>
+                    <img src={`https://flagcdn.com/w40/${FOREX_FLAG_MAP[forexCurrencies[0]]}.png`} alt="" width="18" height="18" style={{ position: "absolute", left: 0, top: 0, width: "18px", height: "18px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.16)" }} />
+                    <img src={`https://flagcdn.com/w40/${FOREX_FLAG_MAP[forexCurrencies[1]]}.png`} alt="" width="18" height="18" style={{ position: "absolute", left: "8px", top: 0, width: "18px", height: "18px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.16)" }} />
+                  </div>
+                ) : pair ? (
+                  <div style={{ position: "relative", width: "26px", height: "18px", display: "flex" }}>
+                    <img src={`${origin}${assetIconPath(pair[0]) || '/trade-share/symbol-icons/usdt.svg'}`} alt="" width="18" height="18" style={{ position: "absolute", left: 0, top: 0, width: "18px", height: "18px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.16)", background: '#162347' }} />
+                    <img src={`${origin}${assetIconPath(pair[1]) || '/trade-share/symbol-icons/usdt.svg'}`} alt="" width="18" height="18" style={{ position: "absolute", left: "8px", top: 0, width: "18px", height: "18px", borderRadius: "999px", border: "1px solid rgba(255,255,255,0.16)", background: '#162347' }} />
+                  </div>
+                ) : null}
+                <div
+                  style={{
+                    fontSize: "22px",
+                    lineHeight: 1.05,
+                    fontWeight: 400,
+                    color: "#d8d8d8",
+                    maxWidth: "110px",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {preview.symbol}
+                </div>
               </div>
               <div
                 style={{

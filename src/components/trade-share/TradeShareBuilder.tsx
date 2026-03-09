@@ -355,6 +355,40 @@ function assetCoinClass(code: string) {
   return styles.symbolCoinGeneric;
 }
 
+function renderCardSymbolLogo(symbol: string) {
+  const pair = splitPairSymbol(symbol);
+  const forexCurrencies = getForexCurrencies(symbol);
+
+  if (forexCurrencies) {
+    const [base, quote] = forexCurrencies;
+    const baseFlag = countryFlag(base);
+    const quoteFlag = countryFlag(quote);
+
+    return (
+      <span className={styles.cardSymbolPairLogo} aria-hidden="true">
+        <span className={styles.cardSymbolCoin}>
+          {baseFlag ? <span className={`fi fi-${baseFlag} ${styles.flagGlyph}`} /> : <span className={styles.assetText}>{base}</span>}
+        </span>
+        <span className={`${styles.cardSymbolCoin} ${styles.cardSymbolCoinOffset}`}>
+          {quoteFlag ? <span className={`fi fi-${quoteFlag} ${styles.flagGlyph}`} /> : <span className={styles.assetText}>{quote}</span>}
+        </span>
+      </span>
+    );
+  }
+
+  if (pair) {
+    const [base, quote] = pair;
+    return (
+      <span className={styles.cardSymbolPairLogo} aria-hidden="true">
+        <span className={`${styles.cardSymbolCoin} ${assetCoinClass(base)}`}>{renderAssetGlyph(base)}</span>
+        <span className={`${styles.cardSymbolCoin} ${styles.cardSymbolCoinOffset} ${assetCoinClass(quote)}`}>{renderAssetGlyph(quote)}</span>
+      </span>
+    );
+  }
+
+  return <span className={styles.cardSymbolFallback}>{symbolBadge({ symbol })}</span>;
+}
+
 function renderAssetGlyph(code: string) {
   const flag = countryFlag(code);
   if (flag) {
@@ -842,7 +876,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           <img className={styles.logoWatermark} src="/trade-share/redesign/consist-watermark.svg" alt="" aria-hidden="true" />
 
           <div className={styles.topRow}>
-            <div className={styles.ticker}>{data.symbol}</div>
+            <div className={styles.cardSymbolWrap}>{renderCardSymbolLogo(data.symbol)}<div className={styles.ticker}>{data.symbol}</div></div>
             <div className={`${styles.sideBadge} ${sideClass}`}>
               <img
                 className={styles.sideArrow}
