@@ -335,8 +335,9 @@ export async function POST(req: Request) {
               <div
                 style={{
                   position: "absolute",
-                  right: "30px",
+                  left: "262px",
                   top: "26px",
+                  width: "90px",
                   fontSize: "24px",
                   lineHeight: 1,
                   fontWeight: 700,
@@ -355,9 +356,7 @@ export async function POST(req: Request) {
                 left: "74px",
                 top: "334px",
                 width: "234px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px",
+                height: "167px",
                 color: "#d8d8d8",
               }}
             >
@@ -369,22 +368,22 @@ export async function POST(req: Request) {
                 ["Duration", formatDuration(preview.entryTime, preview.exitTime)],
                 ["Risk", `${riskValue || 0}%`],
                 ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
-              ].map(([label, value]) => (
+              ].map(([label, value], index) => (
                 <div
                   key={label}
                   style={{
-                    display: "flex",
-                    justifyContent: "flex-start",
-                    alignItems: "center",
+                    position: "absolute",
+                    left: 0,
+                    top: `${index * 24}px`,
                     width: "234px",
+                    height: "14px",
                     fontSize: "14px",
-                    lineHeight: 1.1,
+                    lineHeight: "14px",
                     whiteSpace: "nowrap",
                   }}
                 >
-                  <div style={{ width: "73px", flex: "0 0 auto" }}>{label}</div>
-                  <div style={{ width: "70px", flex: "0 0 auto" }} />
-                  <div style={{ width: "91px", flex: "0 0 auto" }}>{value}</div>
+                  <div style={{ position: "absolute", left: 0, top: 0, width: "73px" }}>{label}</div>
+                  <div style={{ position: "absolute", left: "143px", top: 0, width: "91px" }}>{value}</div>
                 </div>
               ))}
             </div>

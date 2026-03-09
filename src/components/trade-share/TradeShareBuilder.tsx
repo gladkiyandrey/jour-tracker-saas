@@ -920,34 +920,20 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
           />
 
           <div className={styles.infoGrid}>
-            <div className={styles.infoRow}>
-              <span>Entry price</span>
-              <strong>{formatPrice(data.entryPriceInput)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Exit price</span>
-              <strong>{formatPrice(data.exitPriceInput)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Open Date</span>
-              <strong>{formatCompactDate(data.entryTime)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Close Date</span>
-              <strong>{formatCompactDate(data.exitTime)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Duration</span>
-              <strong>{formatDuration(data.entryTime, data.exitTime)}</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>Risk</span>
-              <strong>{riskPercent || "0.00"}%</strong>
-            </div>
-            <div className={styles.infoRow}>
-              <span>RR</span>
-              <strong>{rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"}</strong>
-            </div>
+            {[
+              ["Entry price", formatPrice(data.entryPriceInput)],
+              ["Exit price", formatPrice(data.exitPriceInput)],
+              ["Open Date", formatCompactDate(data.entryTime)],
+              ["Close Date", formatCompactDate(data.exitTime)],
+              ["Duration", formatDuration(data.entryTime, data.exitTime)],
+              ["Risk", `${riskPercent || "0.00"}%`],
+              ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
+            ].map(([label, value], index) => (
+              <div key={label} className={styles.infoRow} style={{ top: `${index * 24}px` }}>
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
           </div>
             </div>
           </div>

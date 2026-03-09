@@ -444,8 +444,9 @@
 
 .resultBadge {
   position: absolute;
-  right: 30px;
+  left: 262px;
   top: 26px;
+  width: 90px;
   font-size: 24px;
   line-height: 1;
   font-weight: 700;
@@ -467,46 +468,40 @@
   left: 74px;
   top: 334px;
   width: 234px;
-  display: grid;
-  gap: 10px;
+  height: 167px;
   z-index: 5;
 }
 
 .infoRow {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
+  position: absolute;
+  left: 0;
+  width: 234px;
+  height: 14px;
 }
 
 .infoRow span,
 .infoRow strong {
+  position: absolute;
+  top: 0;
   font-style: normal;
   font-weight: 400;
   font-size: 14px;
-  line-height: 1.1;
+  line-height: 14px;
   color: #d8d8d8;
   min-width: 0;
   white-space: nowrap;
 }
 
 .infoRow span {
+  left: 0;
   width: 73px;
-  flex: 0 0 auto;
-}
-
-.infoRow::before {
-  content: "";
-  width: 70px;
-  flex: 0 0 auto;
-  order: 2;
 }
 
 .infoRow strong {
-  order: 3;
+  left: 143px;
   text-align: left;
   font-variant-numeric: tabular-nums;
   width: 91px;
-  flex: 0 0 auto;
 }
 
 @media (max-width: 960px) {
