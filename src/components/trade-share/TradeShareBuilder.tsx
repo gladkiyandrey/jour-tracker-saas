@@ -183,6 +183,23 @@ function splitPairSymbol(symbol: string) {
   return null;
 }
 
+function isBlockedTradeShareSymbol(symbol: string) {
+  const normalized = canonicalSymbol(symbol);
+  if (!normalized) return false;
+
+  if (/^X(AU|AG|PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
+  if (/^(GER|DE|DAX|US30|US100|US500|SPX|NAS|NDX|DJI|DJ30|FTSE|UK100|JP225|NIKKEI|HK50|HSI|AU200|ASX200|ESP35|IBEX35|EU50|ESTX50)/i.test(normalized)) {
+    return true;
+  }
+
+  const pair = splitPairSymbol(symbol);
+  if (!pair) return false;
+  const [base, quote] = pair;
+
+  if (METAL_LABEL_MAP[base] || METAL_LABEL_MAP[quote]) return true;
+  return false;
+}
+
 function getForexCurrencies(symbol: string) {
   const pair = splitPairSymbol(symbol);
   if (!pair) return null;
@@ -533,6 +550,12 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   async function loadPreview() {
     if (!symbol.trim()) {
       setError("Enter symbol");
+      return;
+    }
+    if (isBlockedTradeShareSymbol(symbol)) {
+      setError("Trade Share currently supports only forex and crypto symbols on your data plan.");
+      setData(null);
+      setSymbolSuggestions([]);
       return;
     }
     if (positionSide !== "long" && positionSide !== "short") {
