@@ -122,8 +122,8 @@ export default function DashboardHomeClient({
           <div className="trade-share-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="trade-share-modal-head">
               <div>
-                <h3>Trade Share</h3>
-                <p>Build and export a share card without leaving your discipline dashboard.</p>
+                <h3>Create Trade Share</h3>
+                <p>Build and export a trade card without leaving your dashboard.</p>
               </div>
               <button className="trade-share-modal-close" type="button" aria-label="Close Trade Share" onClick={() => setTradeShareOpen(false)}>
                 <svg viewBox="0 0 20 20" aria-hidden="true">
