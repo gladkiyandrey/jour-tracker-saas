@@ -866,16 +866,16 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
                 <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
               </linearGradient>
               <linearGradient id="entry-line-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(247, 213, 0, 0.72)" stopOpacity="1" />
-                <stop offset="100%" stopColor="rgba(247, 213, 0, 0)" stopOpacity="0" />
+                <stop offset="0%" stopColor="#F7D500" stopOpacity="0.72" />
+                <stop offset="100%" stopColor="#F7D500" stopOpacity="0" />
               </linearGradient>
               <linearGradient id="exit-line-gradient-profit" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(0, 255, 163, 0.72)" stopOpacity="1" />
-                <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" stopOpacity="0" />
+                <stop offset="0%" stopColor="#00FFA3" stopOpacity="0.72" />
+                <stop offset="100%" stopColor="#00FFA3" stopOpacity="0" />
               </linearGradient>
               <linearGradient id="exit-line-gradient-loss" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(232, 74, 106, 0.72)" stopOpacity="1" />
-                <stop offset="100%" stopColor="rgba(232, 74, 106, 0)" stopOpacity="0" />
+                <stop offset="0%" stopColor="#E84A6A" stopOpacity="0.72" />
+                <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
               </linearGradient>
             </defs>
             <path d={chart.fullPath} fill="none" stroke="rgba(129, 129, 129, 0.58)" strokeWidth="1.9" />
@@ -941,7 +941,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               ["Risk", `${riskPercent || "0.00"}%`],
               ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
             ].map(([label, value], index) => (
-              <div key={label} className={styles.infoRow} style={{ top: `${index * 26}px` }}>
+              <div key={label} className={styles.infoRow} style={{ top: `${index * 25}px` }}>
                 <span>{label}</span>
                 <strong>{value}</strong>
               </div>

@@ -387,7 +387,7 @@ export async function POST(req: Request) {
                   style={{
                     position: "absolute",
                     left: 0,
-                    top: `${index * 26}px`,
+                    top: `${index * 25}px`,
                     width: "234px",
                     height: "14px",
                     fontSize: "14px",
