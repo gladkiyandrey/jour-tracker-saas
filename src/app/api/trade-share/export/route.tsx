@@ -237,35 +237,61 @@ export async function POST(req: Request) {
                   <stop offset="-36.13%" stopColor="#E84A6A" stopOpacity="0.4" />
                   <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
                 </linearGradient>
-                <linearGradient id="entry-line-gradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(247,213,0,0.72)" stopOpacity="1" />
-                  <stop offset="100%" stopColor="rgba(247,213,0,0)" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="exit-line-gradient-profit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(0,255,163,0.72)" stopOpacity="1" />
-                  <stop offset="100%" stopColor="rgba(0,255,163,0)" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient id="exit-line-gradient-loss" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="rgba(232,74,106,0.72)" stopOpacity="1" />
-                  <stop offset="100%" stopColor="rgba(232,74,106,0)" stopOpacity="0" />
-                </linearGradient>
               </defs>
               <path d={chart.fullPath} fill="none" stroke="rgba(129,129,129,0.58)" strokeWidth="1.9" />
               <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient-profit)"} style={{ mixBlendMode: "color-dodge" }} />
+              <>
               <path
                 d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
                 fill="none"
-                stroke="url(#entry-line-gradient)"
+                stroke="#F7D500"
+                strokeOpacity="0.18"
                 strokeWidth="1.15"
                 strokeDasharray="5 6"
               />
               <path
-                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
+                d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(chart.entryMarkerY + ((CHART_BOTTOM + 12) - chart.entryMarkerY) * 0.72).toFixed(2)}`}
                 fill="none"
-                stroke={tradeOutcome === "loss" ? "url(#exit-line-gradient-loss)" : "url(#exit-line-gradient-profit)"}
+                stroke="#F7D500"
+                strokeOpacity="0.38"
                 strokeWidth="1.15"
                 strokeDasharray="5 6"
               />
+              <path
+                d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(chart.entryMarkerY + ((CHART_BOTTOM + 12) - chart.entryMarkerY) * 0.42).toFixed(2)}`}
+                fill="none"
+                stroke="#F7D500"
+                strokeOpacity="0.72"
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              </>
+              <>
+              <path
+                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
+                fill="none"
+                stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
+                strokeOpacity="0.18"
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              <path
+                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(chart.exitMarkerY + ((CHART_BOTTOM + 12) - chart.exitMarkerY) * 0.72).toFixed(2)}`}
+                fill="none"
+                stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
+                strokeOpacity="0.38"
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              <path
+                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(chart.exitMarkerY + ((CHART_BOTTOM + 12) - chart.exitMarkerY) * 0.42).toFixed(2)}`}
+                fill="none"
+                stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
+                strokeOpacity="0.72"
+                strokeWidth="1.15"
+                strokeDasharray="5 6"
+              />
+              </>
               <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="2" />
             </svg>
 
