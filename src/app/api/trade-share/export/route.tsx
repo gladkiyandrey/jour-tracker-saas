@@ -51,6 +51,7 @@ function formatPrice(v: number | string | null, symbol?: string | null) {
   if (!Number.isFinite(n)) return "n/a";
   const normalized = String(symbol || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
   if (normalized === "XAUUSD") return `${n.toFixed(2)} USD`;
+  if (normalized.endsWith("JPY")) return `${n.toFixed(3)} USD`;
   return `${n.toFixed(5)} USD`;
 }
 

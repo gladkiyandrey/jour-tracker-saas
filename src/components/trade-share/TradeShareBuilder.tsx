@@ -690,7 +690,9 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   function formatPrice(v: number | string | null) {
     const n = Number(v);
     if (!Number.isFinite(n)) return "n/a";
-    if (canonicalSymbol(symbol) === "XAUUSD") return `${n.toFixed(2)} USD`;
+    const normalized = canonicalSymbol(symbol);
+    if (normalized === "XAUUSD") return `${n.toFixed(2)} USD`;
+    if (normalized.endsWith("JPY")) return `${n.toFixed(3)} USD`;
     return `${n.toFixed(5)} USD`;
   }
 
