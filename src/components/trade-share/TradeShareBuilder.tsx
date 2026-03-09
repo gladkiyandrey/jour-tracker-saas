@@ -462,7 +462,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   useEffect(() => {
     const q = symbol.trim();
     if (q.length < 1) {
-      setLookupSuggestions(POPULAR_SYMBOLS);
+      setLookupSuggestions(POPULAR_SYMBOLS.filter((item) => !isBlockedTradeShareSymbol(item.symbol)));
       return;
     }
 
@@ -473,7 +473,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
         if (!res.ok || !Array.isArray(json.items)) {
           return;
         }
-        const merged = [...json.items, ...POPULAR_SYMBOLS];
+        const merged = [...json.items, ...POPULAR_SYMBOLS].filter((item) => !isBlockedTradeShareSymbol(item.symbol));
         const seen = new Set<string>();
         const dedup = merged.filter((x) => {
           const key = x.symbol ? canonicalSymbol(x.symbol) : "";
@@ -612,7 +612,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
       const json = (await res.json()) as PreviewResponse | PreviewError;
       if (!res.ok) {
         if ("error" in json && Array.isArray(json.suggestions) && json.suggestions.length > 0) {
-          setSymbolSuggestions(json.suggestions);
+          setSymbolSuggestions(json.suggestions.filter((candidate) => !isBlockedTradeShareSymbol(candidate)));
         }
         throw new Error("error" in json ? json.error : "Failed to load chart");
       }
