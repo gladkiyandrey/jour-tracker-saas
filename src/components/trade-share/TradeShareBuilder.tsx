@@ -865,20 +865,32 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
                 <stop offset="-36.13%" stopColor="#E84A6A" stopOpacity="0.4" />
                 <stop offset="100%" stopColor="#E84A6A" stopOpacity="0" />
               </linearGradient>
+              <linearGradient id="entry-line-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(247, 213, 0, 0.72)" stopOpacity="1" />
+                <stop offset="100%" stopColor="rgba(247, 213, 0, 0)" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="exit-line-gradient-profit" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(0, 255, 163, 0.72)" stopOpacity="1" />
+                <stop offset="100%" stopColor="rgba(0, 255, 163, 0)" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="exit-line-gradient-loss" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(232, 74, 106, 0.72)" stopOpacity="1" />
+                <stop offset="100%" stopColor="rgba(232, 74, 106, 0)" stopOpacity="0" />
+              </linearGradient>
             </defs>
             <path d={chart.fullPath} fill="none" stroke="rgba(129, 129, 129, 0.58)" strokeWidth="1.9" />
             <path d={chart.fillPath} fill={`url(#${areaGradientId})`} style={{ mixBlendMode: "color-dodge" }} />
             <path
               d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
               fill="none"
-              stroke="rgba(247, 213, 0, 0.7)"
+              stroke="url(#entry-line-gradient)"
               strokeWidth="1.15"
               strokeDasharray="5 6"
             />
             <path
               d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
               fill="none"
-              stroke={tradeOutcome === "loss" ? "rgba(232, 74, 106, 0.72)" : "rgba(0, 255, 163, 0.72)"}
+              stroke={tradeOutcome === "loss" ? "url(#exit-line-gradient-loss)" : "url(#exit-line-gradient-profit)"}
               strokeWidth="1.15"
               strokeDasharray="5 6"
             />
@@ -929,7 +941,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               ["Risk", `${riskPercent || "0.00"}%`],
               ["RR", rrValue !== null && Number.isFinite(rrValue) ? rrValue.toFixed(2) : "0.00"],
             ].map(([label, value], index) => (
-              <div key={label} className={styles.infoRow} style={{ top: `${index * 24}px` }}>
+              <div key={label} className={styles.infoRow} style={{ top: `${index * 26}px` }}>
                 <span>{label}</span>
                 <strong>{value}</strong>
               </div>
