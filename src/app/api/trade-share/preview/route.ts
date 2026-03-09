@@ -282,7 +282,7 @@ export async function POST(req: Request) {
     if (curatedMatch && (curatedMatch.requiresPro || curatedMatch.requiresGrow)) {
       return NextResponse.json(
         {
-          error: "This market is not supported in Trade Share on the current data plan. Use forex or crypto symbols.",
+          error: "This market is not supported in Trade Share on the current data plan. Use forex, crypto, or XAU/USD.",
           suggestions: [],
         },
         { status: 400 }

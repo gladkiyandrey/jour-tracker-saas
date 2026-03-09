@@ -27,7 +27,7 @@ const CURATED_SYMBOLS: CuratedSymbolItem[] = [
   { symbol: "EUR/GBP", name: "Euro / British Pound", currency: "GBP", type: "forex", resolved: { symbol: "EUR/GBP" } },
   { symbol: "EUR/CHF", name: "Euro / Swiss Franc", currency: "CHF", type: "forex", resolved: { symbol: "EUR/CHF" } },
   { symbol: "GBP/CHF", name: "British Pound / Swiss Franc", currency: "CHF", type: "forex", resolved: { symbol: "GBP/CHF" } },
-  { symbol: "XAU/USD", name: "Gold / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XAU/USD" } },
+  { symbol: "XAU/USD", name: "Gold / US Dollar", currency: "USD", type: "commodity", resolved: { symbol: "XAU/USD" } },
   { symbol: "XAG/USD", name: "Silver / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XAG/USD" } },
   { symbol: "XPT/USD", name: "Platinum / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XPT/USD" } },
   { symbol: "XPD/USD", name: "Palladium / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XPD/USD" } },

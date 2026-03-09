@@ -187,7 +187,7 @@ function isBlockedTradeShareSymbol(symbol: string) {
   const normalized = canonicalSymbol(symbol);
   if (!normalized) return false;
 
-  if (/^X(AU|AG|PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
+  if (/^X(AG|PT|PD|CU|NI)(USD)?$/i.test(normalized)) return true;
   if (/^(GER|DE|DAX|US30|US100|US500|SPX|NAS|NDX|DJI|DJ30|FTSE|UK100|JP225|NIKKEI|HK50|HSI|AU200|ASX200|ESP35|IBEX35|EU50|ESTX50)/i.test(normalized)) {
     return true;
   }
@@ -196,7 +196,7 @@ function isBlockedTradeShareSymbol(symbol: string) {
   if (!pair) return false;
   const [base, quote] = pair;
 
-  if (METAL_LABEL_MAP[base] || METAL_LABEL_MAP[quote]) return true;
+  if ((METAL_LABEL_MAP[base] && base !== "XAU") || (METAL_LABEL_MAP[quote] && quote !== "XAU")) return true;
   return false;
 }
 
@@ -750,7 +750,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               placeholder="EUR/USD"
               autoComplete="off"
             />
-            <span className={styles.fieldHint}>Supported: forex, crypto</span>
+            <span className={styles.fieldHint}>Supported: forex, crypto, XAU/USD</span>
             {showSymbolList ? (
               <div className={styles.symbolList} role="listbox" aria-label="Symbols">
                 {lookupSuggestions.map((item) => (
