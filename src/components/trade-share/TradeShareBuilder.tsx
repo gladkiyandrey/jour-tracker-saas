@@ -52,6 +52,7 @@ const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
   { symbol: "USD/JPY", name: "US Dollar / Yen", type: "forex" },
+  { symbol: "XAU/USD", name: "Gold / US Dollar", type: "commodity" },
   { symbol: "BTC/USD", name: "Bitcoin / US Dollar", type: "cryptocurrency" },
   { symbol: "ETH/USD", name: "Ethereum / US Dollar", type: "cryptocurrency" },
   { symbol: "SOL/USD", name: "Solana / US Dollar", type: "cryptocurrency" },
