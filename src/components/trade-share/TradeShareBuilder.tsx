@@ -724,8 +724,8 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
   return (
     <section className={styles.wrap}>
       <div className={styles.panel}>
-        <h1>Trade Share</h1>
-        <p>Create a share card from your trade data. Timezone: {timeZone}</p>
+        <h1>Trade Details</h1>
+        <p>Enter your trade data to generate the card. Timezone: {timeZone}</p>
 
         <div className={styles.formGrid}>
           <div className={`${styles.field} ${styles.fieldFull}`}>

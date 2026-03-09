@@ -49,9 +49,16 @@ export default function DashboardHomeClient({
   useEffect(() => {
     if (!tradeShareOpen) return;
     const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTradeShareOpen(false);
+      }
+    };
     document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [tradeShareOpen]);
 
@@ -122,8 +129,8 @@ export default function DashboardHomeClient({
           <div className="trade-share-modal" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="trade-share-modal-head">
               <div>
-                <h3>Create Trade Share</h3>
-                <p>Build and export a trade card without leaving your dashboard.</p>
+                <h3>Trade Share</h3>
+                <p>Create and export a trade card without leaving your dashboard.</p>
               </div>
               <button className="trade-share-modal-close" type="button" aria-label="Close Trade Share" onClick={() => setTradeShareOpen(false)}>
                 <svg viewBox="0 0 20 20" aria-hidden="true">
