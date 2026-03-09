@@ -358,6 +358,7 @@ export async function POST(req: Request) {
                 width: "234px",
                 height: "167px",
                 color: "#d8d8d8",
+                display: "flex",
               }}
             >
               {[
@@ -380,10 +381,11 @@ export async function POST(req: Request) {
                     fontSize: "14px",
                     lineHeight: "14px",
                     whiteSpace: "nowrap",
+                    display: "flex",
                   }}
                 >
-                  <div style={{ position: "absolute", left: 0, top: 0, width: "73px" }}>{label}</div>
-                  <div style={{ position: "absolute", left: "143px", top: 0, width: "91px" }}>{value}</div>
+                  <div style={{ position: "absolute", left: 0, top: 0, width: "73px", display: "flex" }}>{label}</div>
+                  <div style={{ position: "absolute", left: "143px", top: 0, width: "91px", display: "flex" }}>{value}</div>
                 </div>
               ))}
             </div>
