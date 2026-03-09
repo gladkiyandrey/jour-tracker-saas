@@ -33,6 +33,15 @@ type Props = {
   locale: Locale;
 };
 
+type PendingSync =
+  | {
+      type: "upsert";
+      entry: Entry;
+    }
+  | {
+      type: "delete";
+    };
+
 function formatDateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
@@ -91,6 +100,7 @@ function buildPath(
 export default function TrackerClient({ userKey, locale }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
+  const pendingSyncKey = `jour-tracker-pending-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
@@ -155,6 +165,17 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
   const [reviewMode, setReviewMode] = useState<"month" | "year">("month");
   const [syncError, setSyncError] = useState("");
+  const [pendingSyncs, setPendingSyncs] = useState<Record<string, PendingSync>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = localStorage.getItem(pendingSyncKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as Record<string, PendingSync>;
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  });
   const [shareLoading, setShareLoading] = useState(false);
   const [shareStatus, setShareStatus] = useState("");
   const [shareLink, setShareLink] = useState("");
@@ -381,6 +402,35 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [locale]);
 
   const storageKey = `jour-tracker-${userKey}`;
+  const pendingSyncCount = Object.keys(pendingSyncs).length;
+
+  const trackerSyncStatusText = useMemo(() => {
+    if (pendingSyncCount === 0) return "";
+    if (locale === "ru") {
+      return pendingSyncCount === 1
+        ? "1 изменение не синхронизировано"
+        : `${pendingSyncCount} изменений не синхронизировано`;
+    }
+    if (locale === "uk") {
+      return pendingSyncCount === 1
+        ? "1 зміну не синхронізовано"
+        : `${pendingSyncCount} змін не синхронізовано`;
+    }
+    return pendingSyncCount === 1 ? "1 change not synced" : `${pendingSyncCount} changes not synced`;
+  }, [locale, pendingSyncCount]);
+
+  const syncFailureMessage = (action: "save" | "delete") =>
+    locale === "ru"
+      ? action === "save"
+        ? "Сохранено локально, но cloud sync не удался. Повторите попытку."
+        : "Удалено локально, но cloud sync не удался. Повторите попытку."
+      : locale === "uk"
+        ? action === "save"
+          ? "Збережено локально, але cloud sync не вдався. Спробуйте ще раз."
+          : "Видалено локально, але cloud sync не вдався. Спробуйте ще раз."
+        : action === "save"
+          ? "Saved locally, but cloud sync failed. Try again."
+          : "Cleared locally, but cloud sync failed. Try again.";
 
   useEffect(() => {
     let cancelled = false;
@@ -395,10 +445,18 @@ export default function TrackerClient({ userKey, locale }: Props) {
         }
         const payload = (await res.json()) as { data?: Record<string, Entry> };
         if (!cancelled && payload.data) {
-          setDayData(payload.data);
+          const mergedData = { ...payload.data };
+          Object.entries(pendingSyncs).forEach(([dateKey, pending]) => {
+            if (pending.type === "delete") {
+              delete mergedData[dateKey];
+              return;
+            }
+            mergedData[dateKey] = pending.entry;
+          });
+          setDayData(mergedData);
           setSyncError("");
           try {
-            localStorage.setItem(storageKey, JSON.stringify(payload.data));
+            localStorage.setItem(storageKey, JSON.stringify(mergedData));
           } catch {
             // ignore storage errors
           }
@@ -431,7 +489,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [locale, storageKey, userKey]);
+  }, [locale, pendingSyncs, storageKey, userKey]);
 
   useEffect(() => {
     try {
@@ -440,6 +498,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
       // ignore storage errors
     }
   }, [dayData, storageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(pendingSyncKey, JSON.stringify(pendingSyncs));
+    } catch {
+      // ignore storage errors
+    }
+  }, [pendingSyncKey, pendingSyncs]);
 
   useEffect(() => {
     try {
@@ -1476,6 +1542,51 @@ export default function TrackerClient({ userKey, locale }: Props) {
     setModalError("");
   };
 
+  const syncPendingOperation = async (dateKey: string, pending: PendingSync) => {
+    const res = await fetch("/api/tracker/entries", {
+      method: pending.type === "delete" ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body:
+        pending.type === "delete"
+          ? JSON.stringify({ dateKey })
+          : JSON.stringify({
+              dateKey,
+              result: pending.entry.result,
+              variant: pending.entry.variant,
+              deposit: pending.entry.deposit,
+              trades: pending.entry.trades,
+            }),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to sync (${res.status})`);
+    }
+  };
+
+  const retryPendingSyncs = async () => {
+    const entries = Object.entries(pendingSyncs);
+    if (!entries.length) return;
+
+    const failed: Record<string, PendingSync> = {};
+    for (const [dateKey, pending] of entries) {
+      try {
+        await syncPendingOperation(dateKey, pending);
+      } catch {
+        failed[dateKey] = pending;
+      }
+    }
+
+    setPendingSyncs(failed);
+    setSyncError(
+      Object.keys(failed).length === 0
+        ? ""
+        : locale === "ru"
+          ? "Часть изменений всё ещё не синхронизирована. Повторите попытку."
+          : locale === "uk"
+            ? "Частину змін усе ще не синхронізовано. Спробуйте ще раз."
+            : "Some changes are still not synced. Try again.",
+    );
+  };
+
   const saveDay = async () => {
     if (!selectedDateKey) return;
     if (isFutureDateKey(selectedDateKey)) {
@@ -1542,33 +1653,23 @@ export default function TrackerClient({ userKey, locale }: Props) {
       ...prev,
       [selectedDateKey]: nextEntry,
     }));
+    setPendingSyncs((prev) => ({
+      ...prev,
+      [selectedDateKey]: { type: "upsert", entry: nextEntry },
+    }));
     setModalOpen(false);
     setSelectedDateKey("");
 
     try {
-      const res = await fetch("/api/tracker/entries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dateKey: selectedDateKey,
-          result: nextEntry.result,
-          variant: nextEntry.variant,
-          deposit: nextEntry.deposit,
-          trades: nextEntry.trades,
-        }),
+      await syncPendingOperation(selectedDateKey, { type: "upsert", entry: nextEntry });
+      setPendingSyncs((prev) => {
+        const next = { ...prev };
+        delete next[selectedDateKey];
+        return next;
       });
-      if (!res.ok) {
-        throw new Error(`Failed to save (${res.status})`);
-      }
       setSyncError("");
     } catch {
-      setSyncError(
-        locale === "ru"
-          ? "Сохранено локально, но cloud sync не удался. Повторите попытку."
-          : locale === "uk"
-            ? "Збережено локально, але cloud sync не вдався. Спробуйте ще раз."
-            : "Saved locally, but cloud sync failed. Try again.",
-      );
+      setSyncError(syncFailureMessage("save"));
     }
   };
 
@@ -1584,28 +1685,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
       delete next[selectedDateKey];
       return next;
     });
+    setPendingSyncs((prev) => ({
+      ...prev,
+      [selectedDateKey]: { type: "delete" },
+    }));
     setModalOpen(false);
     setModalError("");
     setSelectedDateKey("");
 
     try {
-      const res = await fetch("/api/tracker/entries", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dateKey: selectedDateKey }),
+      await syncPendingOperation(selectedDateKey, { type: "delete" });
+      setPendingSyncs((prev) => {
+        const next = { ...prev };
+        delete next[selectedDateKey];
+        return next;
       });
-      if (!res.ok) {
-        throw new Error(`Failed to clear (${res.status})`);
-      }
       setSyncError("");
     } catch {
-      setSyncError(
-        locale === "ru"
-          ? "Удалено локально, но cloud sync не удался. Повторите попытку."
-          : locale === "uk"
-            ? "Видалено локально, але cloud sync не вдався. Спробуйте ще раз."
-            : "Cleared locally, but cloud sync failed. Try again.",
-      );
+      setSyncError(syncFailureMessage("delete"));
     }
   };
 
@@ -1810,7 +1907,19 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </button>
               </div>
             </div>
-            {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
+            {syncError || pendingSyncCount > 0 ? (
+              <div className={styles.syncState}>
+                {syncError ? <p className={styles.syncError}>{syncError}</p> : null}
+                {pendingSyncCount > 0 ? (
+                  <div className={styles.syncPendingRow}>
+                    <span className={styles.syncPendingText}>{trackerSyncStatusText}</span>
+                    <button className={`btn ${styles.syncRetryBtn}`} type="button" onClick={retryPendingSyncs}>
+                      {locale === "ru" ? "Повторить sync" : locale === "uk" ? "Повторити sync" : "Retry sync"}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
 
           <div className={styles.legend}>
