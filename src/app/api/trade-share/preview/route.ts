@@ -279,10 +279,10 @@ export async function POST(req: Request) {
 
     const body = (await req.json()) as PreviewRequest;
     const curatedMatch = getCuratedAliasMatch(body.symbol || "");
-    if (curatedMatch && curatedMatch.requiresPro) {
+    if (curatedMatch && (curatedMatch.requiresPro || curatedMatch.requiresGrow)) {
       return NextResponse.json(
         {
-          error: "This market is not supported in Trade Share on the current data plan. Use forex, metals, or crypto symbols.",
+          error: "This market is not supported in Trade Share on the current data plan. Use forex or crypto symbols.",
           suggestions: [],
         },
         { status: 400 }
@@ -339,7 +339,7 @@ export async function POST(req: Request) {
       if (/starting with Pro|Pro plan/i.test(message)) {
         return NextResponse.json(
           {
-            error: "This market is not supported in Trade Share on the current data plan. Use forex, metals, or crypto symbols.",
+            error: "This market is not supported in Trade Share on the current data plan. Use forex or crypto symbols.",
             suggestions: [],
           },
           { status: 400 }

@@ -52,8 +52,6 @@ const POPULAR_SYMBOLS: SymbolItem[] = [
   { symbol: "EUR/USD", name: "Euro / US Dollar", type: "forex" },
   { symbol: "GBP/USD", name: "Pound / US Dollar", type: "forex" },
   { symbol: "USD/JPY", name: "US Dollar / Yen", type: "forex" },
-  { symbol: "XAU/USD", name: "Gold / US Dollar", type: "commodity" },
-  { symbol: "XAG/USD", name: "Silver / US Dollar", type: "commodity" },
   { symbol: "BTC/USD", name: "Bitcoin / US Dollar", type: "cryptocurrency" },
   { symbol: "ETH/USD", name: "Ethereum / US Dollar", type: "cryptocurrency" },
   { symbol: "SOL/USD", name: "Solana / US Dollar", type: "cryptocurrency" },
@@ -729,7 +727,7 @@ export default function TradeShareBuilder({ initialTimeZone }: TradeShareBuilder
               placeholder="EUR/USD"
               autoComplete="off"
             />
-            <span className={styles.fieldHint}>Supported: forex, metals, crypto</span>
+            <span className={styles.fieldHint}>Supported: forex, crypto</span>
             {showSymbolList ? (
               <div className={styles.symbolList} role="listbox" aria-label="Symbols">
                 {lookupSuggestions.map((item) => (

@@ -11,6 +11,7 @@ export type CuratedSymbolItem = {
   type: string;
   resolved: ResolvedSymbol;
   requiresPro?: boolean;
+  requiresGrow?: boolean;
 };
 
 const CURATED_SYMBOLS: CuratedSymbolItem[] = [
@@ -26,10 +27,10 @@ const CURATED_SYMBOLS: CuratedSymbolItem[] = [
   { symbol: "EUR/GBP", name: "Euro / British Pound", currency: "GBP", type: "forex", resolved: { symbol: "EUR/GBP" } },
   { symbol: "EUR/CHF", name: "Euro / Swiss Franc", currency: "CHF", type: "forex", resolved: { symbol: "EUR/CHF" } },
   { symbol: "GBP/CHF", name: "British Pound / Swiss Franc", currency: "CHF", type: "forex", resolved: { symbol: "GBP/CHF" } },
-  { symbol: "XAU/USD", name: "Gold / US Dollar", currency: "USD", type: "commodity", resolved: { symbol: "XAU/USD" } },
-  { symbol: "XAG/USD", name: "Silver / US Dollar", currency: "USD", type: "commodity", resolved: { symbol: "XAG/USD" } },
-  { symbol: "XPT/USD", name: "Platinum / US Dollar", currency: "USD", type: "commodity", resolved: { symbol: "XPT/USD" } },
-  { symbol: "XPD/USD", name: "Palladium / US Dollar", currency: "USD", type: "commodity", resolved: { symbol: "XPD/USD" } },
+  { symbol: "XAU/USD", name: "Gold / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XAU/USD" } },
+  { symbol: "XAG/USD", name: "Silver / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XAG/USD" } },
+  { symbol: "XPT/USD", name: "Platinum / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XPT/USD" } },
+  { symbol: "XPD/USD", name: "Palladium / US Dollar", currency: "USD", type: "commodity", requiresGrow: true, resolved: { symbol: "XPD/USD" } },
   { symbol: "BTC/USD", name: "Bitcoin / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "BTC/USD" } },
   { symbol: "ETH/USD", name: "Ethereum / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "ETH/USD" } },
   { symbol: "SOL/USD", name: "Solana / US Dollar", currency: "USD", type: "cryptocurrency", resolved: { symbol: "SOL/USD" } },
@@ -81,8 +82,14 @@ export function proMarketsEnabled() {
   return process.env.TWELVE_DATA_ENABLE_PRO_MARKETS === "true";
 }
 
+export function growMarketsEnabled() {
+  return process.env.TWELVE_DATA_ENABLE_GROW_MARKETS === "true";
+}
+
 export function isCuratedItemAvailable(item: CuratedSymbolItem) {
-  return !item.requiresPro || proMarketsEnabled();
+  if (item.requiresPro && !proMarketsEnabled()) return false;
+  if (item.requiresGrow && !growMarketsEnabled()) return false;
+  return true;
 }
 
 export function getCuratedAliasMatch(value: string) {
