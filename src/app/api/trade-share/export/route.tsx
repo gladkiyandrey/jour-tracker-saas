@@ -46,9 +46,11 @@ type ExportRequest = {
   timeZone: string;
 };
 
-function formatPrice(v: number | string | null) {
+function formatPrice(v: number | string | null, symbol?: string | null) {
   const n = Number(v);
   if (!Number.isFinite(n)) return "n/a";
+  const normalized = String(symbol || "").trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (normalized === "XAUUSD") return `${n.toFixed(2)} USD`;
   return `${n.toFixed(5)} USD`;
 }
 
@@ -363,8 +365,8 @@ export async function POST(req: Request) {
               }}
             >
               {[
-                ["Entry price", formatPrice(preview.entryPriceInput)],
-                ["Exit price", formatPrice(preview.exitPriceInput)],
+                ["Entry price", formatPrice(preview.entryPriceInput, preview.symbol)],
+                ["Exit price", formatPrice(preview.exitPriceInput, preview.symbol)],
                 ["Open Date", formatCompactDate(preview.entryTime, timeZone)],
                 ["Close Date", formatCompactDate(preview.exitTime, timeZone)],
                 ["Duration", formatDuration(preview.entryTime, preview.exitTime)],
