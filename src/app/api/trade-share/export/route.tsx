@@ -240,58 +240,22 @@ export async function POST(req: Request) {
               </defs>
               <path d={chart.fullPath} fill="none" stroke="rgba(129,129,129,0.58)" strokeWidth="1.9" />
               <path d={chart.fillPath} fill={tradeOutcome === "loss" ? "url(#trade-gradient-loss)" : "url(#trade-gradient-profit)"} style={{ mixBlendMode: "color-dodge" }} />
-              <>
               <path
                 d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
                 fill="none"
                 stroke="#F7D500"
-                strokeOpacity="0.18"
+                strokeOpacity="0.7"
                 strokeWidth="1.15"
                 strokeDasharray="5 6"
               />
-              <path
-                d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(chart.entryMarkerY + ((CHART_BOTTOM + 12) - chart.entryMarkerY) * 0.72).toFixed(2)}`}
-                fill="none"
-                stroke="#F7D500"
-                strokeOpacity="0.38"
-                strokeWidth="1.15"
-                strokeDasharray="5 6"
-              />
-              <path
-                d={`M ${chart.entryX.toFixed(2)} ${chart.entryMarkerY.toFixed(2)} L ${chart.entryX.toFixed(2)} ${(chart.entryMarkerY + ((CHART_BOTTOM + 12) - chart.entryMarkerY) * 0.42).toFixed(2)}`}
-                fill="none"
-                stroke="#F7D500"
-                strokeOpacity="0.72"
-                strokeWidth="1.15"
-                strokeDasharray="5 6"
-              />
-              </>
-              <>
               <path
                 d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(CHART_BOTTOM + 12).toFixed(2)}`}
                 fill="none"
                 stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
-                strokeOpacity="0.18"
-                strokeWidth="1.15"
-                strokeDasharray="5 6"
-              />
-              <path
-                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(chart.exitMarkerY + ((CHART_BOTTOM + 12) - chart.exitMarkerY) * 0.72).toFixed(2)}`}
-                fill="none"
-                stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
-                strokeOpacity="0.38"
-                strokeWidth="1.15"
-                strokeDasharray="5 6"
-              />
-              <path
-                d={`M ${chart.exitX.toFixed(2)} ${chart.exitMarkerY.toFixed(2)} L ${chart.exitX.toFixed(2)} ${(chart.exitMarkerY + ((CHART_BOTTOM + 12) - chart.exitMarkerY) * 0.42).toFixed(2)}`}
-                fill="none"
-                stroke={tradeOutcome === "loss" ? "#E84A6A" : "#00FFA3"}
                 strokeOpacity="0.72"
                 strokeWidth="1.15"
                 strokeDasharray="5 6"
               />
-              </>
               <path d={chart.segPath} fill="none" stroke={segmentColor} strokeWidth="2" />
             </svg>
 
