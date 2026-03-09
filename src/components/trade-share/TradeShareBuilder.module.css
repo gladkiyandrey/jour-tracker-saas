@@ -539,65 +539,17 @@
   z-index: 5;
 }
 
-.cardSymbolWrap {
+.ticker {
   position: absolute;
   left: 30px;
-  top: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 6;
-}
-
-.cardSymbolPairLogo {
-  position: relative;
-  width: 26px;
-  height: 18px;
-  flex: 0 0 auto;
-}
-
-.cardSymbolCoin {
-  position: absolute;
-  top: 0;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: #162347;
-}
-
-.cardSymbolCoinOffset {
-  left: 8px;
-}
-
-.cardSymbolFallback {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(255,255,255,0.16);
-  background: rgba(255,255,255,0.06);
-  color: #d8d8d8;
-  font-size: 8px;
-  font-weight: 700;
-}
-
-.ticker {
-  position: static;
+  top: 27px;
   font-weight: 400;
   font-size: 22px;
   line-height: 1.05;
   color: #d8d8d8;
   letter-spacing: 0;
   min-width: 0;
-  max-width: 110px;
+  max-width: 120px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
