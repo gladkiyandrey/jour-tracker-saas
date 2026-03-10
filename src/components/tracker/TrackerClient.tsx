@@ -228,7 +228,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         fri: "Пт",
         sat: "Сб",
         sun: "Вс",
-        aiAdvice: "Инсайт по дисциплине",
+        aiAdvice: "Совет по дисциплине",
         monthlyReview: "Обзор месяца",
         totalTrades: "Сделок за месяц",
         avgTrades: "Сделок в день (сред.)",
@@ -290,7 +290,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         fri: "Пт",
         sat: "Сб",
         sun: "Нд",
-        aiAdvice: "Інсайт щодо дисципліни",
+        aiAdvice: "Порада щодо дисципліни",
         monthlyReview: "Огляд місяця",
         totalTrades: "Угод за місяць",
         avgTrades: "Угод на день (серед.)",
@@ -351,7 +351,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       fri: "Fri",
       sat: "Sat",
       sun: "Sun",
-      aiAdvice: "Discipline insight",
+      aiAdvice: "Discipline advice",
       monthlyReview: "Monthly review",
       totalTrades: "Total trades (month)",
       avgTrades: "Avg trades/day",
@@ -2160,7 +2160,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
           <div className={`${styles.panel} ${styles.ai}`}>
             <h4>
-              <Image className={styles.aiIcon} src="/lamp.png" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
+              <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
             </h4>
             <p>{adviceSnapshot?.advice || aiLiveAdvice}</p>
           </div>
