@@ -1417,8 +1417,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [yearMonthlyAggregates]);
 
   const reviewTitle = trackerView === "year" ? ui.yearlyReview : ui.monthlyReview;
-  const monthPrimarySignal = signalizer.items[0] ?? null;
-
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
     const gridY = [28, 76, 124, 172, 220];
@@ -2264,34 +2262,40 @@ export default function TrackerClient({ userKey, locale }: Props) {
       {trackerView === "month" ? (
         <>
           <div className={styles.monthlyRow}>
-            <div className={styles.signalSolo}>
-              {monthPrimarySignal ? (
-                <div className={`${styles.signalItem} ${styles.signalItemStandalone}`}>
-                  <span
-                    className={`${styles.signalBadge} ${
-                      monthPrimarySignal.level === "critical"
-                        ? styles.signalBadgeCritical
-                        : monthPrimarySignal.level === "warn"
-                          ? styles.signalBadgeWarn
-                          : styles.signalBadgeOk
-                    }`}
-                  >
-                    {monthPrimarySignal.level === "critical" ? "ALERT" : monthPrimarySignal.level === "warn" ? "WARN" : "OK"}
-                  </span>
-                  <div className={styles.signalText}>
-                    <strong>{monthPrimarySignal.label}</strong>
-                    <p>{monthPrimarySignal.message}</p>
+            <div
+              className={`${styles.panel} ${styles.signalizer} ${
+                signalizer.summaryLevel === "critical"
+                  ? styles.signalCritical
+                  : signalizer.summaryLevel === "warn"
+                    ? styles.signalWarn
+                    : styles.signalOk
+              }`}
+            >
+              <h4>{ui.signalizer}</h4>
+              <p className={styles.signalSummary}>
+                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+              </p>
+              <div className={styles.signalList}>
+                {signalizer.items.map((item) => (
+                  <div key={`${item.level}-${item.label}`} className={styles.signalItem}>
+                    <span
+                      className={`${styles.signalBadge} ${
+                        item.level === "critical"
+                          ? styles.signalBadgeCritical
+                          : item.level === "warn"
+                            ? styles.signalBadgeWarn
+                            : styles.signalBadgeOk
+                      }`}
+                    >
+                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                    </span>
+                    <div className={styles.signalText}>
+                      <strong>{item.label}</strong>
+                      <p>{item.message}</p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className={`${styles.signalItem} ${styles.signalItemStandalone}`}>
-                  <span className={`${styles.signalBadge} ${styles.signalBadgeOk}`}>OK</span>
-                  <div className={styles.signalText}>
-                    <strong>{signalizer.summaryTitle}</strong>
-                    <p>{signalizer.summaryMessage}</p>
-                  </div>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
