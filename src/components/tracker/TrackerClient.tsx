@@ -176,7 +176,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
-  const [signalizerExpanded, setSignalizerExpanded] = useState(false);
   const [syncError, setSyncError] = useState("");
   const [pendingSyncs, setPendingSyncs] = useState<Record<string, PendingSync>>(() => {
     if (typeof window === "undefined") return {};
@@ -243,8 +242,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Вс",
         aiAdvice: "Совет по дисциплине",
-        showAllSignals: "Показать все сигналы",
-        hideSignals: "Свернуть сигналы",
         monthlyReview: "Обзор месяца",
         yearlyReview: "Обзор года",
         bestMonth: "Лучший месяц",
@@ -316,8 +313,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Нд",
         aiAdvice: "Порада щодо дисципліни",
-        showAllSignals: "Показати всі сигнали",
-        hideSignals: "Згорнути сигнали",
         monthlyReview: "Огляд місяця",
         yearlyReview: "Огляд року",
         bestMonth: "Найкращий місяць",
@@ -388,8 +383,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sat: "Sat",
       sun: "Sun",
       aiAdvice: "Discipline advice",
-      showAllSignals: "View all signals",
-      hideSignals: "Hide signals",
       monthlyReview: "Monthly review",
       yearlyReview: "Yearly review",
       bestMonth: "Best month",
@@ -1300,10 +1293,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   }, [adviceSnapshot, aiLiveAdvice, monthFilledCount, userKey, viewMonth, viewYear]);
 
-  useEffect(() => {
-    setSignalizerExpanded(false);
-  }, [trackerView, viewMonth, viewYear]);
-
   const periodReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
     const yearPrefix = `${viewYear}-`;
@@ -1428,8 +1417,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [yearMonthlyAggregates]);
 
   const reviewTitle = trackerView === "year" ? ui.yearlyReview : ui.monthlyReview;
-  const monthSignalItems = signalizerExpanded ? signalizer.items : signalizer.items.slice(0, 2);
-  const hasMoreMonthSignals = signalizer.items.length > 2;
+  const monthPrimarySignal = signalizer.items[0] ?? null;
 
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
@@ -2276,49 +2264,34 @@ export default function TrackerClient({ userKey, locale }: Props) {
       {trackerView === "month" ? (
         <>
           <div className={styles.monthlyRow}>
-            <div
-              className={`${styles.panel} ${styles.signalizer} ${
-                signalizer.summaryLevel === "critical"
-                  ? styles.signalCritical
-                  : signalizer.summaryLevel === "warn"
-                    ? styles.signalWarn
-                    : styles.signalOk
-              }`}
-            >
-              <h4>{ui.signalizer}</h4>
-              <p className={styles.signalSummary}>
-                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-              </p>
-              <div className={styles.signalList}>
-                {monthSignalItems.map((item) => (
-                  <div key={item.key} className={styles.signalItem}>
-                    <span
-                      className={`${styles.signalBadge} ${
-                        item.level === "critical"
-                          ? styles.signalBadgeCritical
-                          : item.level === "warn"
-                            ? styles.signalBadgeWarn
-                            : styles.signalBadgeOk
-                      }`}
-                    >
-                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                    </span>
-                    <div className={styles.signalText}>
-                      <strong>{item.label}</strong>
-                      <p>{item.message}</p>
-                    </div>
+            <div className={styles.signalSolo}>
+              {monthPrimarySignal ? (
+                <div className={`${styles.signalItem} ${styles.signalItemStandalone}`}>
+                  <span
+                    className={`${styles.signalBadge} ${
+                      monthPrimarySignal.level === "critical"
+                        ? styles.signalBadgeCritical
+                        : monthPrimarySignal.level === "warn"
+                          ? styles.signalBadgeWarn
+                          : styles.signalBadgeOk
+                    }`}
+                  >
+                    {monthPrimarySignal.level === "critical" ? "ALERT" : monthPrimarySignal.level === "warn" ? "WARN" : "OK"}
+                  </span>
+                  <div className={styles.signalText}>
+                    <strong>{monthPrimarySignal.label}</strong>
+                    <p>{monthPrimarySignal.message}</p>
                   </div>
-                ))}
-              </div>
-              {hasMoreMonthSignals ? (
-                <button
-                  type="button"
-                  className={styles.signalToggle}
-                  onClick={() => setSignalizerExpanded((prev) => !prev)}
-                >
-                  {signalizerExpanded ? ui.hideSignals : ui.showAllSignals}
-                </button>
-              ) : null}
+                </div>
+              ) : (
+                <div className={`${styles.signalItem} ${styles.signalItemStandalone}`}>
+                  <span className={`${styles.signalBadge} ${styles.signalBadgeOk}`}>OK</span>
+                  <div className={styles.signalText}>
+                    <strong>{signalizer.summaryTitle}</strong>
+                    <p>{signalizer.summaryMessage}</p>
+                  </div>
+                </div>
+              )}
             </div>
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
