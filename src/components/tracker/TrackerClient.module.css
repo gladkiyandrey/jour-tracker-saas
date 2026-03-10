@@ -419,6 +419,91 @@
   gap: 16px;
 }
 
+.yearOverviewPanel {
+  padding: 14px 16px 12px;
+}
+
+.yearOverviewHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.yearOverviewHead h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.yearOverviewNav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.yearOverviewNav strong {
+  min-width: 54px;
+  text-align: center;
+  color: #eef3ff;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.yearOverviewStats {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.yearOverviewItem {
+  border: 1px solid rgba(120, 136, 190, 0.24);
+  border-radius: 10px;
+  background: rgba(17, 24, 42, 0.72);
+  padding: 9px 10px;
+  display: grid;
+  gap: 5px;
+}
+
+.yearOverviewItem span {
+  color: #9ea9cc;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.yearOverviewItem strong {
+  color: #eef3ff;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.yearHighlightList {
+  margin-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.yearHighlightItem {
+  border: 1px solid rgba(120, 136, 190, 0.24);
+  border-radius: 10px;
+  background: rgba(15, 21, 37, 0.68);
+  padding: 9px 10px;
+  display: grid;
+  gap: 4px;
+}
+
+.yearHighlightItem span {
+  color: #9ea9cc;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.yearHighlightItem strong {
+  color: #eef3ff;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
 .calendarHead {
   display: flex;
   align-items: center;
@@ -475,21 +560,21 @@
 .yearCalendarGrid {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .yearMonthCard {
   border: 1px solid rgba(121, 133, 173, 0.24);
   border-radius: 10px;
   background: rgba(14, 20, 35, 0.62);
-  padding: 8px;
+  padding: 7px;
 }
 
 .yearMonthCard h5 {
   margin: 0;
   text-align: center;
-  font-size: 11px;
+  font-size: 10px;
   color: #d8e1ff;
   font-weight: 600;
 }
@@ -512,13 +597,13 @@
   margin-top: 6px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  gap: 3px;
 }
 
 .yearDay {
-  min-height: 24px;
-  border-radius: 7px;
-  font-size: 10px;
+  min-height: 20px;
+  border-radius: 6px;
+  font-size: 9px;
   line-height: 1;
   padding: 0;
 }
@@ -721,6 +806,24 @@
   grid-template-columns: 1.35fr 0.85fr;
   gap: 12px;
   align-items: start;
+}
+
+.yearRow {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1.35fr 0.85fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.yearCalendarPanel {
+  padding: 14px 16px 12px;
+}
+
+.yearMetaColumn {
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
 
 .weekly h4 {
@@ -999,6 +1102,10 @@
     grid-template-columns: 1fr;
   }
 
+  .yearRow {
+    grid-template-columns: 1fr;
+  }
+
   .shareRow {
     grid-template-columns: 1fr;
   }
@@ -1048,7 +1155,7 @@
   }
 
   .yearCalendarGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
   }
 

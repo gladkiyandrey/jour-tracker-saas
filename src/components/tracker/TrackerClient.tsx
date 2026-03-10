@@ -28,6 +28,19 @@ type AdviceSnapshot = {
   advice: string;
 };
 
+type MonthAggregate = {
+  month: number;
+  label: string;
+  trades: number;
+  greenDays: number;
+  redDays: number;
+  filledDays: number;
+  startDeposit: number;
+  endDeposit: number;
+  pnl: number;
+  disciplineScore: number;
+};
+
 type Props = {
   userKey: string;
   locale: Locale;
@@ -230,6 +243,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sun: "Вс",
         aiAdvice: "Совет по дисциплине",
         monthlyReview: "Обзор месяца",
+        yearlyReview: "Обзор года",
+        bestMonth: "Лучший месяц",
+        worstMonth: "Худший месяц",
+        tradingDays: "Торговых дней",
+        endBalance: "Баланс на конец",
+        avgTradesDay: "Сделок / день",
+        filledMonths: "Активных месяцев",
+        calendarYear: "Календарь года",
+        yearOverview: "Годовой обзор",
         totalTrades: "Сделок за месяц",
         avgTrades: "Сделок в день (сред.)",
         greenPnlSum: "Сумма PnL зеленых",
@@ -292,6 +314,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sun: "Нд",
         aiAdvice: "Порада щодо дисципліни",
         monthlyReview: "Огляд місяця",
+        yearlyReview: "Огляд року",
+        bestMonth: "Найкращий місяць",
+        worstMonth: "Найгірший місяць",
+        tradingDays: "Торгових днів",
+        endBalance: "Баланс на кінець",
+        avgTradesDay: "Угод / день",
+        filledMonths: "Активних місяців",
+        calendarYear: "Календар року",
+        yearOverview: "Річний огляд",
         totalTrades: "Угод за місяць",
         avgTrades: "Угод на день (серед.)",
         greenPnlSum: "Сума PnL зелених",
@@ -353,6 +384,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sun: "Sun",
       aiAdvice: "Discipline advice",
       monthlyReview: "Monthly review",
+      yearlyReview: "Yearly review",
+      bestMonth: "Best month",
+      worstMonth: "Worst month",
+      tradingDays: "Trading days",
+      endBalance: "Ending balance",
+      avgTradesDay: "Trades / day",
+      filledMonths: "Active months",
+      calendarYear: "Year calendar",
+      yearOverview: "Year overview",
       totalTrades: "Total trades (month)",
       avgTrades: "Avg trades/day",
       greenPnlSum: "Green PnL sum",
@@ -1255,8 +1295,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const periodReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
+    const yearPrefix = `${viewYear}-`;
+    const activePrefix = trackerView === "month" ? monthPrefix : yearPrefix;
     const periodItems = sortedEntries
-      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+      .filter(([dateKey]) => dateKey.startsWith(activePrefix))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
     const values = periodItems;
 
@@ -1317,7 +1359,64 @@ export default function TrackerClient({ userKey, locale }: Props) {
       avgErrorCost,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
     };
-  }, [locale, sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
+
+  const yearMonthlyAggregates = useMemo<MonthAggregate[]>(() => {
+    const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+
+    return Array.from({ length: 12 }, (_, month) => {
+      const monthPrefix = `${viewYear}-${String(month + 1).padStart(2, "0")}-`;
+      const items = sortedEntries
+        .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
+        .map(([, entry]) => entry);
+      const filledDays = items.length;
+      const trades = items.reduce((sum, item) => sum + (Number(item.trades) || 0), 0);
+      const greenDays = items.filter((item) => item.variant !== "neg").length;
+      const redDays = items.filter((item) => item.variant === "neg").length;
+      const disciplineScore = filledDays > 0 ? Math.round((greenDays / filledDays) * 100) : 0;
+      const startDeposit = filledDays > 0 ? Number(items[0].deposit) || 0 : 0;
+      const endDeposit = filledDays > 0 ? Number(items[items.length - 1].deposit) || 0 : 0;
+      const pnl = filledDays > 1 ? endDeposit - startDeposit : 0;
+      const date = new Date(viewYear, month, 1);
+      const labelRaw = date.toLocaleDateString(numberLocale, { month: "short" });
+      const label = labelRaw.charAt(0).toUpperCase() + labelRaw.slice(1);
+
+      return {
+        month,
+        label,
+        trades,
+        greenDays,
+        redDays,
+        filledDays,
+        startDeposit,
+        endDeposit,
+        pnl,
+        disciplineScore,
+      };
+    });
+  }, [locale, sortedEntries, viewYear]);
+
+  const yearOverview = useMemo(() => {
+    const activeMonths = yearMonthlyAggregates.filter((month) => month.filledDays > 0);
+    const totalFilledDays = activeMonths.reduce((sum, month) => sum + month.filledDays, 0);
+    const totalTrades = activeMonths.reduce((sum, month) => sum + month.trades, 0);
+    const endingBalance = activeMonths.length ? activeMonths[activeMonths.length - 1].endDeposit : 0;
+    const avgTradesDay = totalFilledDays > 0 ? (totalTrades / totalFilledDays).toFixed(1) : "0.0";
+    const bestMonth = [...activeMonths].sort((a, b) => b.pnl - a.pnl)[0] || null;
+    const worstMonth = [...activeMonths].sort((a, b) => a.pnl - b.pnl)[0] || null;
+
+    return {
+      activeMonths: activeMonths.length,
+      totalFilledDays,
+      totalTrades,
+      endingBalance,
+      avgTradesDay,
+      bestMonth,
+      worstMonth,
+    };
+  }, [yearMonthlyAggregates]);
+
+  const reviewTitle = trackerView === "year" ? ui.yearlyReview : ui.monthlyReview;
 
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
@@ -1868,6 +1967,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return () => window.removeEventListener("keydown", handler);
   }, [modalOpen]);
 
+  const formatUsdValue = (value: number, signed = false) => {
+    const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
+    const rounded = Math.round(Math.abs(value));
+    if (signed) {
+      const sign = value >= 0 ? "+" : "-";
+      return `${sign}${rounded.toLocaleString(numberLocale)}$`;
+    }
+    return `${rounded.toLocaleString(numberLocale)}$`;
+  };
+
   return (
     <section className={styles.wrapper}>
       <div className={styles.tracker}>
@@ -2027,136 +2136,119 @@ export default function TrackerClient({ userKey, locale }: Props) {
         </div>
 
         <div className={styles.side}>
-          <div className={styles.panel}>
-            {trackerView === "month" ? (
-              <>
-                <div className={styles.calendarHead}>
-                  <button
-                    type="button"
-                    className={styles.arrow}
-                    aria-label="Previous month"
-                    onClick={() => {
-                      setViewMonth((prev) => {
-                        if (prev === 0) {
-                          setViewYear((y) => y - 1);
-                          return 11;
-                        }
-                        return prev - 1;
-                      });
-                    }}
-                  >
+          {trackerView === "month" ? (
+            <div className={styles.panel}>
+              <div className={styles.calendarHead}>
+                <button
+                  type="button"
+                  className={styles.arrow}
+                  aria-label="Previous month"
+                  onClick={() => {
+                    setViewMonth((prev) => {
+                      if (prev === 0) {
+                        setViewYear((y) => y - 1);
+                        return 11;
+                      }
+                      return prev - 1;
+                    });
+                  }}
+                >
+                  ‹
+                </button>
+                <h3>{monthLabel}</h3>
+                <button
+                  type="button"
+                  className={styles.arrow}
+                  aria-label="Next month"
+                  onClick={() => {
+                    setViewMonth((prev) => {
+                      if (prev === 11) {
+                        setViewYear((y) => y + 1);
+                        return 0;
+                      }
+                      return prev + 1;
+                    });
+                  }}
+                >
+                  ›
+                </button>
+              </div>
+
+              <div className={styles.weekdays}>
+                <span>{ui.mon}</span>
+                <span>{ui.tue}</span>
+                <span>{ui.wed}</span>
+                <span>{ui.thu}</span>
+                <span>{ui.fri}</span>
+                <span>{ui.sat}</span>
+                <span>{ui.sun}</span>
+              </div>
+
+              <div className={styles.calendarGrid}>
+                {calendarCells.map((cell, index) => {
+                  if (cell.kind === "empty") {
+                    return <button key={`empty-${index}`} className={`${styles.day} ${styles.dayEmpty}`} type="button" />;
+                  }
+
+                  return (
+                    <button
+                      key={cell.dateKey}
+                      type="button"
+                      className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
+                      onClick={() => openModal(cell.dateKey)}
+                      disabled={cell.isFuture}
+                      aria-disabled={cell.isFuture}
+                    >
+                      {cell.day}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className={`${styles.panel} ${styles.yearOverviewPanel}`}>
+              <div className={styles.yearOverviewHead}>
+                <h3>{ui.yearOverview}</h3>
+                <div className={styles.yearOverviewNav}>
+                  <button type="button" className={styles.arrow} aria-label="Previous year" onClick={() => setViewYear((y) => y - 1)}>
                     ‹
                   </button>
-                  <h3>{monthLabel}</h3>
-                  <button
-                    type="button"
-                    className={styles.arrow}
-                    aria-label="Next month"
-                    onClick={() => {
-                      setViewMonth((prev) => {
-                        if (prev === 11) {
-                          setViewYear((y) => y + 1);
-                          return 0;
-                        }
-                        return prev + 1;
-                      });
-                    }}
-                  >
+                  <strong>{viewYear}</strong>
+                  <button type="button" className={styles.arrow} aria-label="Next year" onClick={() => setViewYear((y) => y + 1)}>
                     ›
                   </button>
                 </div>
-
-                <div className={styles.weekdays}>
-                  <span>{ui.mon}</span>
-                  <span>{ui.tue}</span>
-                  <span>{ui.wed}</span>
-                  <span>{ui.thu}</span>
-                  <span>{ui.fri}</span>
-                  <span>{ui.sat}</span>
-                  <span>{ui.sun}</span>
+              </div>
+              <div className={styles.yearOverviewStats}>
+                <div className={styles.yearOverviewItem}>
+                  <span>{ui.endBalance}</span>
+                  <strong>{formatUsdValue(yearOverview.endingBalance)}</strong>
                 </div>
-
-                <div className={styles.calendarGrid}>
-                  {calendarCells.map((cell, index) => {
-                    if (cell.kind === "empty") {
-                      return (
-                        <button key={`empty-${index}`} className={`${styles.day} ${styles.dayEmpty}`} type="button" />
-                      );
-                    }
-
-                    return (
-                      <button
-                        key={cell.dateKey}
-                        type="button"
-                        className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
-                        onClick={() => openModal(cell.dateKey)}
-                        disabled={cell.isFuture}
-                        aria-disabled={cell.isFuture}
-                      >
-                        {cell.day}
-                      </button>
-                    );
-                  })}
+                <div className={styles.yearOverviewItem}>
+                  <span>{ui.tradingDays}</span>
+                  <strong>{yearOverview.totalFilledDays}</strong>
                 </div>
-              </>
-            ) : (
-              <>
-                <div className={styles.calendarHead}>
-                  <button
-                    type="button"
-                    className={styles.arrow}
-                    aria-label="Previous year"
-                    onClick={() => setViewYear((y) => y - 1)}
-                  >
-                    ‹
-                  </button>
-                  <h3>{viewYear}</h3>
-                  <button
-                    type="button"
-                    className={styles.arrow}
-                    aria-label="Next year"
-                    onClick={() => setViewYear((y) => y + 1)}
-                  >
-                    ›
-                  </button>
+                <div className={styles.yearOverviewItem}>
+                  <span>{ui.avgTradesDay}</span>
+                  <strong>{yearOverview.avgTradesDay}</strong>
                 </div>
-                <div className={styles.yearCalendarGrid}>
-                  {yearCalendarMonths.map((month) => (
-                    <div key={month.month} className={styles.yearMonthCard}>
-                      <h5>{month.label}</h5>
-                      <div className={styles.yearWeekdays}>
-                        <span>{ui.mon}</span>
-                        <span>{ui.tue}</span>
-                        <span>{ui.wed}</span>
-                        <span>{ui.thu}</span>
-                        <span>{ui.fri}</span>
-                        <span>{ui.sat}</span>
-                        <span>{ui.sun}</span>
-                      </div>
-                      <div className={styles.yearMonthDays}>
-                        {month.cells.map((cell, index) =>
-                          cell.kind === "empty" ? (
-                            <button key={`y-empty-${month.month}-${index}`} className={`${styles.yearDay} ${styles.dayEmpty}`} type="button" />
-                          ) : (
-                            <button
-                              key={cell.dateKey}
-                              type="button"
-                              className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
-                              onClick={() => openModal(cell.dateKey)}
-                              disabled={cell.isFuture}
-                              aria-disabled={cell.isFuture}
-                            >
-                              {cell.day}
-                            </button>
-                          ),
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                <div className={styles.yearOverviewItem}>
+                  <span>{ui.filledMonths}</span>
+                  <strong>{yearOverview.activeMonths}</strong>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+              <div className={styles.yearHighlightList}>
+                <div className={styles.yearHighlightItem}>
+                  <span>{ui.bestMonth}</span>
+                  <strong>{yearOverview.bestMonth ? `${yearOverview.bestMonth.label} · ${formatUsdValue(yearOverview.bestMonth.pnl, true)}` : "—"}</strong>
+                </div>
+                <div className={styles.yearHighlightItem}>
+                  <span>{ui.worstMonth}</span>
+                  <strong>{yearOverview.worstMonth ? `${yearOverview.worstMonth.label} · ${formatUsdValue(yearOverview.worstMonth.pnl, true)}` : "—"}</strong>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={`${styles.panel} ${styles.ai}`}>
             <h4>
@@ -2164,182 +2256,295 @@ export default function TrackerClient({ userKey, locale }: Props) {
             </h4>
             <p>{adviceSnapshot?.advice || aiLiveAdvice}</p>
           </div>
-
         </div>
       </div>
 
-      <div className={styles.monthlyRow}>
-        <div
-          className={`${styles.panel} ${styles.signalizer} ${
-            signalizer.summaryLevel === "critical"
-              ? styles.signalCritical
-              : signalizer.summaryLevel === "warn"
-                ? styles.signalWarn
-                : styles.signalOk
-          }`}
-        >
-          <h4>{ui.signalizer}</h4>
-          <p className={styles.signalSummary}>
-            <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-          </p>
-          <div className={styles.signalList}>
-            {signalizer.items.map((item) => (
-              <div key={item.key} className={styles.signalItem}>
-                <span
-                  className={`${styles.signalBadge} ${
-                    item.level === "critical"
-                      ? styles.signalBadgeCritical
-                      : item.level === "warn"
-                        ? styles.signalBadgeWarn
-                        : styles.signalBadgeOk
-                  }`}
-                >
-                  {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                </span>
-                <div className={styles.signalText}>
-                  <strong>{item.label}</strong>
-                  <p>{item.message}</p>
+      {trackerView === "month" ? (
+        <>
+          <div className={styles.monthlyRow}>
+            <div
+              className={`${styles.panel} ${styles.signalizer} ${
+                signalizer.summaryLevel === "critical"
+                  ? styles.signalCritical
+                  : signalizer.summaryLevel === "warn"
+                    ? styles.signalWarn
+                    : styles.signalOk
+              }`}
+            >
+              <h4>{ui.signalizer}</h4>
+              <p className={styles.signalSummary}>
+                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+              </p>
+              <div className={styles.signalList}>
+                {signalizer.items.map((item) => (
+                  <div key={item.key} className={styles.signalItem}>
+                    <span
+                      className={`${styles.signalBadge} ${
+                        item.level === "critical"
+                          ? styles.signalBadgeCritical
+                          : item.level === "warn"
+                            ? styles.signalBadgeWarn
+                            : styles.signalBadgeOk
+                      }`}
+                    >
+                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                    </span>
+                    <div className={styles.signalText}>
+                      <strong>{item.label}</strong>
+                      <p>{item.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={`${styles.panel} ${styles.weekly}`}>
+              <div className={styles.reviewHeader}>
+                <h4>{reviewTitle}</h4>
+              </div>
+              <div className={styles.weeklyGrid}>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.totalTrades}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.totalTradesHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-total-trades");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-total-trades") ? styles.metricTooltipVisible : ""}`}>{ui.totalTradesHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.totalTrades}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.avgTrades}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.avgTradesHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-avg-trades");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-avg-trades") ? styles.metricTooltipVisible : ""}`}>{ui.avgTradesHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.avgTrades}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.greenPnlSum}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.greenPnlSumHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-green-pnl");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-green-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.greenPnlSumHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.greenPnlSum}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.redPnlSum}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.redPnlSumHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-red-pnl");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-red-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.redPnlSumHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.redPnlSum}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.avgErrorCost}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.avgErrorCostHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-avg-error-cost");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-avg-error-cost") ? styles.metricTooltipVisible : ""}`}>{ui.avgErrorCostHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.avgErrorCost}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.maxDrawdown}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.maxDrawdownHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-max-dd");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-max-dd") ? styles.metricTooltipVisible : ""}`}>{ui.maxDrawdownHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.maxDrawdown}</strong>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-        <div className={`${styles.panel} ${styles.weekly}`}>
-          <div className={styles.reviewHeader}>
-            <h4>{ui.monthlyReview}</h4>
-          </div>
-          <div className={styles.weeklyGrid}>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.totalTrades}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.totalTradesHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-total-trades");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-total-trades") ? styles.metricTooltipVisible : ""}`}>{ui.totalTradesHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.totalTrades}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.avgTrades}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.avgTradesHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-avg-trades");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-avg-trades") ? styles.metricTooltipVisible : ""}`}>{ui.avgTradesHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.avgTrades}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.greenPnlSum}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.greenPnlSumHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-green-pnl");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-green-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.greenPnlSumHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.greenPnlSum}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.redPnlSum}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.redPnlSumHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-red-pnl");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-red-pnl") ? styles.metricTooltipVisible : ""}`}>{ui.redPnlSumHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.redPnlSum}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.avgErrorCost}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.avgErrorCostHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-avg-error-cost");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-avg-error-cost") ? styles.metricTooltipVisible : ""}`}>{ui.avgErrorCostHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.avgErrorCost}</strong>
-            </div>
-            <div className={styles.weeklyItem}>
-              <div className={styles.metricLabel}>
-                <span>{ui.maxDrawdown}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.maxDrawdownHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("review-max-dd");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("review-max-dd") ? styles.metricTooltipVisible : ""}`}>{ui.maxDrawdownHint}</span>
-                </button>
-              </div>
-              <strong>{periodReview.maxDrawdown}</strong>
             </div>
           </div>
-        </div>
-      </div>
 
-      <div className={styles.shareRow}>
-        <div />
-        <div className={styles.shareBar}>
-          <div className={styles.shareInline}>
-            <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-              {shareLoading ? ui.creating : ui.shareSequence}
-            </button>
-            <span className={styles.shareStatus}>{shareStatus}</span>
-          </div>
-          {shareLink ? (
-            <div className={styles.shareManualRow}>
-              <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
-              <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
-                {ui.copy}
-              </button>
+          <div className={styles.shareRow}>
+            <div />
+            <div className={styles.shareBar}>
+              <div className={styles.shareInline}>
+                <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
+                  {shareLoading ? ui.creating : ui.shareSequence}
+                </button>
+                <span className={styles.shareStatus}>{shareStatus}</span>
+              </div>
+              {shareLink ? (
+                <div className={styles.shareManualRow}>
+                  <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
+                  <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
+                    {ui.copy}
+                  </button>
+                </div>
+              ) : null}
             </div>
-          ) : null}
+          </div>
+        </>
+      ) : (
+        <div className={styles.yearRow}>
+          <div className={`${styles.panel} ${styles.yearCalendarPanel}`}>
+            <div className={styles.reviewHeader}>
+              <h4>{ui.calendarYear}</h4>
+            </div>
+            <div className={styles.yearCalendarGrid}>
+              {yearCalendarMonths.map((month) => (
+                <div key={month.month} className={styles.yearMonthCard}>
+                  <h5>{month.label}</h5>
+                  <div className={styles.yearWeekdays}>
+                    <span>{ui.mon}</span>
+                    <span>{ui.tue}</span>
+                    <span>{ui.wed}</span>
+                    <span>{ui.thu}</span>
+                    <span>{ui.fri}</span>
+                    <span>{ui.sat}</span>
+                    <span>{ui.sun}</span>
+                  </div>
+                  <div className={styles.yearMonthDays}>
+                    {month.cells.map((cell, index) =>
+                      cell.kind === "empty" ? (
+                        <button key={`y-empty-${month.month}-${index}`} className={`${styles.yearDay} ${styles.dayEmpty}`} type="button" />
+                      ) : (
+                        <button
+                          key={cell.dateKey}
+                          type="button"
+                          className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
+                          onClick={() => openModal(cell.dateKey)}
+                          disabled={cell.isFuture}
+                          aria-disabled={cell.isFuture}
+                        >
+                          {cell.day}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className={styles.yearMetaColumn}>
+            <div
+              className={`${styles.panel} ${styles.signalizer} ${
+                signalizer.summaryLevel === "critical"
+                  ? styles.signalCritical
+                  : signalizer.summaryLevel === "warn"
+                    ? styles.signalWarn
+                    : styles.signalOk
+              }`}
+            >
+              <h4>{ui.signalizer}</h4>
+              <p className={styles.signalSummary}>
+                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+              </p>
+              <div className={styles.signalList}>
+                {signalizer.items.slice(0, 4).map((item) => (
+                  <div key={item.key} className={styles.signalItem}>
+                    <span
+                      className={`${styles.signalBadge} ${
+                        item.level === "critical"
+                          ? styles.signalBadgeCritical
+                          : item.level === "warn"
+                            ? styles.signalBadgeWarn
+                            : styles.signalBadgeOk
+                      }`}
+                    >
+                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                    </span>
+                    <div className={styles.signalText}>
+                      <strong>{item.label}</strong>
+                      <p>{item.message}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={`${styles.panel} ${styles.weekly}`}>
+              <div className={styles.reviewHeader}>
+                <h4>{reviewTitle}</h4>
+              </div>
+              <div className={styles.weeklyGrid}>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.totalTrades}</span>
+                  <strong>{periodReview.totalTrades}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.avgTradesDay}</span>
+                  <strong>{yearOverview.avgTradesDay}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.greenPnlSum}</span>
+                  <strong>{periodReview.greenPnlSum}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.redPnlSum}</span>
+                  <strong>{periodReview.redPnlSum}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.avgErrorCost}</span>
+                  <strong>{periodReview.avgErrorCost}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <span>{ui.maxDrawdown}</span>
+                  <strong>{periodReview.maxDrawdown}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {modalOpen ? (
         <div className={styles.modalBackdrop} onClick={closeModal} role="presentation">
