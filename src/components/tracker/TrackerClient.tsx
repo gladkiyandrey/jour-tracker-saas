@@ -272,6 +272,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sharePopupTitle: "Поделиться серией",
         sharePopupHint: "Ссылка готова. Скопируйте её и отправьте куда угодно.",
         copy: "Копировать",
+        copied: "Скопировано",
         close: "Закрыть",
         daySettings: "Настройки дня",
         result: "Результат",
@@ -346,6 +347,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sharePopupTitle: "Поділитися серією",
         sharePopupHint: "Посилання готове. Скопіюйте його та надішліть будь-де.",
         copy: "Копіювати",
+        copied: "Скопійовано",
         close: "Закрити",
         daySettings: "Налаштування дня",
         result: "Результат",
@@ -419,6 +421,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sharePopupTitle: "Share sequence",
       sharePopupHint: "Your link is ready. Copy it and share it anywhere.",
       copy: "Copy",
+      copied: "Copied",
       close: "Close",
       daySettings: "Day settings",
       result: "Result",
@@ -2649,8 +2652,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 placeholder={shareLoading ? ui.creating : ""}
                 onFocus={(event) => event.currentTarget.select()}
               />
-              <button type="button" className={styles.shareModalCopyBtn} onClick={copyShareLink} disabled={shareLoading || !shareLink}>
-                {ui.copy}
+              <button
+                type="button"
+                className={`${styles.shareModalCopyBtn} ${copyFlash ? styles.shareModalCopyBtnOk : ""}`}
+                onClick={copyShareLink}
+                disabled={shareLoading || !shareLink}
+              >
+                {copyFlash ? ui.copied : ui.copy}
               </button>
             </div>
             {shareStatus ? <p className={styles.shareModalStatus}>{shareStatus}</p> : null}

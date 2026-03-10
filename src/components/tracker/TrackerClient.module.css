@@ -231,11 +231,24 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.shareModalCopyBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(151, 173, 255, 0.52);
+  background: rgba(89, 137, 255, 0.42);
 }
 
 .shareModalCopyBtn:disabled {
   opacity: 0.7;
   cursor: default;
+}
+
+.shareModalCopyBtnOk {
+  border-color: rgba(63, 214, 133, 0.42);
+  background: rgba(21, 111, 63, 0.45);
+  color: #dcffee;
 }
 
 .shareModalStatus {
