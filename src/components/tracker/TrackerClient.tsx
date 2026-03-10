@@ -2032,32 +2032,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                       {shareLoading ? (
                         <span className={styles.shareIconGlyph}>…</span>
                       ) : (
-                        <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.shareIconSvg}>
-                          <path
-                            d="M15 6h3.5A1.5 1.5 0 0 1 20 7.5V19a1 1 0 0 1-1 1H7.5A1.5 1.5 0 0 1 6 18.5V15"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M10 14 18 6"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                          <path
-                            d="M12.5 6H18v5.5"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          />
-                        </svg>
+                        <Image src="/share-icon.svg" alt="" aria-hidden width={18} height={18} className={styles.shareIconSvg} />
                       )}
                     </button>
                     {shareStatus ? <span className={styles.shareHeadStatus}>{shareStatus}</span> : null}
