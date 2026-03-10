@@ -1914,7 +1914,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const flashShareCopy = () => {
     setCopyFlash(true);
-    window.setTimeout(() => setCopyFlash(false), 700);
   };
 
   const fallbackCopyText = (text: string) => {
@@ -1953,6 +1952,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const createShare = async () => {
     setShareStatus("");
     setShareLink("");
+    setCopyFlash(false);
     setShareLoading(true);
     try {
       const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -2041,6 +2041,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
       if (event.key === "Escape" && shareModalOpen) {
+        setCopyFlash(false);
         setShareModalOpen(false);
         return;
       }
@@ -2632,14 +2633,29 @@ export default function TrackerClient({ userKey, locale }: Props) {
       )}
 
       {shareModalOpen ? (
-        <div className={styles.shareModalBackdrop} onClick={() => setShareModalOpen(false)} role="presentation">
+        <div
+          className={styles.shareModalBackdrop}
+          onClick={() => {
+            setCopyFlash(false);
+            setShareModalOpen(false);
+          }}
+          role="presentation"
+        >
           <div className={styles.shareModal} role="dialog" aria-modal="true" aria-labelledby="tracker-share-modal-title" onClick={(e) => e.stopPropagation()}>
             <div className={styles.shareModalHeader}>
               <div>
                 <h3 id="tracker-share-modal-title">{ui.sharePopupTitle}</h3>
                 <p>{ui.sharePopupHint}</p>
               </div>
-              <button type="button" className={styles.shareModalClose} onClick={() => setShareModalOpen(false)} aria-label={ui.close}>
+              <button
+                type="button"
+                className={styles.shareModalClose}
+                onClick={() => {
+                  setCopyFlash(false);
+                  setShareModalOpen(false);
+                }}
+                aria-label={ui.close}
+              >
                 ×
               </button>
             </div>
