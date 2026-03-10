@@ -652,12 +652,12 @@
 
 .dayPosOutline {
   background: rgba(23, 144, 93, 0.62);
-  border-color: rgba(255, 255, 255, 0.95);
-  box-shadow: inset 0 0 0 0.5px #fff;
+  border-color: transparent;
+  box-shadow: inset 0 0 0 1px #fff;
 }
 
 .dayPosSelected {
-  box-shadow: inset 0 0 0 0.5px #fff;
+  box-shadow: inset 0 0 0 1px #fff;
 }
 
 .daySelected {
