@@ -1362,6 +1362,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const yearMonthlyAggregates = useMemo<MonthAggregate[]>(() => {
+    if (trackerView !== "year") {
+      return [];
+    }
+
     const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
 
     return Array.from({ length: 12 }, (_, month) => {
@@ -1394,9 +1398,21 @@ export default function TrackerClient({ userKey, locale }: Props) {
         disciplineScore,
       };
     });
-  }, [locale, sortedEntries, viewYear]);
+  }, [locale, sortedEntries, trackerView, viewYear]);
 
   const yearOverview = useMemo(() => {
+    if (trackerView !== "year") {
+      return {
+        activeMonths: 0,
+        totalFilledDays: 0,
+        totalTrades: 0,
+        endingBalance: 0,
+        avgTradesDay: "0.0",
+        bestMonth: null,
+        worstMonth: null,
+      };
+    }
+
     const activeMonths = yearMonthlyAggregates.filter((month) => month.filledDays > 0);
     const totalFilledDays = activeMonths.reduce((sum, month) => sum + month.filledDays, 0);
     const totalTrades = activeMonths.reduce((sum, month) => sum + month.trades, 0);
@@ -1414,7 +1430,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       bestMonth,
       worstMonth,
     };
-  }, [yearMonthlyAggregates]);
+  }, [trackerView, yearMonthlyAggregates]);
 
   const reviewTitle = trackerView === "year" ? ui.yearlyReview : ui.monthlyReview;
   const chartModel = useMemo(() => {
@@ -1844,6 +1860,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [viewMonth, viewYear, dayData, selectedDateKey, todayKey]);
 
   const yearCalendarMonths = useMemo(() => {
+    if (trackerView !== "year") {
+      return [];
+    }
+
     const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
     return Array.from({ length: 12 }, (_, month) => {
       const date = new Date(viewYear, month, 1);
@@ -1854,7 +1874,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         cells: buildMonthCells(viewYear, month),
       };
     });
-  }, [locale, viewYear, dayData, selectedDateKey, todayKey]);
+  }, [locale, trackerView, viewYear, dayData, selectedDateKey, todayKey]);
 
   const monthLabel = useMemo(() => {
     const date = new Date(viewYear, viewMonth, 1);
