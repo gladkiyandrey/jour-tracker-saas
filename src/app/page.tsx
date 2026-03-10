@@ -13,6 +13,7 @@ const landingCopy = {
       "Consist helps traders turn discipline into a visible system: mark every trading day, review execution patterns, and generate clean trade share cards without leaving the dashboard.",
     heroPrimary: "Start free",
     heroSecondary: "View pricing",
+    heroProof: ["Manual workflow, ready today", "Behavior-first review", "Built for real posting"],
     heroStats: [
       ["Daily discipline tracking", "Color-coded days with fast end-of-day logging."],
       ["Behavior-focused review", "See whether you are stable, drifting, or overheating."],
@@ -104,6 +105,7 @@ const landingCopy = {
       "Consist помогает трейдеру превратить дисциплину в понятную систему: отмечать каждый торговый день, видеть поведенческие паттерны и собирать чистые trade share карточки прямо внутри кабинета.",
     heroPrimary: "Начать",
     heroSecondary: "Посмотреть тариф",
+    heroProof: ["Ручной workflow, готовый уже сейчас", "Обзор поведения в центре", "Сделано под реальные публикации"],
     heroStats: [
       ["Ежедневный контроль дисциплины", "Цветовые дни и быстрый end-of-day лог."],
       ["Поведенческий обзор", "Видно, когда ты стабилен, дрейфуешь или перегреваешься."],
@@ -195,6 +197,7 @@ const landingCopy = {
       "Consist допомагає трейдеру перетворити дисципліну на зрозумілу систему: позначати кожен торговий день, бачити поведінкові патерни та збирати чисті trade share картки прямо в кабінеті.",
     heroPrimary: "Почати",
     heroSecondary: "Переглянути тариф",
+    heroProof: ["Ручний workflow, готовий вже зараз", "Огляд поведінки в центрі", "Зроблено під реальні публікації"],
     heroStats: [
       ["Щоденний контроль дисципліни", "Кольорові дні та швидкий end-of-day лог."],
       ["Поведінковий огляд", "Видно, коли ти стабільний, дрейфуєш або перегріваєшся."],
@@ -312,6 +315,11 @@ export default async function HomePage() {
                 {copy.heroSecondary}
               </Link>
             </div>
+            <div className="landing-proof-strip">
+              {copy.heroProof.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
             <div className="landing-stat-grid">
               {copy.heroStats.map(([title, text]) => (
                 <article key={title} className="landing-stat-card">
@@ -404,6 +412,8 @@ export default async function HomePage() {
                         <strong>+2.88%</strong>
                       </div>
                       <div className="landing-share-chart">
+                        <div className="landing-share-gridline landing-share-gridline-left" />
+                        <div className="landing-share-gridline landing-share-gridline-right" />
                         <i className="landing-share-line landing-share-line-gray" />
                         <i className="landing-share-line landing-share-line-green" />
                       </div>
@@ -476,6 +486,8 @@ export default async function HomePage() {
               </div>
               <div className="landing-share-preview-chart">
                 <div className="landing-chart-glow" />
+                <div className="landing-share-gridline landing-share-gridline-left" />
+                <div className="landing-share-gridline landing-share-gridline-right" />
                 <svg viewBox="0 0 320 180" className="landing-chart-svg" aria-hidden>
                   <path d="M0 74 C25 58, 40 100, 64 92 C92 84, 90 28, 116 48 C142 68, 144 112, 170 110 C200 108, 210 26, 236 38 C268 54, 276 142, 320 126" />
                 </svg>
