@@ -144,6 +144,107 @@
   max-width: 160px;
 }
 
+.shareModalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(5, 10, 22, 0.62);
+  backdrop-filter: blur(8px);
+}
+
+.shareModal {
+  width: min(520px, 100%);
+  border-radius: 16px;
+  border: 1px solid rgba(120, 136, 190, 0.32);
+  background: linear-gradient(180deg, rgba(31, 38, 61, 0.96), rgba(18, 23, 38, 0.98));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.45);
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.shareModalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.shareModalHeader h3 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.shareModalHeader p {
+  margin: 6px 0 0;
+  color: #aab7dc;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.shareModalClose {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(121, 133, 173, 0.36);
+  background: rgba(10, 16, 31, 0.72);
+  color: #dbe6ff;
+  font-size: 20px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.shareModalRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.shareModalInput {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(121, 133, 173, 0.34);
+  background: rgba(9, 13, 27, 0.92);
+  color: #edf3ff;
+  padding: 0 14px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.shareModalCopyBtn {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(121, 133, 173, 0.34);
+  background: rgba(73, 122, 255, 0.32);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.shareModalCopyBtn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.shareModalStatus {
+  margin: 0;
+  color: #b9c9f8;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
 .syncError {
   color: #ff9ab0 !important;
 }
@@ -1093,6 +1194,10 @@
     width: 100%;
     justify-content: space-between;
   }
+
+  .shareModalRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -1223,6 +1328,15 @@
 
   .shareHead {
     width: 100%;
+  }
+
+  .shareModalBackdrop {
+    padding: 12px;
+  }
+
+  .shareModal {
+    padding: 16px;
+    border-radius: 14px;
   }
 
   .yearCalendarGrid {

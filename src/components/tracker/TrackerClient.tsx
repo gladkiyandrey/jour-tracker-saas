@@ -192,6 +192,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [shareStatus, setShareStatus] = useState("");
   const [shareLink, setShareLink] = useState("");
   const [copyFlash, setCopyFlash] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
   const [isTouchMode, setIsTouchMode] = useState(false);
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
@@ -268,7 +269,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
         signalizer: "Сигнализатор",
         creating: "Создание...",
         shareSequence: "Поделиться серией",
+        sharePopupTitle: "Поделиться серией",
+        sharePopupHint: "Ссылка готова. Скопируйте её и отправьте куда угодно.",
         copy: "Копировать",
+        close: "Закрыть",
         daySettings: "Настройки дня",
         result: "Результат",
         openedTrades: "Открыто сделок (шт)",
@@ -339,7 +343,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
         signalizer: "Сигналізатор",
         creating: "Створення...",
         shareSequence: "Поділитися серією",
+        sharePopupTitle: "Поділитися серією",
+        sharePopupHint: "Посилання готове. Скопіюйте його та надішліть будь-де.",
         copy: "Копіювати",
+        close: "Закрити",
         daySettings: "Налаштування дня",
         result: "Результат",
         openedTrades: "Відкрито угод (шт)",
@@ -409,7 +416,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
       signalizer: "Signalizer",
       creating: "Creating...",
       shareSequence: "Share sequence",
+      sharePopupTitle: "Share sequence",
+      sharePopupHint: "Your link is ready. Copy it and share it anywhere.",
       copy: "Copy",
+      close: "Close",
       daySettings: "Day settings",
       result: "Result",
       openedTrades: "Opened trades (count)",
@@ -1979,13 +1989,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error("Invalid share response");
       setShareLink(payload.url);
-      const copied = await copyTextToClipboard(payload.url);
-      if (copied) {
-        setShareStatus(shareCopiedMessage);
-        flashShareCopy();
-      } else {
-        setShareStatus(shareManualMessage);
-      }
+      setShareStatus("");
+      return payload.url;
     } catch (error) {
       const message = error instanceof Error ? error.message : locale === "ru" ? "Неизвестная ошибка" : locale === "uk" ? "Невідома помилка" : "Unknown error";
       if (message.toLowerCase().includes("unauthorized")) {
@@ -1998,9 +2003,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
         return;
       }
       setShareStatus(`${locale === "ru" ? "Ошибка" : locale === "uk" ? "Помилка" : "Error"}: ${message}`);
+      return null;
     } finally {
       setShareLoading(false);
     }
+  };
+
+  const openShareModal = async () => {
+    setShareModalOpen(true);
+    if (shareLink || shareLoading) return;
+    await createShare();
   };
 
   const copyShareLink = async () => {
@@ -2025,13 +2037,17 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && shareModalOpen) {
+        setShareModalOpen(false);
+        return;
+      }
       if (event.key === "Escape" && modalOpen) {
         setModalOpen(false);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [modalOpen]);
+  }, [modalOpen, shareModalOpen]);
 
   const formatUsdValue = (value: number, signed = false) => {
     const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
@@ -2056,10 +2072,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     <button
                       type="button"
                       className={`${styles.shareIconBtn} ${copyFlash ? styles.copyOk : ""}`}
-                      onClick={shareLink ? copyShareLink : createShare}
+                      onClick={openShareModal}
                       disabled={shareLoading}
-                      aria-label={shareLink ? ui.copy : ui.shareSequence}
-                      title={shareLink ? ui.copy : ui.shareSequence}
+                      aria-label={ui.shareSequence}
+                      title={ui.shareSequence}
                     >
                       {shareLoading ? (
                         <span className={styles.shareIconGlyph}>…</span>
@@ -2067,7 +2083,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                         <Image src="/share-icon.svg" alt="" aria-hidden width={18} height={18} className={styles.shareIconSvg} />
                       )}
                     </button>
-                    {shareStatus ? <span className={styles.shareHeadStatus}>{shareStatus}</span> : null}
                   </div>
                 ) : null}
                 <div className={styles.trackerScopeToggle} role="tablist" aria-label="Tracker scope">
@@ -2612,6 +2627,36 @@ export default function TrackerClient({ userKey, locale }: Props) {
           </div>
         </div>
       )}
+
+      {shareModalOpen ? (
+        <div className={styles.shareModalBackdrop} onClick={() => setShareModalOpen(false)} role="presentation">
+          <div className={styles.shareModal} role="dialog" aria-modal="true" aria-labelledby="tracker-share-modal-title" onClick={(e) => e.stopPropagation()}>
+            <div className={styles.shareModalHeader}>
+              <div>
+                <h3 id="tracker-share-modal-title">{ui.sharePopupTitle}</h3>
+                <p>{ui.sharePopupHint}</p>
+              </div>
+              <button type="button" className={styles.shareModalClose} onClick={() => setShareModalOpen(false)} aria-label={ui.close}>
+                ×
+              </button>
+            </div>
+            <div className={styles.shareModalRow}>
+              <input
+                className={styles.shareModalInput}
+                type="text"
+                value={shareLink}
+                readOnly
+                placeholder={shareLoading ? ui.creating : ""}
+                onFocus={(event) => event.currentTarget.select()}
+              />
+              <button type="button" className={styles.shareModalCopyBtn} onClick={copyShareLink} disabled={shareLoading || !shareLink}>
+                {ui.copy}
+              </button>
+            </div>
+            {shareStatus ? <p className={styles.shareModalStatus}>{shareStatus}</p> : null}
+          </div>
+        </div>
+      ) : null}
 
       {modalOpen ? (
         <div className={styles.modalBackdrop} onClick={closeModal} role="presentation">
