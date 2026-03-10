@@ -1885,6 +1885,58 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return title.charAt(0).toUpperCase() + title.slice(1);
   }, [locale, viewMonth, viewYear]);
 
+  const shareCopiedMessage =
+    locale === "ru"
+      ? "Ваша ссылка скопирована в буфер обмена. Поделитесь ей где угодно."
+      : locale === "uk"
+        ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
+        : "Your link has been copied to the clipboard. Share it anywhere.";
+
+  const shareManualMessage =
+    locale === "ru"
+      ? "Ссылка готова. Скопируйте её вручную."
+      : locale === "uk"
+        ? "Посилання готове. Скопіюйте його вручну."
+        : "Link ready. Copy it manually.";
+
+  const flashShareCopy = () => {
+    setCopyFlash(true);
+    window.setTimeout(() => setCopyFlash(false), 700);
+  };
+
+  const fallbackCopyText = (text: string) => {
+    if (typeof document === "undefined") return false;
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    textarea.style.pointerEvents = "none";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    let copied = false;
+    try {
+      copied = document.execCommand("copy");
+    } catch {
+      copied = false;
+    }
+    document.body.removeChild(textarea);
+    return copied;
+  };
+
+  const copyTextToClipboard = async (text: string) => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch {
+        // Fall through to execCommand fallback.
+      }
+    }
+    return fallbackCopyText(text);
+  };
+
   const createShare = async () => {
     setShareStatus("");
     setShareLink("");
@@ -1927,23 +1979,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const payload = (await res.json()) as { url?: string };
       if (!payload.url) throw new Error("Invalid share response");
       setShareLink(payload.url);
-      try {
-        if (typeof navigator !== "undefined" && navigator.clipboard) {
-          await navigator.clipboard.writeText(payload.url);
-          setShareStatus(
-            locale === "ru"
-              ? "Ваша ссылка скопирована в буфер обмена. Поделитесь ей где угодно."
-              : locale === "uk"
-                ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
-                : "Your link has been copied to the clipboard. Share it anywhere.",
-          );
-          setCopyFlash(true);
-          window.setTimeout(() => setCopyFlash(false), 700);
-        } else {
-          setShareStatus(locale === "ru" ? "Ссылка готова. Скопируйте ниже." : locale === "uk" ? "Посилання готове. Скопіюйте нижче." : "Link ready. Copy manually below.");
-        }
-      } catch {
-        setShareStatus(locale === "ru" ? "Ссылка готова. Скопируйте ниже." : locale === "uk" ? "Посилання готове. Скопіюйте нижче." : "Link ready. Copy manually below.");
+      const copied = await copyTextToClipboard(payload.url);
+      if (copied) {
+        setShareStatus(shareCopiedMessage);
+        flashShareCopy();
+      } else {
+        setShareStatus(shareManualMessage);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : locale === "ru" ? "Неизвестная ошибка" : locale === "uk" ? "Невідома помилка" : "Unknown error";
@@ -1964,20 +2005,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const copyShareLink = async () => {
     if (!shareLink) return;
-    try {
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        await navigator.clipboard.writeText(shareLink);
-        setShareStatus(
-          locale === "ru"
-            ? "Ваша ссылка скопирована в буфер обмена. Поделитесь ей где угодно."
-            : locale === "uk"
-              ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
-              : "Your link has been copied to the clipboard. Share it anywhere.",
-        );
-        setCopyFlash(true);
-        window.setTimeout(() => setCopyFlash(false), 700);
-      }
-    } catch {
+    const copied = await copyTextToClipboard(shareLink);
+    if (copied) {
+      setShareStatus(shareCopiedMessage);
+      flashShareCopy();
+    } else {
       setShareStatus(locale === "ru" ? "Автокопирование не удалось. Скопируйте вручную." : locale === "uk" ? "Автокопіювання не вдалося. Скопіюйте вручну." : "Auto-copy failed. Copy it manually.");
     }
   };
