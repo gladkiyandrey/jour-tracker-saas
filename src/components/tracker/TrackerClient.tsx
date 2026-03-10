@@ -1627,6 +1627,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const closeModal = () => {
     setModalOpen(false);
+    setSelectedDateKey("");
     setModalError("");
   };
 
