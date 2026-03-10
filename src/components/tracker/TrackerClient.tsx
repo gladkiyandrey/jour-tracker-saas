@@ -2004,25 +2004,71 @@ export default function TrackerClient({ userKey, locale }: Props) {
           <div className={styles.head}>
             <div className={styles.trackerHeadRow}>
               <h2>{trackerView === "month" ? ui.monthTracker : ui.yearTracker}</h2>
-              <div className={styles.trackerScopeToggle} role="tablist" aria-label="Tracker scope">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={trackerView === "month"}
-                  className={`${styles.trackerScopeBtn} ${trackerView === "month" ? styles.trackerScopeBtnActive : ""}`}
-                  onClick={() => setTrackerView("month")}
-                >
-                  {ui.trackerMonth}
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={trackerView === "year"}
-                  className={`${styles.trackerScopeBtn} ${trackerView === "year" ? styles.trackerScopeBtnActive : ""}`}
-                  onClick={() => setTrackerView("year")}
-                >
-                  {ui.trackerYear}
-                </button>
+              <div className={styles.trackerHeadActions}>
+                {trackerView === "month" ? (
+                  <div className={styles.shareHead}>
+                    <button
+                      type="button"
+                      className={`${styles.shareIconBtn} ${copyFlash ? styles.copyOk : ""}`}
+                      onClick={shareLink ? copyShareLink : createShare}
+                      disabled={shareLoading}
+                      aria-label={shareLink ? ui.copy : ui.shareSequence}
+                      title={shareLink ? ui.copy : ui.shareSequence}
+                    >
+                      {shareLoading ? (
+                        <span className={styles.shareIconGlyph}>…</span>
+                      ) : (
+                        <svg viewBox="0 0 24 24" aria-hidden="true" className={styles.shareIconSvg}>
+                          <path
+                            d="M15 6h3.5A1.5 1.5 0 0 1 20 7.5V19a1 1 0 0 1-1 1H7.5A1.5 1.5 0 0 1 6 18.5V15"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M10 14 18 6"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                          <path
+                            d="M12.5 6H18v5.5"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.8"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      )}
+                    </button>
+                    {shareStatus ? <span className={styles.shareHeadStatus}>{shareStatus}</span> : null}
+                  </div>
+                ) : null}
+                <div className={styles.trackerScopeToggle} role="tablist" aria-label="Tracker scope">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={trackerView === "month"}
+                    className={`${styles.trackerScopeBtn} ${trackerView === "month" ? styles.trackerScopeBtnActive : ""}`}
+                    onClick={() => setTrackerView("month")}
+                  >
+                    {ui.trackerMonth}
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={trackerView === "year"}
+                    className={`${styles.trackerScopeBtn} ${trackerView === "year" ? styles.trackerScopeBtnActive : ""}`}
+                    onClick={() => setTrackerView("year")}
+                  >
+                    {ui.trackerYear}
+                  </button>
+                </div>
               </div>
             </div>
             {syncError || pendingSyncCount > 0 ? (
@@ -2431,26 +2477,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   <strong>{periodReview.maxDrawdown}</strong>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className={styles.shareRow}>
-            <div />
-            <div className={styles.shareBar}>
-              <div className={styles.shareInline}>
-                <button className={`btn primary ${styles.shareBtn}`} type="button" onClick={createShare} disabled={shareLoading}>
-                  {shareLoading ? ui.creating : ui.shareSequence}
-                </button>
-                <span className={styles.shareStatus}>{shareStatus}</span>
-              </div>
-              {shareLink ? (
-                <div className={styles.shareManualRow}>
-                  <input className={styles.shareInput} type="text" value={shareLink} readOnly onFocus={(e) => e.currentTarget.select()} />
-                  <button className={`btn ${copyFlash ? styles.copyOk : ""}`} type="button" onClick={copyShareLink}>
-                    {ui.copy}
-                  </button>
-                </div>
-              ) : null}
             </div>
           </div>
         </>
