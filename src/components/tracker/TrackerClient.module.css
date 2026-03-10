@@ -704,7 +704,11 @@
 .aiIcon {
   width: 28px;
   height: 28px;
-  object-fit: contain;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
 }
 
 .weekly {

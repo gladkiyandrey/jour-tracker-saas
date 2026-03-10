@@ -2160,7 +2160,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
           <div className={`${styles.panel} ${styles.ai}`}>
             <h4>
-              <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
+              <span className={styles.aiIcon} aria-hidden>
+                💡
+              </span>{" "}
+              {ui.aiAdvice}
             </h4>
             <p>{adviceSnapshot?.advice || aiLiveAdvice}</p>
           </div>
