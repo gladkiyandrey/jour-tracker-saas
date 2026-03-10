@@ -1930,7 +1930,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
       try {
         if (typeof navigator !== "undefined" && navigator.clipboard) {
           await navigator.clipboard.writeText(payload.url);
-          setShareStatus(locale === "ru" ? "Скопировано. Поделитесь ссылкой." : locale === "uk" ? "Скопійовано. Поділіться посиланням." : "Copied. Share it anywhere.");
+          setShareStatus(
+            locale === "ru"
+              ? "Ваша ссылка скопирована в буфер обмена. Поделитесь ей где угодно."
+              : locale === "uk"
+                ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
+                : "Your link has been copied to the clipboard. Share it anywhere.",
+          );
+          setCopyFlash(true);
+          window.setTimeout(() => setCopyFlash(false), 700);
         } else {
           setShareStatus(locale === "ru" ? "Ссылка готова. Скопируйте ниже." : locale === "uk" ? "Посилання готове. Скопіюйте нижче." : "Link ready. Copy manually below.");
         }
@@ -1959,7 +1967,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
     try {
       if (typeof navigator !== "undefined" && navigator.clipboard) {
         await navigator.clipboard.writeText(shareLink);
-        setShareStatus(locale === "ru" ? "Скопировано. Поделитесь ссылкой." : locale === "uk" ? "Скопійовано. Поділіться посиланням." : "Copied. Share it anywhere.");
+        setShareStatus(
+          locale === "ru"
+            ? "Ваша ссылка скопирована в буфер обмена. Поделитесь ей где угодно."
+            : locale === "uk"
+              ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
+              : "Your link has been copied to the clipboard. Share it anywhere.",
+        );
         setCopyFlash(true);
         window.setTimeout(() => setCopyFlash(false), 700);
       }
