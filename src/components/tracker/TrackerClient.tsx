@@ -163,7 +163,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
-  const [reviewMode, setReviewMode] = useState<"month" | "year">("month");
   const [syncError, setSyncError] = useState("");
   const [pendingSyncs, setPendingSyncs] = useState<Record<string, PendingSync>>(() => {
     if (typeof window === "undefined") return {};
@@ -230,10 +229,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Вс",
         aiAdvice: "AI совет по дисциплине",
-        reviewMonth: "Месяц",
-        reviewYear: "Год",
         monthlyReview: "Обзор месяца",
-        yearlyReview: "Обзор года",
         totalTrades: "Сделок за месяц",
         avgTrades: "Сделок в день (сред.)",
         greenPnlSum: "Сумма PnL зеленых",
@@ -295,10 +291,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         sat: "Сб",
         sun: "Нд",
         aiAdvice: "AI порада щодо дисципліни",
-        reviewMonth: "Місяць",
-        reviewYear: "Рік",
         monthlyReview: "Огляд місяця",
-        yearlyReview: "Огляд року",
         totalTrades: "Угод за місяць",
         avgTrades: "Угод на день (серед.)",
         greenPnlSum: "Сума PnL зелених",
@@ -359,10 +352,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       sat: "Sat",
       sun: "Sun",
       aiAdvice: "AI discipline advice",
-      reviewMonth: "Month",
-      reviewYear: "Year",
       monthlyReview: "Monthly review",
-      yearlyReview: "Yearly review",
       totalTrades: "Total trades (month)",
       avgTrades: "Avg trades/day",
       greenPnlSum: "Green PnL sum",
@@ -1265,9 +1255,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   const periodReview = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
-    const yearPrefix = `${viewYear}-`;
     const periodItems = sortedEntries
-      .filter(([dateKey]) => (reviewMode === "month" ? dateKey.startsWith(monthPrefix) : dateKey.startsWith(yearPrefix)))
+      .filter(([dateKey]) => dateKey.startsWith(monthPrefix))
       .map(([dateKey, entry]) => ({ dateKey, ...entry }));
     const values = periodItems;
 
@@ -1328,7 +1317,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       avgErrorCost,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
     };
-  }, [locale, reviewMode, sortedEntries, viewMonth, viewYear]);
+  }, [locale, sortedEntries, viewMonth, viewYear]);
 
   const chartModel = useMemo(() => {
     const bounds = { left: 42, right: 478, top: 28, bottom: 220 };
@@ -2217,27 +2206,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         </div>
         <div className={`${styles.panel} ${styles.weekly}`}>
           <div className={styles.reviewHeader}>
-            <h4>{reviewMode === "month" ? ui.monthlyReview : ui.yearlyReview}</h4>
-            <div className={styles.reviewToggle} role="tablist" aria-label="Review mode">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={reviewMode === "month"}
-                className={`${styles.reviewToggleBtn} ${reviewMode === "month" ? styles.reviewToggleBtnActive : ""}`}
-                onClick={() => setReviewMode("month")}
-              >
-                {ui.reviewMonth}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={reviewMode === "year"}
-                className={`${styles.reviewToggleBtn} ${reviewMode === "year" ? styles.reviewToggleBtnActive : ""}`}
-                onClick={() => setReviewMode("year")}
-              >
-                {ui.reviewYear}
-              </button>
-            </div>
+            <h4>{ui.monthlyReview}</h4>
           </div>
           <div className={styles.weeklyGrid}>
             <div className={styles.weeklyItem}>
