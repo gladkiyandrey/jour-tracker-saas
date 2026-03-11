@@ -935,16 +935,16 @@
 }
 
 .reviewDisplayBtn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   min-height: auto;
   border: 1px solid rgba(121, 133, 173, 0.34);
   background: rgba(14, 20, 35, 0.72);
   color: #9fc4ff;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1;
-  border-radius: 9px;
+  border-radius: 8px;
   padding: 0;
   cursor: pointer;
   display: inline-flex;
