@@ -2469,27 +2469,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
-                <div
-                  className={styles.reviewDisplayToggle}
-                  aria-label={locale === "ru" ? "Режим отображения метрик" : locale === "uk" ? "Режим відображення метрик" : "Metrics display mode"}
+                <button
+                  type="button"
+                  className={styles.reviewDisplayBtn}
+                  onClick={() => setReviewDisplayMode((current) => (current === "$" ? "%" : "$"))}
+                  aria-label={
+                    locale === "ru"
+                      ? `Переключить режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
+                      : locale === "uk"
+                        ? `Перемкнути режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
+                        : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
+                  }
                 >
-                  <button
-                    type="button"
-                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "$" ? styles.reviewDisplayBtnActive : ""}`}
-                    onClick={() => setReviewDisplayMode("$")}
-                    aria-pressed={reviewDisplayMode === "$"}
-                  >
-                    {ui.currencyMode}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "%" ? styles.reviewDisplayBtnActive : ""}`}
-                    onClick={() => setReviewDisplayMode("%")}
-                    aria-pressed={reviewDisplayMode === "%"}
-                  >
-                    {ui.percentMode}
-                  </button>
-                </div>
+                  {reviewDisplayMode === "$" ? ui.currencyMode : ui.percentMode}
+                </button>
               </div>
               <div className={styles.weeklyGrid}>
                 <div className={styles.weeklyItem}>
@@ -2684,27 +2677,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
-                <div
-                  className={styles.reviewDisplayToggle}
-                  aria-label={locale === "ru" ? "Режим отображения метрик" : locale === "uk" ? "Режим відображення метрик" : "Metrics display mode"}
+                <button
+                  type="button"
+                  className={styles.reviewDisplayBtn}
+                  onClick={() => setReviewDisplayMode((current) => (current === "$" ? "%" : "$"))}
+                  aria-label={
+                    locale === "ru"
+                      ? `Переключить режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
+                      : locale === "uk"
+                        ? `Перемкнути режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
+                        : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
+                  }
                 >
-                  <button
-                    type="button"
-                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "$" ? styles.reviewDisplayBtnActive : ""}`}
-                    onClick={() => setReviewDisplayMode("$")}
-                    aria-pressed={reviewDisplayMode === "$"}
-                  >
-                    {ui.currencyMode}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "%" ? styles.reviewDisplayBtnActive : ""}`}
-                    onClick={() => setReviewDisplayMode("%")}
-                    aria-pressed={reviewDisplayMode === "%"}
-                  >
-                    {ui.percentMode}
-                  </button>
-                </div>
+                  {reviewDisplayMode === "$" ? ui.currencyMode : ui.percentMode}
+                </button>
               </div>
               <div className={styles.weeklyGrid}>
                 <div className={styles.weeklyItem}>

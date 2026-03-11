@@ -934,38 +934,30 @@
   gap: 12px;
 }
 
-.reviewDisplayToggle {
+.reviewDisplayBtn {
+  width: 44px;
+  height: 44px;
+  min-height: auto;
+  border: 1px solid rgba(64, 135, 255, 0.18);
+  background: rgba(22, 61, 118, 0.42);
+  color: #2d9cff;
+  font-size: 26px;
+  font-weight: 500;
+  line-height: 1;
+  border-radius: 12px;
+  padding: 0;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 999px;
-  border: 1px solid rgba(121, 133, 173, 0.36);
-  background: rgba(10, 16, 31, 0.72);
-}
-
-.reviewDisplayBtn {
-  min-height: auto;
-  border: 0;
-  background: transparent;
-  color: #b7c3e6;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  border-radius: 999px;
-  padding: 7px 12px;
-  cursor: pointer;
-  transition: color 0.16s ease, background 0.16s ease;
+  justify-content: center;
+  transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 
 .reviewDisplayBtn:hover {
-  color: #edf3ff;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.reviewDisplayBtnActive {
-  color: #ffffff;
-  background: rgba(73, 122, 255, 0.42);
+  color: #56b3ff;
+  background: rgba(28, 74, 140, 0.56);
+  border-color: rgba(89, 162, 255, 0.3);
+  transform: translateY(-1px);
 }
 
 .weeklyGrid {
