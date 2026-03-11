@@ -2481,8 +2481,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                         : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
                   }
                 >
-                  <span className={styles.reviewDisplayDot} aria-hidden="true" />
-                  <span className={styles.reviewDisplayText}>{reviewDisplayMode === "$" ? "USD" : "PCT"}</span>
+                  <span className={styles.reviewDisplaySymbol}>{reviewDisplayMode === "$" ? "$" : "%"}</span>
                 </button>
               </div>
               <div className={styles.weeklyGrid}>
@@ -2690,8 +2689,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                         : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
                   }
                 >
-                  <span className={styles.reviewDisplayDot} aria-hidden="true" />
-                  <span className={styles.reviewDisplayText}>{reviewDisplayMode === "$" ? "USD" : "PCT"}</span>
+                  <span className={styles.reviewDisplaySymbol}>{reviewDisplayMode === "$" ? "$" : "%"}</span>
                 </button>
               </div>
               <div className={styles.weeklyGrid}>
