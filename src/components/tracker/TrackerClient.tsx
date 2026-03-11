@@ -259,6 +259,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "Сумма PnL красных",
         avgErrorCost: "Средняя цена ошибки",
         maxDrawdown: "Макс. просадка",
+        disciplinedDaysRate: "% дисциплинированных дней",
+        redDaysRate: "% красных дней",
         totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
         avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
         greenPnlSumHint: "Суммарный результат системных дней (зеленый и зеленый с обводкой), рассчитанный по изменению депозита.",
@@ -266,6 +268,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         avgErrorCostHint:
           "Средний убыток за 1 красный день: сумма убытков красных дней / количество красных дней.",
         maxDrawdownHint: "Максимальная просадка депозита от локального пика внутри месяца.",
+        disciplinedDaysRateHint: "Процент зеленых и зеленых с обводкой дней от всех заполненных дней месяца.",
+        redDaysRateHint: "Процент красных дней от всех заполненных дней месяца.",
         signalizer: "Сигнализатор",
         creating: "Создание...",
         shareSequence: "Поделиться серией",
@@ -334,6 +338,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "Сума PnL червоних",
         avgErrorCost: "Середня ціна помилки",
         maxDrawdown: "Макс. просадка",
+        disciplinedDaysRate: "% дисциплінованих днів",
+        redDaysRate: "% червоних днів",
         totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
         avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
         greenPnlSumHint: "Сумарний результат системних днів (зелений і зелений з обводкою), розрахований за зміною депозиту.",
@@ -341,6 +347,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         avgErrorCostHint:
           "Середній збиток за 1 червоний день: сума збитків червоних днів / кількість червоних днів.",
         maxDrawdownHint: "Максимальна просадка депозиту від локального піка всередині місяця.",
+        disciplinedDaysRateHint: "Відсоток зелених і зелених з обводкою днів від усіх заповнених днів місяця.",
+        redDaysRateHint: "Відсоток червоних днів від усіх заповнених днів місяця.",
         signalizer: "Сигналізатор",
         creating: "Створення...",
         shareSequence: "Поділитися серією",
@@ -408,6 +416,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redPnlSum: "Red PnL sum",
       avgErrorCost: "Avg Error Cost",
       maxDrawdown: "Max drawdown",
+      disciplinedDaysRate: "% disciplined days",
+      redDaysRate: "% red days",
       totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
       avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
       greenPnlSumHint: "Combined result of disciplined days (green and outlined green), based on deposit changes.",
@@ -415,6 +425,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       avgErrorCostHint:
         "Average loss per red day: total red-day losses / number of red days.",
       maxDrawdownHint: "Maximum deposit drop from a local peak within the month.",
+      disciplinedDaysRateHint: "Share of disciplined days (green and outlined green) among all filled days this month.",
+      redDaysRateHint: "Share of red days among all filled days this month.",
       signalizer: "Signalizer",
       creating: "Creating...",
       shareSequence: "Share sequence",
@@ -1329,6 +1341,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "0$",
         avgErrorCost: "0$",
         maxDrawdown: "0.0%",
+        disciplinedDaysRate: "0%",
+        redDaysRate: "0%",
       };
     }
 
@@ -1362,6 +1376,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
       .filter((day) => day.variant === "neg")
       .reduce((acc, day) => acc + Math.abs(Math.min(day.delta, 0)), 0);
     const redDaysCount = values.filter((day) => day.variant === "neg").length;
+    const disciplinedDaysCount = values.filter((day) => day.variant === "pos" || day.variant === "pos-outline").length;
+    const disciplinedDaysRate = values.length > 0 ? Math.round((disciplinedDaysCount / values.length) * 100) : 0;
+    const redDaysRate = values.length > 0 ? Math.round((redDaysCount / values.length) * 100) : 0;
     const avgErrorCost = redDaysCount > 0 ? `${Math.round(redLossOnly / redDaysCount).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$` : "0$";
 
     return {
@@ -1371,6 +1388,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redPnlSum: formatSignedUsd(redPnl),
       avgErrorCost,
       maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
+      disciplinedDaysRate: `${disciplinedDaysRate}%`,
+      redDaysRate: `${redDaysRate}%`,
     };
   }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
 
@@ -2515,6 +2534,42 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     </button>
                   </div>
                   <strong>{periodReview.maxDrawdown}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.disciplinedDaysRate}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.disciplinedDaysRateHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-disciplined-rate");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-disciplined-rate") ? styles.metricTooltipVisible : ""}`}>{ui.disciplinedDaysRateHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.disciplinedDaysRate}</strong>
+                </div>
+                <div className={styles.weeklyItem}>
+                  <div className={styles.metricLabel}>
+                    <span>{ui.redDaysRate}</span>
+                    <button
+                      type="button"
+                      className={styles.metricHelp}
+                      aria-label={ui.redDaysRateHint}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHelp("review-red-rate");
+                      }}
+                    >
+                      ?
+                      <span className={`${styles.metricTooltip} ${helpOpen("review-red-rate") ? styles.metricTooltipVisible : ""}`}>{ui.redDaysRateHint}</span>
+                    </button>
+                  </div>
+                  <strong>{periodReview.redDaysRate}</strong>
                 </div>
               </div>
             </div>
