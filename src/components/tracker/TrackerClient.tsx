@@ -2501,24 +2501,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </div>
                 <div className={styles.weeklyItem}>
                   <div className={styles.metricLabel}>
-                    <span>{ui.avgErrorCost}</span>
-                    <button
-                      type="button"
-                      className={styles.metricHelp}
-                      aria-label={ui.avgErrorCostHint}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleHelp("review-avg-error-cost");
-                      }}
-                    >
-                      ?
-                      <span className={`${styles.metricTooltip} ${helpOpen("review-avg-error-cost") ? styles.metricTooltipVisible : ""}`}>{ui.avgErrorCostHint}</span>
-                    </button>
-                  </div>
-                  <strong>{periodReview.avgErrorCost}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <div className={styles.metricLabel}>
                     <span>{ui.maxDrawdown}</span>
                     <button
                       type="button"
@@ -2552,24 +2534,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     </button>
                   </div>
                   <strong>{periodReview.disciplinedDaysRate}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <div className={styles.metricLabel}>
-                    <span>{ui.redDaysRate}</span>
-                    <button
-                      type="button"
-                      className={styles.metricHelp}
-                      aria-label={ui.redDaysRateHint}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleHelp("review-red-rate");
-                      }}
-                    >
-                      ?
-                      <span className={`${styles.metricTooltip} ${helpOpen("review-red-rate") ? styles.metricTooltipVisible : ""}`}>{ui.redDaysRateHint}</span>
-                    </button>
-                  </div>
-                  <strong>{periodReview.redDaysRate}</strong>
                 </div>
               </div>
             </div>
