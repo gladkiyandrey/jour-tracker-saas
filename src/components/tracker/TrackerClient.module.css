@@ -930,11 +930,12 @@
 .reviewHeader {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
 }
 
 .reviewDisplayBtn {
+  margin-left: auto;
   width: 28px;
   height: 28px;
   min-height: auto;
