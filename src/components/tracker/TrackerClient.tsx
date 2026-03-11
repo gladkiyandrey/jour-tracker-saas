@@ -114,6 +114,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const now = new Date();
   const viewStateKey = `jour-tracker-view-${userKey}`;
   const pendingSyncKey = `jour-tracker-pending-${userKey}`;
+  const reviewDisplayKey = `jour-tracker-review-display-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
@@ -176,6 +177,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
+  const [reviewDisplayMode, setReviewDisplayMode] = useState<"$" | "%">(() => {
+    if (typeof window === "undefined") return "$";
+    try {
+      const raw = localStorage.getItem(reviewDisplayKey);
+      return raw === "%" ? "%" : "$";
+    } catch {
+      return "$";
+    }
+  });
   const [syncError, setSyncError] = useState("");
   const [pendingSyncs, setPendingSyncs] = useState<Record<string, PendingSync>>(() => {
     if (typeof window === "undefined") return {};
@@ -261,6 +271,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         maxDrawdown: "Макс. просадка",
         netPnl: "Net PnL (месяц)",
         redDaysRate: "% красных дней",
+        currencyMode: "$",
+        percentMode: "%",
         totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
         avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
         greenPnlSumHint: "Суммарный результат системных дней (зеленый и зеленый с обводкой), рассчитанный по изменению депозита.",
@@ -340,6 +352,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         maxDrawdown: "Макс. просадка",
         netPnl: "Net PnL (місяць)",
         redDaysRate: "% червоних днів",
+        currencyMode: "$",
+        percentMode: "%",
         totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
         avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
         greenPnlSumHint: "Сумарний результат системних днів (зелений і зелений з обводкою), розрахований за зміною депозиту.",
@@ -418,6 +432,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       maxDrawdown: "Max drawdown",
       netPnl: "Net PnL (month)",
       redDaysRate: "% red days",
+      currencyMode: "$",
+      percentMode: "%",
       totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
       avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
       greenPnlSumHint: "Combined result of disciplined days (green and outlined green), based on deposit changes.",
@@ -569,6 +585,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
       // ignore storage errors
     }
   }, [viewMonth, viewStateKey, viewYear]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(reviewDisplayKey, reviewDisplayMode);
+    } catch {
+      // ignore storage errors
+    }
+  }, [reviewDisplayKey, reviewDisplayMode]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1332,6 +1356,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const rounded = Math.round(Math.abs(value));
       return `${sign}${rounded.toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$`;
     };
+    const formatUsd = (value: number) =>
+      `${Math.round(Math.abs(value)).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$`;
+    const formatSignedPercent = (value: number) => {
+      const sign = value >= 0 ? "+" : "-";
+      return `${sign}${Math.abs(value).toFixed(1)}%`;
+    };
+    const formatPercent = (value: number) => `${Math.abs(value).toFixed(1)}%`;
 
     if (!values.length) {
       return {
@@ -1351,10 +1382,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const avgTrades = (totalTradesCount / values.length).toFixed(1);
 
     let peak = Number(values[0].deposit) || 0;
+    let maxDrawdownCash = 0;
     let maxDrawdownPct = 0;
     for (const day of values) {
       const dep = Number(day.deposit) || 0;
       if (dep > peak) peak = dep;
+      const cashDrop = Math.max(0, peak - dep);
+      if (cashDrop > maxDrawdownCash) maxDrawdownCash = cashDrop;
       if (peak > 0) {
         const dd = ((peak - dep) / peak) * 100;
         if (dd > maxDrawdownPct) maxDrawdownPct = dd;
@@ -1384,19 +1418,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const startDeposit = Number(values[0].deposit) || 0;
     const endDeposit = Number(values[values.length - 1].deposit) || 0;
     const netPnl = values.length > 1 ? endDeposit - startDeposit : 0;
+    const toPercent = (value: number) => (startDeposit > 0 ? (value / startDeposit) * 100 : 0);
+    const greenPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(greenPnl)) : formatSignedUsd(greenPnl);
+    const redPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(redPnl)) : formatSignedUsd(redPnl);
+    const netPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(netPnl)) : formatSignedUsd(netPnl);
+    const maxDrawdownDisplay = reviewDisplayMode === "%" ? formatPercent(maxDrawdownPct) : formatUsd(maxDrawdownCash);
 
     return {
       totalTrades: `${totalTradesCount}`,
       avgTrades,
-      greenPnlSum: formatSignedUsd(greenPnl),
-      redPnlSum: formatSignedUsd(redPnl),
-      netPnl: formatSignedUsd(netPnl),
+      greenPnlSum: greenPnlDisplay,
+      redPnlSum: redPnlDisplay,
+      netPnl: netPnlDisplay,
       avgErrorCost,
-      maxDrawdown: `${maxDrawdownPct.toFixed(1)}%`,
+      maxDrawdown: maxDrawdownDisplay,
       disciplinedDaysRate: `${disciplinedDaysRate}%`,
       redDaysRate: `${redDaysRate}%`,
     };
-  }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
+  }, [locale, reviewDisplayMode, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const yearMonthlyAggregates = useMemo<MonthAggregate[]>(() => {
     if (trackerView !== "year") {
@@ -2430,6 +2469,27 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
+                <div
+                  className={styles.reviewDisplayToggle}
+                  aria-label={locale === "ru" ? "Режим отображения метрик" : locale === "uk" ? "Режим відображення метрик" : "Metrics display mode"}
+                >
+                  <button
+                    type="button"
+                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "$" ? styles.reviewDisplayBtnActive : ""}`}
+                    onClick={() => setReviewDisplayMode("$")}
+                    aria-pressed={reviewDisplayMode === "$"}
+                  >
+                    {ui.currencyMode}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "%" ? styles.reviewDisplayBtnActive : ""}`}
+                    onClick={() => setReviewDisplayMode("%")}
+                    aria-pressed={reviewDisplayMode === "%"}
+                  >
+                    {ui.percentMode}
+                  </button>
+                </div>
               </div>
               <div className={styles.weeklyGrid}>
                 <div className={styles.weeklyItem}>
@@ -2624,6 +2684,27 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
+                <div
+                  className={styles.reviewDisplayToggle}
+                  aria-label={locale === "ru" ? "Режим отображения метрик" : locale === "uk" ? "Режим відображення метрик" : "Metrics display mode"}
+                >
+                  <button
+                    type="button"
+                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "$" ? styles.reviewDisplayBtnActive : ""}`}
+                    onClick={() => setReviewDisplayMode("$")}
+                    aria-pressed={reviewDisplayMode === "$"}
+                  >
+                    {ui.currencyMode}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.reviewDisplayBtn} ${reviewDisplayMode === "%" ? styles.reviewDisplayBtnActive : ""}`}
+                    onClick={() => setReviewDisplayMode("%")}
+                    aria-pressed={reviewDisplayMode === "%"}
+                  >
+                    {ui.percentMode}
+                  </button>
+                </div>
               </div>
               <div className={styles.weeklyGrid}>
                 <div className={styles.weeklyItem}>
