@@ -931,11 +931,10 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 12px;
+  gap: 8px;
 }
 
 .reviewDisplayBtn {
-  margin-left: auto;
   width: 28px;
   height: 28px;
   min-height: auto;
