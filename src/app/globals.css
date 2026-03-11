@@ -85,7 +85,7 @@ a {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0 6px;
+  padding: 14px 0 12px;
 }
 
 .topbar-left,
@@ -96,13 +96,13 @@ a {
 }
 
 .topbar-center {
-  gap: 12px;
+  gap: 18px;
   justify-content: center;
   flex: 1;
 }
 
 .topbar-right {
-  gap: 8px;
+  gap: 12px;
   justify-content: flex-end;
 }
 
@@ -389,8 +389,8 @@ a {
   background: transparent;
   box-shadow: none;
   color: #d3ddfb;
-  padding: 6px 8px;
-  min-height: 34px;
+  padding: 8px 10px;
+  min-height: 38px;
 }
 
 .btn-nav-plain:hover {
@@ -418,14 +418,14 @@ a {
 }
 
 .user-menu-summary {
-  min-height: 50px;
+  min-height: 54px;
   border: 1px solid rgba(120, 136, 190, 0.35);
   border-radius: 14px;
   background: linear-gradient(180deg, rgba(24, 32, 58, 0.96), rgba(15, 21, 39, 0.96));
-  padding: 7px 10px 7px 8px;
+  padding: 9px 12px 9px 10px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
@@ -1161,8 +1161,9 @@ a {
 @media (max-width: 800px) {
   .topbar {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
     align-items: stretch;
+    padding: 12px 0 10px;
   }
 
   .site-logo img {
@@ -1205,8 +1206,8 @@ a {
   }
 
   .user-menu-summary {
-    min-height: 46px;
-    padding: 6px 8px;
+    min-height: 48px;
+    padding: 7px 10px;
   }
 
   .lang-switch-trigger {
