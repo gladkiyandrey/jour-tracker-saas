@@ -1089,7 +1089,94 @@
 }
 
 .monthSetupModal {
-  width: min(380px, 100%);
+  width: min(460px, 100%);
+  gap: 20px;
+  padding: 28px;
+  border-color: rgba(125, 145, 214, 0.34);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(90, 128, 255, 0.16), transparent 38%),
+    linear-gradient(180deg, rgba(40, 51, 88, 0.98), rgba(20, 28, 49, 0.98));
+  box-shadow: 0 24px 70px rgba(3, 7, 20, 0.45);
+}
+
+.monthSetupHeader {
+  display: grid;
+  gap: 10px;
+}
+
+.monthSetupEyebrow {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(123, 147, 228, 0.28);
+  background: rgba(13, 23, 49, 0.56);
+  color: #a9baf2;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.monthSetupLead {
+  margin: 0;
+  color: #aebae0;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.monthSetupField {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(91, 117, 199, 0.3);
+  background: linear-gradient(180deg, rgba(17, 29, 58, 0.74), rgba(10, 18, 36, 0.78));
+}
+
+.monthSetupLabel {
+  display: block;
+  margin: 0;
+  color: #dbe4ff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.monthSetupInput {
+  width: 100%;
+  height: 64px;
+  border-radius: 18px;
+  border: 1px solid rgba(129, 148, 206, 0.34);
+  background: rgba(7, 14, 31, 0.88);
+  color: #f4f7ff;
+  padding: 0 18px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.monthSetupInput::placeholder {
+  color: #7e8db8;
+}
+
+.monthSetupInput:focus {
+  outline: none;
+  border-color: rgba(114, 151, 255, 0.7);
+  box-shadow: 0 0 0 4px rgba(82, 123, 255, 0.16);
+}
+
+.monthSetupHint {
+  display: block;
+  margin: 0;
+  color: #9fadd5;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .modal h3 {
@@ -1230,7 +1317,15 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 4px;
+  padding-top: 2px;
+}
+
+.monthSetupCancel {
+  min-width: 140px;
+}
+
+.monthSetupSubmit {
+  min-width: 190px;
 }
 
 .clearBtn {
@@ -1374,6 +1469,16 @@
     justify-content: flex-end;
   }
 
+  .monthSetupModal {
+    width: min(420px, 100%);
+    padding: 24px;
+  }
+
+  .monthSetupInput {
+    height: 58px;
+    font-size: 18px;
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -1437,6 +1542,11 @@
     gap: 14px;
   }
 
+  .monthSetupModal {
+    padding: 20px;
+    border-radius: 18px;
+  }
+
   .modal h3 {
     font-size: 20px;
   }
@@ -1445,6 +1555,21 @@
   .field select {
     height: 44px;
     font-size: 13px;
+  }
+
+  .monthSetupActions {
+    flex-direction: column-reverse;
+  }
+
+  .monthSetupCancel,
+  .monthSetupSubmit {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .monthSetupInput {
+    height: 54px;
+    font-size: 17px;
   }
 }
 
