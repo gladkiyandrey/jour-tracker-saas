@@ -13,7 +13,7 @@ export async function GET() {
     return NextResponse.json({ data });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unexpected error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: message === "future dates are not allowed" ? 400 : 500 });
   }
 }
 

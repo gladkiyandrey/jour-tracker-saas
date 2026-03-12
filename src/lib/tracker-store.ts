@@ -10,6 +10,11 @@ const RESULT_BY_VARIANT: Record<TrackerVariant, -1 | 1> = {
   "pos-outline": 1,
 };
 
+function getTodayDateKey() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
 function normalizeEntry(entry: Partial<TrackerEntry>): TrackerEntry {
   const variant: TrackerVariant =
     entry.variant === "neg" || entry.variant === "pos" || entry.variant === "pos-outline"
@@ -35,10 +40,18 @@ function normalizeEntry(entry: Partial<TrackerEntry>): TrackerEntry {
 
 export async function getTrackerData(userId: string): Promise<TrackerMap> {
   const supabase = getSupabaseAdmin();
+  const todayKey = getTodayDateKey();
+
+  const { error: cleanupError } = await supabase.from("tracker_entries").delete().eq("user_id", userId).gt("date_key", todayKey);
+  if (cleanupError) {
+    throw new Error(`Failed to remove future tracker data: ${cleanupError.message}`);
+  }
+
   const { data, error } = await supabase
     .from("tracker_entries")
     .select("date_key,result,variant,deposit,trades_count")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .lte("date_key", todayKey);
 
   if (error) {
     throw new Error(`Failed to load tracker data: ${error.message}`);
@@ -65,6 +78,11 @@ export async function getTrackerData(userId: string): Promise<TrackerMap> {
 }
 
 export async function upsertTrackerEntry(userId: string, dateKey: string, entry: Partial<TrackerEntry>) {
+  const todayKey = getTodayDateKey();
+  if (dateKey > todayKey) {
+    throw new Error("future dates are not allowed");
+  }
+
   const normalized = normalizeEntry(entry);
   const supabase = getSupabaseAdmin();
 
