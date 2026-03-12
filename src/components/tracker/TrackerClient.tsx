@@ -27,6 +27,7 @@ type AdviceSnapshot = {
   lastCount: number;
   advice: string;
 };
+type MonthBaseSource = "manual" | "inferred";
 
 type MonthAggregate = {
   month: number;
@@ -120,6 +121,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const pendingSyncKey = `jour-tracker-pending-${userKey}`;
   const reviewDisplayKey = `jour-tracker-review-display-${userKey}`;
   const monthBaseKey = `jour-tracker-month-base-${userKey}`;
+  const monthBaseSourceKey = `jour-tracker-month-base-source-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
@@ -179,9 +181,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalVariant, setModalVariant] = useState<Variant | "">("");
   const [modalDeposit, setModalDeposit] = useState("");
-  const [modalMonthBase, setModalMonthBase] = useState("");
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
+  const [monthSetupOpen, setMonthSetupOpen] = useState(false);
+  const [monthSetupDateKey, setMonthSetupDateKey] = useState("");
+  const [monthSetupValue, setMonthSetupValue] = useState("");
+  const [monthSetupError, setMonthSetupError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
   const [reviewDisplayMode, setReviewDisplayMode] = useState<"$" | "%">(() => {
     if (typeof window === "undefined") return "$";
@@ -202,6 +207,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
       if (!parsed || typeof parsed !== "object") return {};
       return Object.fromEntries(
         Object.entries(parsed).filter(([, value]) => Number.isFinite(Number(value)) && Number(value) > 0)
+      );
+    } catch {
+      return {};
+    }
+  });
+  const [monthBaseSourceByMonth, setMonthBaseSourceByMonth] = useState<Record<string, MonthBaseSource>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = localStorage.getItem(monthBaseSourceKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as Record<string, MonthBaseSource>;
+      if (!parsed || typeof parsed !== "object") return {};
+      return Object.fromEntries(
+        Object.entries(parsed).filter(([, value]) => value === "manual" || value === "inferred")
       );
     } catch {
       return {};
@@ -293,12 +312,19 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redDaysRate: "% красных дней",
         currencyMode: "$",
         percentMode: "%",
+        newMonth: "Новый месяц",
+        monthSetupTitle: "Новый месяц",
+        monthSetupDescription: "Введите стартовый депозит месяца",
+        continueCta: "Продолжить",
         monthStartDeposit: "Стартовый депозит месяца",
-        monthStartDepositHint: "От этой суммы будут считаться результаты месяца в процентах.",
+        monthStartDepositHint: "От этой суммы считаются %-метрики месяца. Max Drawdown считается отдельно от локального пика внутри месяца.",
         monthStartDepositHelper: "Указывается один раз для текущего месяца.",
         enterMonthStartDeposit: "Введите стартовый депозит",
         monthStartDepositRequired: "Введите стартовый депозит месяца.",
         monthStartDepositPositive: "Стартовый депозит месяца должен быть больше 0.",
+        monthBaseManualHint: "База месяца задана вручную.",
+        monthBaseInferredHint: "База месяца определена автоматически по прошлому балансу или первому доступному дню.",
+        monthSetupRequired: "Сначала задайте стартовый депозит месяца.",
         totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
         avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
         greenPnlSumHint: "Суммарный результат зеленых дней текущего месяца. В режиме % считается от стартового депозита месяца.",
@@ -380,12 +406,19 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redDaysRate: "% червоних днів",
         currencyMode: "$",
         percentMode: "%",
+        newMonth: "Новий місяць",
+        monthSetupTitle: "Новий місяць",
+        monthSetupDescription: "Введіть стартовий депозит місяця",
+        continueCta: "Продовжити",
         monthStartDeposit: "Стартовий депозит місяця",
-        monthStartDepositHint: "Від цієї суми будуть рахуватися результати місяця у відсотках.",
+        monthStartDepositHint: "Від цієї суми рахуються %-метрики місяця. Max Drawdown рахується окремо від локального піка всередині місяця.",
         monthStartDepositHelper: "Вказується один раз для поточного місяця.",
         enterMonthStartDeposit: "Введіть стартовий депозит",
         monthStartDepositRequired: "Введіть стартовий депозит місяця.",
         monthStartDepositPositive: "Стартовий депозит місяця має бути більше 0.",
+        monthBaseManualHint: "База місяця задана вручну.",
+        monthBaseInferredHint: "База місяця визначена автоматично за минулим балансом або першим доступним днем.",
+        monthSetupRequired: "Спочатку задайте стартовий депозит місяця.",
         totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
         avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
         greenPnlSumHint: "Сумарний результат зелених днів поточного місяця. У режимі % рахується від стартового депозиту місяця.",
@@ -466,12 +499,19 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redDaysRate: "% red days",
       currencyMode: "$",
       percentMode: "%",
+      newMonth: "New month",
+      monthSetupTitle: "New month",
+      monthSetupDescription: "Enter the month starting deposit",
+      continueCta: "Continue",
       monthStartDeposit: "Month starting deposit",
-      monthStartDepositHint: "Monthly percentage results are calculated from this amount.",
+      monthStartDepositHint: "Monthly % metrics are calculated from this amount. Max drawdown is still measured from the local peak within the month.",
       monthStartDepositHelper: "Set once for the current month.",
       enterMonthStartDeposit: "Enter month starting deposit",
       monthStartDepositRequired: "Enter the month starting deposit.",
       monthStartDepositPositive: "Month starting deposit must be greater than 0.",
+      monthBaseManualHint: "This month base was set manually.",
+      monthBaseInferredHint: "This month base was inferred from the prior balance or the first available day.",
+      monthSetupRequired: "Set the month starting deposit first.",
       totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
       avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
       greenPnlSumHint: "Combined result of green days in the current month. In % mode it is calculated from the month starting deposit.",
@@ -641,6 +681,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [monthBaseByMonth, monthBaseKey]);
 
   useEffect(() => {
+    try {
+      localStorage.setItem(monthBaseSourceKey, JSON.stringify(monthBaseSourceByMonth));
+    } catch {
+      // ignore storage errors
+    }
+  }, [monthBaseSourceByMonth, monthBaseSourceKey]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(hover: none), (pointer: coarse)");
     const apply = () => setIsTouchMode(media.matches);
@@ -747,7 +795,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const previousDeposit = Number(previous.deposit) || 0;
       const depositDelta = latestDeposit - previousDeposit;
       const latestDelta = dayDeltas[dayDeltas.length - 1] ?? 0;
-      const totalDays = monthItems.length;
       const redDays = monthItems.filter((d) => d.variant === "neg").length;
       const greenDays = monthItems.filter((d) => d.variant !== "neg").length;
       const skipDays = monthItems.filter((d) => d.variant === "pos-outline").length;
@@ -1409,6 +1456,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return `${sign}${Math.abs(value).toFixed(1)}%`;
     };
     const formatPercent = (value: number) => `${Math.abs(value).toFixed(1)}%`;
+    const showPercentValues = trackerView === "month" && reviewDisplayMode === "%";
 
     if (!values.length) {
       return {
@@ -1418,7 +1466,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "0$",
         netPnl: "0$",
         avgErrorCost: "0$",
-        maxDrawdown: reviewDisplayMode === "%" ? "0.0%" : "0$",
+        maxDrawdown: showPercentValues ? "0.0%" : "0$",
         disciplinedDaysRate: "0%",
         redDaysRate: "0%",
       };
@@ -1468,10 +1516,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const endDeposit = Number(values[values.length - 1].deposit) || 0;
     const netPnl = firstMonthBase > 0 ? endDeposit - firstMonthBase : 0;
     const toPercent = (value: number) => (firstMonthBase > 0 ? (value / firstMonthBase) * 100 : 0);
-    const greenPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(greenPnl)) : formatSignedUsd(greenPnl);
-    const redPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(redPnl)) : formatSignedUsd(redPnl);
-    const netPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(netPnl)) : formatSignedUsd(netPnl);
-    const maxDrawdownDisplay = reviewDisplayMode === "%" ? formatPercent(maxDrawdownPct) : formatUsd(maxDrawdownCash);
+    const greenPnlDisplay = showPercentValues ? formatSignedPercent(toPercent(greenPnl)) : formatSignedUsd(greenPnl);
+    const redPnlDisplay = showPercentValues ? formatSignedPercent(toPercent(redPnl)) : formatSignedUsd(redPnl);
+    const netPnlDisplay = showPercentValues ? formatSignedPercent(toPercent(netPnl)) : formatSignedUsd(netPnl);
+    const maxDrawdownDisplay = showPercentValues ? formatPercent(maxDrawdownPct) : formatUsd(maxDrawdownCash);
 
     return {
       totalTrades: `${totalTradesCount}`,
@@ -1742,6 +1790,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
   useEffect(() => {
     const inferredMonthBases: Record<string, number> = {};
+    const inferredMonthBaseSources: Record<string, MonthBaseSource> = {};
     const monthFirstEntries = new Map<string, { dateKey: string; deposit: number }>();
 
     sortedEntries.forEach(([dateKey, entry]) => {
@@ -1758,6 +1807,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const inferredBase = previousDeposit > 0 ? previousDeposit : firstEntry.deposit;
       if (inferredBase > 0) {
         inferredMonthBases[monthKey] = inferredBase;
+        inferredMonthBaseSources[monthKey] = "inferred";
       }
     });
 
@@ -1773,6 +1823,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
       });
       return changed ? next : prev;
     });
+    setMonthBaseSourceByMonth((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      Object.entries(inferredMonthBaseSources).forEach(([monthKey, value]) => {
+        if (next[monthKey] === "manual" || next[monthKey] === "inferred") return;
+        next[monthKey] = value;
+        changed = true;
+      });
+      return changed ? next : prev;
+    });
   }, [getPreviousDayDeposit, monthBaseByMonth, sortedEntries]);
 
   const todayKey = useMemo(() => {
@@ -1781,25 +1841,22 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, []);
 
   const isFutureDateKey = (dateKey: string) => dateKey > todayKey;
-  const selectedMonthKey = selectedDateKey ? getMonthKey(selectedDateKey) : "";
-  const selectedMonthHasEntries = selectedMonthKey
-    ? sortedEntries.some(([dateKey]) => getMonthKey(dateKey) === selectedMonthKey)
-    : false;
+  const getMonthBase = (monthKey: string) => Number(monthBaseByMonth[monthKey]) || 0;
+  const getMonthBaseSource = (monthKey: string): MonthBaseSource | null => monthBaseSourceByMonth[monthKey] || null;
+  const hasEntriesInMonth = useCallback(
+    (monthKey: string) => sortedEntries.some(([dateKey]) => getMonthKey(dateKey) === monthKey),
+    [sortedEntries]
+  );
 
-  const openModal = (dateKey: string) => {
+  const openDayModal = (dateKey: string) => {
     if (isFutureDateKey(dateKey)) {
       setSyncError(ui.futureDayLocked);
       return;
     }
     setSelectedDateKey(dateKey);
     const current = dayData[dateKey];
-    const monthKey = getMonthKey(dateKey);
-    const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
-    const monthHasEntries = sortedEntries.some(([entryDateKey]) => getMonthKey(entryDateKey) === monthKey);
-    const suggestedBase = existingMonthBase > 0 && monthHasEntries ? existingMonthBase : 0;
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
-    setModalMonthBase(suggestedBase > 0 ? String(Math.round(suggestedBase)) : "");
     if (current?.variant === "pos-outline") {
       setModalTrades("0");
     } else {
@@ -1809,10 +1866,37 @@ export default function TrackerClient({ userKey, locale }: Props) {
     setModalOpen(true);
   };
 
+  const openMonthSetup = (dateKey: string) => {
+    setMonthSetupDateKey(dateKey);
+    setMonthSetupValue("");
+    setMonthSetupError("");
+    setMonthSetupOpen(true);
+  };
+
+  const openModal = (dateKey: string) => {
+    if (isFutureDateKey(dateKey)) {
+      setSyncError(ui.futureDayLocked);
+      return;
+    }
+    const monthKey = getMonthKey(dateKey);
+    if (!hasEntriesInMonth(monthKey) && getMonthBase(monthKey) <= 0) {
+      openMonthSetup(dateKey);
+      return;
+    }
+    openDayModal(dateKey);
+  };
+
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDateKey("");
     setModalError("");
+  };
+
+  const closeMonthSetup = () => {
+    setMonthSetupOpen(false);
+    setMonthSetupDateKey("");
+    setMonthSetupValue("");
+    setMonthSetupError("");
   };
 
   const syncPendingOperation = async (dateKey: string, pending: PendingSync) => {
@@ -1860,6 +1944,36 @@ export default function TrackerClient({ userKey, locale }: Props) {
     );
   };
 
+  const saveMonthSetup = () => {
+    if (!monthSetupDateKey) return;
+    const monthKey = getMonthKey(monthSetupDateKey);
+    const enteredMonthBase = Number(monthSetupValue.trim());
+
+    if (monthSetupValue.trim() === "") {
+      setMonthSetupError(ui.monthStartDepositRequired);
+      return;
+    }
+
+    if (!Number.isFinite(enteredMonthBase) || enteredMonthBase <= 0) {
+      setMonthSetupError(ui.monthStartDepositPositive);
+      return;
+    }
+
+    setMonthBaseByMonth((prev) => ({
+      ...prev,
+      [monthKey]: enteredMonthBase,
+    }));
+    setMonthBaseSourceByMonth((prev) => ({
+      ...prev,
+      [monthKey]: "manual",
+    }));
+    setMonthSetupOpen(false);
+    setMonthSetupError("");
+    const nextDateKey = monthSetupDateKey;
+    setMonthSetupDateKey("");
+    openDayModal(nextDateKey);
+  };
+
   const saveDay = async () => {
     if (!selectedDateKey) return;
     if (isFutureDateKey(selectedDateKey)) {
@@ -1868,11 +1982,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
     const isOutline = modalVariant === "pos-outline";
     const monthKey = getMonthKey(selectedDateKey);
-    const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
-    const rawMonthBase = modalMonthBase.trim();
-    const enteredMonthBase = Number(rawMonthBase);
-    const canEditMonthBase = !selectedMonthHasEntries;
-    const needsMonthBase = canEditMonthBase;
+    const existingMonthBase = getMonthBase(monthKey);
     const previousDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : 0;
     const enteredDeposit = Number(modalDeposit.trim());
     const outlineDeposit = isOutline ? (previousDeposit > 0 ? previousDeposit : enteredDeposit) : enteredDeposit;
@@ -1881,11 +1991,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
     const hasTrades = Number.isFinite(trades) && (isOutline ? trades >= 0 : trades > 0);
-    const hasMonthBase = !needsMonthBase || (rawMonthBase !== "" && Number.isFinite(enteredMonthBase) && enteredMonthBase > 0);
+    const hasMonthBase = existingMonthBase > 0;
 
     if (!hasVariant || !hasDeposit || !hasTrades || !hasMonthBase) {
       if (!hasMonthBase) {
-        setModalError(rawMonthBase === "" ? ui.monthStartDepositRequired : ui.monthStartDepositPositive);
+        setModalError(ui.monthSetupRequired);
       } else if (!hasVariant && !hasDeposit && !hasTrades) {
         setModalError(
           locale === "ru"
@@ -1923,7 +2033,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     setModalError("");
-    const monthBaseToSave = canEditMonthBase ? enteredMonthBase : existingMonthBase;
     const variant = modalVariant as Variant;
     const nextEntry: Entry = {
       result: variant === "neg" ? -1 : 1,
@@ -1931,13 +2040,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       deposit,
       trades: Math.floor(trades),
     };
-
-    if (canEditMonthBase && monthBaseToSave > 0) {
-      setMonthBaseByMonth((prev) => ({
-        ...prev,
-        [monthKey]: monthBaseToSave,
-      }));
-    }
 
     setDayData((prev) => ({
       ...prev,
@@ -2012,7 +2114,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return classes.join(" ");
   };
 
-  const buildMonthCells = (year: number, month: number) => {
+  const buildMonthCells = useCallback((year: number, month: number) => {
     const first = new Date(year, month, 1);
     const firstDay = (first.getDay() + 6) % 7;
     const lastDate = new Date(year, month + 1, 0).getDate();
@@ -2039,11 +2141,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     return cells;
-  };
+  }, [dayData, selectedDateKey, todayKey]);
 
   const calendarCells = useMemo(() => {
     return buildMonthCells(viewYear, viewMonth);
-  }, [viewMonth, viewYear, dayData, selectedDateKey, todayKey]);
+  }, [buildMonthCells, viewMonth, viewYear]);
 
   const yearCalendarMonths = useMemo(() => {
     if (trackerView !== "year") {
@@ -2060,7 +2162,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         cells: buildMonthCells(viewYear, month),
       };
     });
-  }, [locale, trackerView, viewYear, dayData, selectedDateKey, todayKey]);
+  }, [buildMonthCells, locale, trackerView, viewYear]);
 
   const monthLabel = useMemo(() => {
     const date = new Date(viewYear, viewMonth, 1);
@@ -2077,13 +2179,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       : locale === "uk"
         ? "Ваше посилання скопійовано в буфер обміну. Поділіться ним будь-де."
         : "Your link has been copied to the clipboard. Share it anywhere.";
-
-  const shareManualMessage =
-    locale === "ru"
-      ? "Ссылка готова. Скопируйте её вручную."
-      : locale === "uk"
-        ? "Посилання готове. Скопіюйте його вручну."
-        : "Link ready. Copy it manually.";
 
   const flashShareCopy = () => {
     setCopyFlash(true);
@@ -2218,13 +2313,22 @@ export default function TrackerClient({ userKey, locale }: Props) {
         setShareModalOpen(false);
         return;
       }
+      if (event.key === "Escape" && monthSetupOpen) {
+        setMonthSetupOpen(false);
+        setMonthSetupDateKey("");
+        setMonthSetupValue("");
+        setMonthSetupError("");
+        return;
+      }
       if (event.key === "Escape" && modalOpen) {
         setModalOpen(false);
+        setSelectedDateKey("");
+        setModalError("");
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [modalOpen, shareModalOpen]);
+  }, [modalOpen, monthSetupOpen, shareModalOpen]);
 
   const formatUsdValue = (value: number, signed = false) => {
     const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
@@ -2579,20 +2683,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <div className={`${styles.panel} ${styles.weekly}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
-                <button
-                  type="button"
-                  className={styles.reviewDisplayBtn}
-                  onClick={() => setReviewDisplayMode((current) => (current === "$" ? "%" : "$"))}
-                  aria-label={
-                    locale === "ru"
-                      ? `Переключить режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
-                      : locale === "uk"
-                        ? `Перемкнути режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
-                        : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
-                  }
-                >
-                  <span className={styles.reviewDisplaySymbol}>{reviewDisplayMode === "$" ? "$" : "%"}</span>
-                </button>
               </div>
               <div className={styles.weeklyGrid}>
                 <div className={styles.weeklyItem}>
@@ -2883,38 +2973,60 @@ export default function TrackerClient({ userKey, locale }: Props) {
         </div>
       ) : null}
 
+      {monthSetupOpen ? (
+        <div className={styles.modalBackdrop} onClick={closeMonthSetup} role="presentation">
+          <div className={`${styles.modal} ${styles.monthSetupModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <h3>{ui.monthSetupTitle}</h3>
+            <p className={styles.modalDate}>{ui.monthSetupDescription}</p>
+
+            <label className={`${styles.field} ${styles.fieldPrimary}`}>
+              <span>{ui.monthStartDeposit}</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder={ui.enterMonthStartDeposit}
+                value={monthSetupValue}
+                autoFocus
+                onChange={(e) => {
+                  setMonthSetupValue(e.target.value.replace(/\D/g, ""));
+                  setMonthSetupError("");
+                }}
+              />
+              <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
+            </label>
+
+            {monthSetupError ? <p className={styles.modalError}>{monthSetupError}</p> : null}
+
+            <div className={styles.monthSetupActions}>
+              <button className="btn" type="button" onClick={closeMonthSetup}>
+                {ui.cancel}
+              </button>
+              <button className="btn primary" type="button" onClick={saveMonthSetup}>
+                {ui.continueCta}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {modalOpen ? (
         <div className={styles.modalBackdrop} onClick={closeModal} role="presentation">
           <div className={styles.modal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h3>{ui.daySettings}</h3>
             <p className={styles.modalDate}>{selectedDateKey}</p>
-
-            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 && selectedMonthHasEntries ? (
+            {selectedDateKey ? (
               <div className={`${styles.field} ${styles.fieldPrimary}`}>
                 <span>{ui.monthStartDeposit}</span>
                 <div className={styles.fieldValue}>
-                  {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
+                  {getMonthBase(getMonthKey(selectedDateKey)).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
                 </div>
-                <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
+                <small className={styles.fieldHint}>
+                  {ui.monthStartDepositHint}{" "}
+                  {getMonthBaseSource(getMonthKey(selectedDateKey)) === "inferred" ? ui.monthBaseInferredHint : ui.monthBaseManualHint}
+                </small>
               </div>
-            ) : (
-              <label className={`${styles.field} ${styles.fieldPrimary}`}>
-                <span>{ui.monthStartDeposit}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder={ui.enterMonthStartDeposit}
-                  value={modalMonthBase}
-                  autoFocus
-                  onChange={(e) => {
-                    setModalMonthBase(e.target.value.replace(/\D/g, ""));
-                    setModalError("");
-                  }}
-                />
-                <small className={styles.fieldHint}>{ui.monthStartDepositHint} {ui.monthStartDepositHelper}</small>
-              </label>
-            )}
+            ) : null}
 
             <label className={styles.field}>
               <div className={styles.fieldHeader}>

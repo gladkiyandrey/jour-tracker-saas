@@ -1088,6 +1088,10 @@
   gap: 16px;
 }
 
+.monthSetupModal {
+  width: min(380px, 100%);
+}
+
 .modal h3 {
   margin: 0;
   font-size: 22px;
@@ -1220,6 +1224,13 @@
 .actionsRight {
   display: inline-flex;
   gap: 12px;
+}
+
+.monthSetupActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
 }
 
 .clearBtn {
