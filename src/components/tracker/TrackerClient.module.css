@@ -1136,6 +1136,26 @@
   font-size: 14px;
 }
 
+.fieldValue {
+  min-height: 46px;
+  border-radius: 10px;
+  border: 1px solid rgba(121, 133, 173, 0.34);
+  background: rgba(13, 18, 31, 0.52);
+  color: #f5f7ff;
+  padding: 0 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+.fieldHint {
+  display: block;
+  margin-top: 8px;
+  color: #9ea9cc;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .colorOptions {
   display: flex;
   gap: 12px;

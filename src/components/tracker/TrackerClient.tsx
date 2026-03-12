@@ -59,6 +59,10 @@ function formatDateKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+function getMonthKey(dateKey: string) {
+  return dateKey.slice(0, 7);
+}
+
 function buildPath(
   values: number[],
   minY: number,
@@ -115,6 +119,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const viewStateKey = `jour-tracker-view-${userKey}`;
   const pendingSyncKey = `jour-tracker-pending-${userKey}`;
   const reviewDisplayKey = `jour-tracker-review-display-${userKey}`;
+  const monthBaseKey = `jour-tracker-month-base-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
@@ -174,6 +179,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalVariant, setModalVariant] = useState<Variant | "">("");
   const [modalDeposit, setModalDeposit] = useState("");
+  const [modalMonthBase, setModalMonthBase] = useState("");
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
@@ -187,6 +193,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   });
   const [syncError, setSyncError] = useState("");
+  const [monthBaseByMonth, setMonthBaseByMonth] = useState<Record<string, number>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = localStorage.getItem(monthBaseKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      if (!parsed || typeof parsed !== "object") return {};
+      return Object.fromEntries(
+        Object.entries(parsed).filter(([, value]) => Number.isFinite(Number(value)) && Number(value) > 0)
+      );
+    } catch {
+      return {};
+    }
+  });
   const [pendingSyncs, setPendingSyncs] = useState<Record<string, PendingSync>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -273,14 +293,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redDaysRate: "% красных дней",
         currencyMode: "$",
         percentMode: "%",
+        monthStartDeposit: "Стартовый депозит месяца",
+        monthStartDepositHint: "От этой суммы будут считаться результаты месяца в процентах.",
+        monthStartDepositHelper: "Указывается один раз для текущего месяца.",
+        enterMonthStartDeposit: "Введите стартовый депозит",
+        monthStartDepositRequired: "Введите стартовый депозит месяца.",
+        monthStartDepositPositive: "Стартовый депозит месяца должен быть больше 0.",
         totalTradesHint: "Общее количество открытых сделок за выбранный месяц (сумма всех сделок по заполненным дням).",
         avgTradesHint: "Среднее число сделок в день: сделки за месяц / количество заполненных дней.",
-        greenPnlSumHint: "Суммарный результат системных дней (зеленый и зеленый с обводкой), рассчитанный по изменению депозита.",
-        redPnlSumHint: "Суммарный результат дней с нарушением дисциплины (красные дни), по изменению депозита.",
+        greenPnlSumHint: "Суммарный результат зеленых дней текущего месяца. В режиме % считается от стартового депозита месяца.",
+        redPnlSumHint: "Суммарный результат красных дней текущего месяца. В режиме % считается от стартового депозита месяца.",
         avgErrorCostHint:
           "Средний убыток за 1 красный день: сумма убытков красных дней / количество красных дней.",
         maxDrawdownHint: "Максимальная просадка депозита от локального пика внутри месяца.",
-        netPnlHint: "Итоговый результат месяца по изменению депозита от первого заполненного дня к последнему.",
+        netPnlHint: "Итоговый результат месяца. В режиме % считается от стартового депозита месяца.",
         redDaysRateHint: "Процент красных дней от всех заполненных дней месяца.",
         signalizer: "Сигнализатор",
         creating: "Создание...",
@@ -354,14 +380,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redDaysRate: "% червоних днів",
         currencyMode: "$",
         percentMode: "%",
+        monthStartDeposit: "Стартовий депозит місяця",
+        monthStartDepositHint: "Від цієї суми будуть рахуватися результати місяця у відсотках.",
+        monthStartDepositHelper: "Вказується один раз для поточного місяця.",
+        enterMonthStartDeposit: "Введіть стартовий депозит",
+        monthStartDepositRequired: "Введіть стартовий депозит місяця.",
+        monthStartDepositPositive: "Стартовий депозит місяця має бути більше 0.",
         totalTradesHint: "Загальна кількість відкритих угод за вибраний місяць (сума всіх угод у заповнених днях).",
         avgTradesHint: "Середня кількість угод на день: угоди за місяць / кількість заповнених днів.",
-        greenPnlSumHint: "Сумарний результат системних днів (зелений і зелений з обводкою), розрахований за зміною депозиту.",
-        redPnlSumHint: "Сумарний результат днів з порушенням дисципліни (червоні дні), за зміною депозиту.",
+        greenPnlSumHint: "Сумарний результат зелених днів поточного місяця. У режимі % рахується від стартового депозиту місяця.",
+        redPnlSumHint: "Сумарний результат червоних днів поточного місяця. У режимі % рахується від стартового депозиту місяця.",
         avgErrorCostHint:
           "Середній збиток за 1 червоний день: сума збитків червоних днів / кількість червоних днів.",
         maxDrawdownHint: "Максимальна просадка депозиту від локального піка всередині місяця.",
-        netPnlHint: "Підсумковий результат місяця за зміною депозиту від першого заповненого дня до останнього.",
+        netPnlHint: "Підсумковий результат місяця. У режимі % рахується від стартового депозиту місяця.",
         redDaysRateHint: "Відсоток червоних днів від усіх заповнених днів місяця.",
         signalizer: "Сигналізатор",
         creating: "Створення...",
@@ -434,14 +466,20 @@ export default function TrackerClient({ userKey, locale }: Props) {
       redDaysRate: "% red days",
       currencyMode: "$",
       percentMode: "%",
+      monthStartDeposit: "Month starting deposit",
+      monthStartDepositHint: "Monthly percentage results are calculated from this amount.",
+      monthStartDepositHelper: "Set once for the current month.",
+      enterMonthStartDeposit: "Enter month starting deposit",
+      monthStartDepositRequired: "Enter the month starting deposit.",
+      monthStartDepositPositive: "Month starting deposit must be greater than 0.",
       totalTradesHint: "Total number of opened trades in the selected month (sum across all filled days).",
       avgTradesHint: "Average trades per day: monthly total trades / number of filled days.",
-      greenPnlSumHint: "Combined result of disciplined days (green and outlined green), based on deposit changes.",
-      redPnlSumHint: "Combined result of undisciplined days (red), based on deposit changes.",
+      greenPnlSumHint: "Combined result of green days in the current month. In % mode it is calculated from the month starting deposit.",
+      redPnlSumHint: "Combined result of red days in the current month. In % mode it is calculated from the month starting deposit.",
       avgErrorCostHint:
         "Average loss per red day: total red-day losses / number of red days.",
       maxDrawdownHint: "Maximum deposit drop from a local peak within the month.",
-      netPnlHint: "Net result of the month based on deposit change from the first filled day to the last.",
+      netPnlHint: "Net result of the month. In % mode it is calculated from the month starting deposit.",
       redDaysRateHint: "Share of red days among all filled days this month.",
       signalizer: "Signalizer",
       creating: "Creating...",
@@ -593,6 +631,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
       // ignore storage errors
     }
   }, [reviewDisplayKey, reviewDisplayMode]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(monthBaseKey, JSON.stringify(monthBaseByMonth));
+    } catch {
+      // ignore storage errors
+    }
+  }, [monthBaseByMonth, monthBaseKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1372,7 +1418,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         redPnlSum: "0$",
         netPnl: "0$",
         avgErrorCost: "0$",
-        maxDrawdown: "0.0%",
+        maxDrawdown: reviewDisplayMode === "%" ? "0.0%" : "0$",
         disciplinedDaysRate: "0%",
         redDaysRate: "0%",
       };
@@ -1396,10 +1442,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     const deltas = values.map((day, index) => {
-      if (index === 0) return { day: day.dateKey, delta: 0, variant: day.variant };
-      const prev = Number(values[index - 1].deposit) || 0;
       const curr = Number(day.deposit) || 0;
-      return { day: day.dateKey, delta: curr - prev, variant: day.variant };
+      const monthBase = Number(monthBaseByMonth[getMonthKey(day.dateKey)]) || 0;
+      if (index === 0 || getMonthKey(values[index - 1].dateKey) !== getMonthKey(day.dateKey)) {
+        return { day: day.dateKey, delta: monthBase > 0 ? curr - monthBase : 0, variant: day.variant, monthBase };
+      }
+      const prev = Number(values[index - 1].deposit) || 0;
+      return { day: day.dateKey, delta: curr - prev, variant: day.variant, monthBase };
     });
 
     const greenPnl = deltas
@@ -1415,10 +1464,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const disciplinedDaysRate = values.length > 0 ? Math.round((disciplinedDaysCount / values.length) * 100) : 0;
     const redDaysRate = values.length > 0 ? Math.round((redDaysCount / values.length) * 100) : 0;
     const avgErrorCost = redDaysCount > 0 ? `${Math.round(redLossOnly / redDaysCount).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}$` : "0$";
-    const startDeposit = Number(values[0].deposit) || 0;
+    const firstMonthBase = Number(monthBaseByMonth[getMonthKey(values[0].dateKey)]) || 0;
     const endDeposit = Number(values[values.length - 1].deposit) || 0;
-    const netPnl = values.length > 1 ? endDeposit - startDeposit : 0;
-    const toPercent = (value: number) => (startDeposit > 0 ? (value / startDeposit) * 100 : 0);
+    const netPnl = firstMonthBase > 0 ? endDeposit - firstMonthBase : 0;
+    const toPercent = (value: number) => (firstMonthBase > 0 ? (value / firstMonthBase) * 100 : 0);
     const greenPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(greenPnl)) : formatSignedUsd(greenPnl);
     const redPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(redPnl)) : formatSignedUsd(redPnl);
     const netPnlDisplay = reviewDisplayMode === "%" ? formatSignedPercent(toPercent(netPnl)) : formatSignedUsd(netPnl);
@@ -1435,7 +1484,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       disciplinedDaysRate: `${disciplinedDaysRate}%`,
       redDaysRate: `${redDaysRate}%`,
     };
-  }, [locale, reviewDisplayMode, sortedEntries, trackerView, viewMonth, viewYear]);
+  }, [locale, monthBaseByMonth, reviewDisplayMode, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const yearMonthlyAggregates = useMemo<MonthAggregate[]>(() => {
     if (trackerView !== "year") {
@@ -1705,8 +1754,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
     setSelectedDateKey(dateKey);
     const current = dayData[dateKey];
+    const monthKey = getMonthKey(dateKey);
+    const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
+    const suggestedBase = existingMonthBase > 0 ? existingMonthBase : getPreviousDayDeposit(dateKey);
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
+    setModalMonthBase(suggestedBase > 0 ? String(Math.round(suggestedBase)) : "");
     if (current?.variant === "pos-outline") {
       setModalTrades("0");
     } else {
@@ -1774,6 +1827,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return;
     }
     const isOutline = modalVariant === "pos-outline";
+    const monthKey = getMonthKey(selectedDateKey);
+    const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
+    const rawMonthBase = modalMonthBase.trim();
+    const enteredMonthBase = Number(rawMonthBase);
+    const needsMonthBase = existingMonthBase <= 0;
     const previousDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : 0;
     const enteredDeposit = Number(modalDeposit.trim());
     const outlineDeposit = isOutline ? (previousDeposit > 0 ? previousDeposit : enteredDeposit) : enteredDeposit;
@@ -1782,9 +1840,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
     const hasTrades = Number.isFinite(trades) && (isOutline ? trades >= 0 : trades > 0);
+    const hasMonthBase = !needsMonthBase || (rawMonthBase !== "" && Number.isFinite(enteredMonthBase) && enteredMonthBase > 0);
 
-    if (!hasVariant || !hasDeposit || !hasTrades) {
-      if (!hasVariant && !hasDeposit && !hasTrades) {
+    if (!hasVariant || !hasDeposit || !hasTrades || !hasMonthBase) {
+      if (!hasMonthBase) {
+        setModalError(rawMonthBase === "" ? ui.monthStartDepositRequired : ui.monthStartDepositPositive);
+      } else if (!hasVariant && !hasDeposit && !hasTrades) {
         setModalError(
           locale === "ru"
             ? "Выберите тип дня, заполните депозит и количество сделок."
@@ -1821,6 +1882,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     setModalError("");
+    const monthBaseToSave = needsMonthBase ? enteredMonthBase : existingMonthBase;
     const variant = modalVariant as Variant;
     const nextEntry: Entry = {
       result: variant === "neg" ? -1 : 1,
@@ -1828,6 +1890,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
       deposit,
       trades: Math.floor(trades),
     };
+
+    if (needsMonthBase && monthBaseToSave > 0) {
+      setMonthBaseByMonth((prev) => ({
+        ...prev,
+        [monthKey]: monthBaseToSave,
+      }));
+    }
 
     setDayData((prev) => ({
       ...prev,
@@ -2848,6 +2917,33 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </label>
               </div>
             </label>
+
+            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 ? (
+              <div className={styles.field}>
+                <span>{ui.monthStartDeposit}</span>
+                <div className={styles.fieldValue}>
+                  {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
+                </div>
+              </div>
+            ) : null}
+
+            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) <= 0 ? (
+              <label className={styles.field}>
+                <span>{ui.monthStartDeposit}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder={ui.enterMonthStartDeposit}
+                  value={modalMonthBase}
+                  onChange={(e) => {
+                    setModalMonthBase(e.target.value.replace(/\D/g, ""));
+                    setModalError("");
+                  }}
+                />
+                <small className={styles.fieldHint}>{ui.monthStartDepositHint} {ui.monthStartDepositHelper}</small>
+              </label>
+            ) : null}
 
             <label className={styles.field}>
               <div className={styles.fieldHeader}>
