@@ -2848,6 +2848,33 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <h3>{ui.daySettings}</h3>
             <p className={styles.modalDate}>{selectedDateKey}</p>
 
+            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 ? (
+              <div className={`${styles.field} ${styles.fieldPrimary}`}>
+                <span>{ui.monthStartDeposit}</span>
+                <div className={styles.fieldValue}>
+                  {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
+                </div>
+                <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
+              </div>
+            ) : (
+              <label className={`${styles.field} ${styles.fieldPrimary}`}>
+                <span>{ui.monthStartDeposit}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder={ui.enterMonthStartDeposit}
+                  value={modalMonthBase}
+                  autoFocus
+                  onChange={(e) => {
+                    setModalMonthBase(e.target.value.replace(/\D/g, ""));
+                    setModalError("");
+                  }}
+                />
+                <small className={styles.fieldHint}>{ui.monthStartDepositHint} {ui.monthStartDepositHelper}</small>
+              </label>
+            )}
+
             <label className={styles.field}>
               <div className={styles.fieldHeader}>
                 <span>{ui.result}</span>
@@ -2917,33 +2944,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </label>
               </div>
             </label>
-
-            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 ? (
-              <div className={styles.field}>
-                <span>{ui.monthStartDeposit}</span>
-                <div className={styles.fieldValue}>
-                  {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
-                </div>
-              </div>
-            ) : null}
-
-            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) <= 0 ? (
-              <label className={styles.field}>
-                <span>{ui.monthStartDeposit}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder={ui.enterMonthStartDeposit}
-                  value={modalMonthBase}
-                  onChange={(e) => {
-                    setModalMonthBase(e.target.value.replace(/\D/g, ""));
-                    setModalError("");
-                  }}
-                />
-                <small className={styles.fieldHint}>{ui.monthStartDepositHint} {ui.monthStartDepositHelper}</small>
-              </label>
-            ) : null}
 
             <label className={styles.field}>
               <div className={styles.fieldHeader}>

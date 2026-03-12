@@ -1105,6 +1105,13 @@
   margin: 0;
 }
 
+.fieldPrimary {
+  border: 1px solid rgba(82, 118, 212, 0.26);
+  border-radius: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg, rgba(24, 35, 62, 0.72), rgba(14, 21, 37, 0.78));
+}
+
 .field span {
   display: block;
   font-size: 12px;
