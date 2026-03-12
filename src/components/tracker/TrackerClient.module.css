@@ -662,9 +662,9 @@
 
 .yearMonthCard {
   border: 1px solid rgba(121, 133, 173, 0.24);
-  border-radius: 12px;
-  background: rgba(12, 19, 34, 0.72);
-  padding: 8px;
+  border-radius: 10px;
+  background: rgba(12, 19, 34, 0.62);
+  padding: 6px;
 }
 
 .yearMonthHead {
@@ -676,7 +676,7 @@
 
 .yearMonthHead span {
   color: #8fd8b0;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
   line-height: 1;
 }
@@ -684,57 +684,57 @@
 .yearMonthCard h5 {
   margin: 0;
   text-align: left;
-  font-size: 11px;
+  font-size: 10px;
   color: #d8e1ff;
   font-weight: 600;
 }
 
 .yearWeekdays {
-  margin-top: 8px;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-
-.yearWeekdays span {
-  text-align: center;
-  color: #8f9cc3;
-  font-size: 9px;
-  line-height: 1;
-}
-
-.yearMonthDays {
   margin-top: 6px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 3px;
 }
 
+.yearWeekdays span {
+  text-align: center;
+  color: #8f9cc3;
+  font-size: 8px;
+  line-height: 1;
+}
+
+.yearMonthDays {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
 .yearDay {
-  min-height: 20px;
-  border-radius: 6px;
+  min-height: 21px;
+  border-radius: 5px;
   font-size: 9px;
   line-height: 1;
   padding: 0;
 }
 
 .yearMonthMeta {
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
 }
 
 .yearMonthMeta span {
   color: #93a3ce;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
 }
 
 .yearMonthMeta strong {
   color: #eef3ff;
-  font-size: 10px;
+  font-size: 9px;
   line-height: 1;
 }
 
@@ -999,11 +999,11 @@
 .yearQuarterGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .yearQuarterPanel {
-  padding: 16px;
+  padding: 12px;
   border-radius: 16px;
   background:
     radial-gradient(circle at top left, rgba(75, 113, 228, 0.12), transparent 34%),
@@ -1018,32 +1018,29 @@
 }
 
 .yearQuarterEyebrow {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(118, 137, 198, 0.34);
-  background: rgba(14, 21, 40, 0.72);
-  color: #a9baf1;
-  font-size: 10px;
+  display: inline-block;
+  color: #8ea4df;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .yearQuarterHead h4 {
-  margin: 8px 0 0;
+  margin: 4px 0 0;
   font-size: 15px;
 }
 
 .yearQuarterSummary {
-  display: grid;
-  justify-items: end;
-  gap: 4px;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
   color: #9fb0dd;
   font-size: 11px;
   line-height: 1.2;
+  text-align: right;
 }
 
 .yearQuarterSummary strong {
@@ -1052,10 +1049,10 @@
 }
 
 .yearQuarterMonths {
-  margin-top: 14px;
+  margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .yearMetaColumn {
