@@ -1867,8 +1867,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
   };
 
   const openMonthSetup = (dateKey: string) => {
+    const monthKey = getMonthKey(dateKey);
     setMonthSetupDateKey(dateKey);
-    setMonthSetupValue("");
+    setMonthSetupValue(getMonthBase(monthKey) > 0 ? String(Math.round(getMonthBase(monthKey))) : "");
     setMonthSetupError("");
     setMonthSetupOpen(true);
   };
@@ -1879,7 +1880,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return;
     }
     const monthKey = getMonthKey(dateKey);
-    if (!hasEntriesInMonth(monthKey) && getMonthBase(monthKey) <= 0) {
+    if (!hasEntriesInMonth(monthKey)) {
       openMonthSetup(dateKey);
       return;
     }
