@@ -1795,7 +1795,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const current = dayData[dateKey];
     const monthKey = getMonthKey(dateKey);
     const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
-    const suggestedBase = existingMonthBase > 0 ? existingMonthBase : getPreviousDayDeposit(dateKey);
+    const monthHasEntries = sortedEntries.some(([entryDateKey]) => getMonthKey(entryDateKey) === monthKey);
+    const suggestedBase = existingMonthBase > 0 && monthHasEntries ? existingMonthBase : 0;
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
     setModalMonthBase(suggestedBase > 0 ? String(Math.round(suggestedBase)) : "");
