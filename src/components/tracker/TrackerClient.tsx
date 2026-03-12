@@ -2977,16 +2977,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
       {monthSetupOpen ? (
         <div className={styles.modalBackdrop} onClick={closeMonthSetup} role="presentation">
           <div className={`${styles.modal} ${styles.monthSetupModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <div className={styles.monthSetupHeader}>
-              <span className={styles.monthSetupEyebrow}>{ui.newMonth}</span>
-              <h3>{ui.monthSetupTitle}</h3>
-              <p className={styles.monthSetupLead}>{ui.monthSetupDescription}</p>
-            </div>
+            <h3>{ui.monthSetupTitle}</h3>
+            <p className={styles.modalDate}>{ui.monthSetupDescription}</p>
 
-            <label className={styles.monthSetupField}>
-              <span className={styles.monthSetupLabel}>{ui.monthStartDeposit}</span>
+            <label className={`${styles.field} ${styles.fieldPrimary}`}>
+              <span>{ui.monthStartDeposit}</span>
               <input
-                className={styles.monthSetupInput}
                 type="text"
                 inputMode="numeric"
                 pattern="[0-9]*"
@@ -2998,16 +2994,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   setMonthSetupError("");
                 }}
               />
-              <small className={styles.monthSetupHint}>{ui.monthStartDepositHint}</small>
+              <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
             </label>
 
             {monthSetupError ? <p className={styles.modalError}>{monthSetupError}</p> : null}
 
             <div className={styles.monthSetupActions}>
-              <button className={`btn ${styles.monthSetupCancel}`} type="button" onClick={closeMonthSetup}>
+              <button className="btn" type="button" onClick={closeMonthSetup}>
                 {ui.cancel}
               </button>
-              <button className={`btn primary ${styles.monthSetupSubmit}`} type="button" onClick={saveMonthSetup}>
+              <button className="btn primary" type="button" onClick={saveMonthSetup}>
                 {ui.continueCta}
               </button>
             </div>
