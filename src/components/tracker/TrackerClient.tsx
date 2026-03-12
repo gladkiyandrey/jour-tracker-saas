@@ -41,6 +41,23 @@ type MonthAggregate = {
   pnl: number;
   disciplineScore: number;
 };
+type QuarterGroup = {
+  key: string;
+  label: string;
+  months: Array<{
+    month: number;
+    label: string;
+    cells: Array<
+      | { kind: "empty" }
+      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean }
+    >;
+    aggregate: MonthAggregate;
+  }>;
+  trades: number;
+  filledDays: number;
+  pnl: number;
+  disciplineScore: number;
+};
 
 type Props = {
   userKey: string;
@@ -188,7 +205,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [monthSetupValue, setMonthSetupValue] = useState("");
   const [monthSetupError, setMonthSetupError] = useState("");
   const [trackerView, setTrackerView] = useState<"month" | "year">("month");
-  const [reviewDisplayMode, setReviewDisplayMode] = useState<"$" | "%">(() => {
+  const [reviewDisplayMode] = useState<"$" | "%">(() => {
     if (typeof window === "undefined") return "$";
     try {
       const raw = localStorage.getItem(reviewDisplayKey);
@@ -2165,6 +2182,93 @@ export default function TrackerClient({ userKey, locale }: Props) {
     });
   }, [buildMonthCells, locale, trackerView, viewYear]);
 
+  const yearQuarterGroups = useMemo<QuarterGroup[]>(() => {
+    if (trackerView !== "year") return [];
+
+    return Array.from({ length: 4 }, (_, quarterIndex) => {
+      const startMonth = quarterIndex * 3;
+      const months = Array.from({ length: 3 }, (_, offset) => {
+        const monthIndex = startMonth + offset;
+        return {
+          month: monthIndex,
+          label: yearCalendarMonths[monthIndex]?.label || yearMonthlyAggregates[monthIndex]?.label || `M${monthIndex + 1}`,
+          cells: yearCalendarMonths[monthIndex]?.cells || [],
+          aggregate:
+            yearMonthlyAggregates[monthIndex] || {
+              month: monthIndex,
+              label: `M${monthIndex + 1}`,
+              trades: 0,
+              greenDays: 0,
+              redDays: 0,
+              filledDays: 0,
+              startDeposit: 0,
+              endDeposit: 0,
+              pnl: 0,
+              disciplineScore: 0,
+            },
+        };
+      });
+
+      const trades = months.reduce((sum, month) => sum + month.aggregate.trades, 0);
+      const filledDays = months.reduce((sum, month) => sum + month.aggregate.filledDays, 0);
+      const pnl = months.reduce((sum, month) => sum + month.aggregate.pnl, 0);
+      const disciplinedDays = months.reduce((sum, month) => sum + month.aggregate.greenDays, 0);
+      const disciplineScore = filledDays > 0 ? Math.round((disciplinedDays / filledDays) * 100) : 0;
+
+      return {
+        key: `q${quarterIndex + 1}`,
+        label: `Q${quarterIndex + 1}`,
+        months,
+        trades,
+        filledDays,
+        pnl,
+        disciplineScore,
+      };
+    });
+  }, [trackerView, yearCalendarMonths, yearMonthlyAggregates]);
+
+  const yearTrendModel = useMemo(() => {
+    if (trackerView !== "year") {
+      return {
+        yellow: "",
+        blue: "",
+        ticks: [] as Array<{ x: number; label: string }>,
+        bounds: { left: 48, right: 1112, top: 28, bottom: 312 },
+      };
+    }
+
+    const bounds = { left: 48, right: 1112, top: 28, bottom: 312 };
+    const values = yearMonthlyAggregates;
+    const disciplineValues = values.map((item) => item.disciplineScore);
+    const depositValues = values.map((item) => item.filledDays > 0 ? item.endDeposit : item.startDeposit);
+    const minDeposit = Math.min(...depositValues, 0);
+    const maxDeposit = Math.max(...depositValues, 1);
+    const depositRange = Math.max(1, maxDeposit - minDeposit);
+    const paddedMinDeposit = minDeposit - depositRange * 0.08;
+    const paddedMaxDeposit = maxDeposit + depositRange * 0.08;
+
+    const normalize = (series: number[], min: number, max: number) => {
+      if (!series.length) return [];
+      const safeRange = max - min || 1;
+      return series.map((value) => ((value - min) / safeRange) * 100);
+    };
+
+    const yellowValues = normalize(disciplineValues, 0, 100);
+    const blueValues = normalize(depositValues, paddedMinDeposit, paddedMaxDeposit);
+    const ticks = values.map((item, index) => {
+      const steps = values.length > 1 ? values.length - 1 : 1;
+      const x = bounds.left + ((bounds.right - bounds.left) * index) / steps;
+      return { x, label: item.label };
+    });
+
+    return {
+      yellow: buildPath(yellowValues, 0, 100, bounds),
+      blue: buildPath(blueValues, 0, 100, bounds),
+      ticks,
+      bounds,
+    };
+  }, [trackerView, yearMonthlyAggregates]);
+
   const monthLabel = useMemo(() => {
     const date = new Date(viewYear, viewMonth, 1);
     const title = date.toLocaleDateString(
@@ -2800,123 +2904,164 @@ export default function TrackerClient({ userKey, locale }: Props) {
         </>
       ) : (
         <div className={styles.yearRow}>
-          <div className={`${styles.panel} ${styles.yearCalendarPanel}`}>
-            <div className={styles.reviewHeader}>
-              <h4>{ui.calendarYear}</h4>
-            </div>
-            <div className={styles.yearCalendarGrid}>
-              {yearCalendarMonths.map((month) => (
-                <div key={month.month} className={styles.yearMonthCard}>
-                  <h5>{month.label}</h5>
-                  <div className={styles.yearWeekdays}>
-                    <span>{ui.mon}</span>
-                    <span>{ui.tue}</span>
-                    <span>{ui.wed}</span>
-                    <span>{ui.thu}</span>
-                    <span>{ui.fri}</span>
-                    <span>{ui.sat}</span>
-                    <span>{ui.sun}</span>
+          <div className={styles.yearQuarterGrid}>
+            {yearQuarterGroups.map((quarter) => (
+              <section key={quarter.key} className={`${styles.panel} ${styles.yearQuarterPanel}`}>
+                <div className={styles.yearQuarterHead}>
+                  <div>
+                    <span className={styles.yearQuarterEyebrow}>{quarter.label}</span>
+                    <h4>{`${quarter.months[0]?.label} - ${quarter.months[quarter.months.length - 1]?.label}`}</h4>
                   </div>
-                  <div className={styles.yearMonthDays}>
-                    {month.cells.map((cell, index) =>
-                      cell.kind === "empty" ? (
-                        <button key={`y-empty-${month.month}-${index}`} className={`${styles.yearDay} ${styles.dayEmpty}`} type="button" />
-                      ) : (
-                        <button
-                          key={cell.dateKey}
-                          type="button"
-                          className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
-                          onClick={() => openModal(cell.dateKey)}
-                          disabled={cell.isFuture}
-                          aria-disabled={cell.isFuture}
-                        >
-                          {cell.day}
-                        </button>
-                      ),
-                    )}
+                  <div className={styles.yearQuarterSummary}>
+                    <span>{quarter.disciplineScore}%</span>
+                    <span>{quarter.trades} / {quarter.filledDays}</span>
+                    <strong>{formatUsdValue(quarter.pnl, true)}</strong>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className={styles.yearQuarterMonths}>
+                  {quarter.months.map((month) => (
+                    <div key={month.month} className={styles.yearMonthCard}>
+                      <div className={styles.yearMonthHead}>
+                        <h5>{month.label}</h5>
+                        <span>{month.aggregate.disciplineScore}%</span>
+                      </div>
+                      <div className={styles.yearWeekdays}>
+                        <span>{ui.mon}</span>
+                        <span>{ui.tue}</span>
+                        <span>{ui.wed}</span>
+                        <span>{ui.thu}</span>
+                        <span>{ui.fri}</span>
+                        <span>{ui.sat}</span>
+                        <span>{ui.sun}</span>
+                      </div>
+                      <div className={styles.yearMonthDays}>
+                        {month.cells.map((cell, index) =>
+                          cell.kind === "empty" ? (
+                            <button key={`y-empty-${month.month}-${index}`} className={`${styles.yearDay} ${styles.dayEmpty}`} type="button" />
+                          ) : (
+                            <button
+                              key={cell.dateKey}
+                              type="button"
+                              className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
+                              onClick={() => openModal(cell.dateKey)}
+                              disabled={cell.isFuture}
+                              aria-disabled={cell.isFuture}
+                            >
+                              {cell.day}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                      <div className={styles.yearMonthMeta}>
+                        <span>{month.aggregate.trades}t</span>
+                        <strong>{formatUsdValue(month.aggregate.pnl, true)}</strong>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
           </div>
-          <div className={styles.yearMetaColumn}>
-            <div
-              className={`${styles.panel} ${styles.signalizer} ${
-                signalizer.summaryLevel === "critical"
-                  ? styles.signalCritical
-                  : signalizer.summaryLevel === "warn"
-                    ? styles.signalWarn
-                    : styles.signalOk
-              }`}
-            >
-              <h4>{ui.signalizer}</h4>
-              <p className={styles.signalSummary}>
-                <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
-              </p>
-              <div className={styles.signalList}>
-                {signalizer.items.slice(0, 4).map((item) => (
-                  <div key={item.key} className={styles.signalItem}>
-                    <span
-                      className={`${styles.signalBadge} ${
-                        item.level === "critical"
-                          ? styles.signalBadgeCritical
-                          : item.level === "warn"
-                            ? styles.signalBadgeWarn
-                            : styles.signalBadgeOk
-                      }`}
-                    >
-                      {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
-                    </span>
-                    <div className={styles.signalText}>
-                      <strong>{item.label}</strong>
-                      <p>{item.message}</p>
+          <div className={`${styles.panel} ${styles.yearTrendPanel}`}>
+            <div className={styles.yearTrendHead}>
+              <div>
+                <span className={styles.yearQuarterEyebrow}>{reviewTitle}</span>
+                <h4>{ui.yearOverview}</h4>
+              </div>
+              <div className={styles.yearTrendLegend}>
+                <span className={styles.legendItem}>
+                  <i className={`${styles.legendLine} ${styles.legendYellow}`} /> {ui.consistency}
+                </span>
+                <span className={styles.legendItem}>
+                  <i className={`${styles.legendLine} ${styles.legendBlue}`} /> {ui.depositSize}
+                </span>
+              </div>
+            </div>
+            <div className={styles.yearTrendLayout}>
+              <div className={styles.yearTrendChartWrap}>
+                <svg className={styles.yearTrendChart} viewBox="0 0 1160 340" preserveAspectRatio="none" aria-label={ui.yearlyReview}>
+                  <g>
+                    {[28, 99, 170, 241, 312].map((y, index) => (
+                      <line key={`year-trend-grid-${index}`} className={styles.gridLine} x1={yearTrendModel.bounds.left} y1={y} x2={yearTrendModel.bounds.right} y2={y} />
+                    ))}
+                  </g>
+                  <path className={styles.yellowGlow} d={yearTrendModel.yellow} />
+                  <path className={styles.blueGlow} d={yearTrendModel.blue} />
+                  <path className={`${styles.line} ${styles.yellow}`} d={yearTrendModel.yellow} />
+                  <path className={`${styles.line} ${styles.blue}`} d={yearTrendModel.blue} />
+                  {yearTrendModel.ticks.map((tick) => (
+                    <text key={`year-trend-tick-${tick.label}`} className={styles.tickLabel} x={tick.x} y={334} textAnchor="middle">
+                      {tick.label}
+                    </text>
+                  ))}
+                </svg>
+              </div>
+              <div className={styles.yearMetaColumn}>
+                <div
+                  className={`${styles.panel} ${styles.signalizer} ${
+                    signalizer.summaryLevel === "critical"
+                      ? styles.signalCritical
+                      : signalizer.summaryLevel === "warn"
+                        ? styles.signalWarn
+                        : styles.signalOk
+                  }`}
+                >
+                  <h4>{ui.signalizer}</h4>
+                  <p className={styles.signalSummary}>
+                    <strong>{signalizer.summaryTitle}.</strong> {signalizer.summaryMessage}
+                  </p>
+                  <div className={styles.signalList}>
+                    {signalizer.items.slice(0, 4).map((item) => (
+                      <div key={item.key} className={styles.signalItem}>
+                        <span
+                          className={`${styles.signalBadge} ${
+                            item.level === "critical"
+                              ? styles.signalBadgeCritical
+                              : item.level === "warn"
+                                ? styles.signalBadgeWarn
+                                : styles.signalBadgeOk
+                          }`}
+                        >
+                          {item.level === "critical" ? "ALERT" : item.level === "warn" ? "WARN" : "OK"}
+                        </span>
+                        <div className={styles.signalText}>
+                          <strong>{item.label}</strong>
+                          <p>{item.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`${styles.panel} ${styles.weekly}`}>
+                  <div className={styles.reviewHeader}>
+                    <h4>{reviewTitle}</h4>
+                  </div>
+                  <div className={styles.weeklyGrid}>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.totalTrades}</span>
+                      <strong>{periodReview.totalTrades}</strong>
+                    </div>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.avgTradesDay}</span>
+                      <strong>{yearOverview.avgTradesDay}</strong>
+                    </div>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.greenPnlSum}</span>
+                      <strong>{periodReview.greenPnlSum}</strong>
+                    </div>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.redPnlSum}</span>
+                      <strong>{periodReview.redPnlSum}</strong>
+                    </div>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.avgErrorCost}</span>
+                      <strong>{periodReview.avgErrorCost}</strong>
+                    </div>
+                    <div className={styles.weeklyItem}>
+                      <span>{ui.maxDrawdown}</span>
+                      <strong>{periodReview.maxDrawdown}</strong>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div className={`${styles.panel} ${styles.weekly}`}>
-              <div className={styles.reviewHeader}>
-                <h4>{reviewTitle}</h4>
-                <button
-                  type="button"
-                  className={styles.reviewDisplayBtn}
-                  onClick={() => setReviewDisplayMode((current) => (current === "$" ? "%" : "$"))}
-                  aria-label={
-                    locale === "ru"
-                      ? `Переключить режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
-                      : locale === "uk"
-                        ? `Перемкнути режим на ${reviewDisplayMode === "$" ? "%" : "$"}`
-                        : `Switch mode to ${reviewDisplayMode === "$" ? "%" : "$"}`
-                  }
-                >
-                  <span className={styles.reviewDisplaySymbol}>{reviewDisplayMode === "$" ? "$" : "%"}</span>
-                </button>
-              </div>
-              <div className={styles.weeklyGrid}>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.totalTrades}</span>
-                  <strong>{periodReview.totalTrades}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.avgTradesDay}</span>
-                  <strong>{yearOverview.avgTradesDay}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.greenPnlSum}</span>
-                  <strong>{periodReview.greenPnlSum}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.redPnlSum}</span>
-                  <strong>{periodReview.redPnlSum}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.avgErrorCost}</span>
-                  <strong>{periodReview.avgErrorCost}</strong>
-                </div>
-                <div className={styles.weeklyItem}>
-                  <span>{ui.maxDrawdown}</span>
-                  <strong>{periodReview.maxDrawdown}</strong>
                 </div>
               </div>
             </div>
