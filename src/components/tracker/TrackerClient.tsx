@@ -1781,6 +1781,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, []);
 
   const isFutureDateKey = (dateKey: string) => dateKey > todayKey;
+  const selectedMonthKey = selectedDateKey ? getMonthKey(selectedDateKey) : "";
+  const selectedMonthHasEntries = selectedMonthKey
+    ? sortedEntries.some(([dateKey]) => getMonthKey(dateKey) === selectedMonthKey)
+    : false;
 
   const openModal = (dateKey: string) => {
     if (isFutureDateKey(dateKey)) {
@@ -1866,7 +1870,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const existingMonthBase = Number(monthBaseByMonth[monthKey]) || 0;
     const rawMonthBase = modalMonthBase.trim();
     const enteredMonthBase = Number(rawMonthBase);
-    const needsMonthBase = existingMonthBase <= 0;
+    const canEditMonthBase = !selectedMonthHasEntries;
+    const needsMonthBase = canEditMonthBase;
     const previousDeposit = isOutline ? getPreviousDayDeposit(selectedDateKey) : 0;
     const enteredDeposit = Number(modalDeposit.trim());
     const outlineDeposit = isOutline ? (previousDeposit > 0 ? previousDeposit : enteredDeposit) : enteredDeposit;
@@ -1917,7 +1922,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     setModalError("");
-    const monthBaseToSave = needsMonthBase ? enteredMonthBase : existingMonthBase;
+    const monthBaseToSave = canEditMonthBase ? enteredMonthBase : existingMonthBase;
     const variant = modalVariant as Variant;
     const nextEntry: Entry = {
       result: variant === "neg" ? -1 : 1,
@@ -1926,7 +1931,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       trades: Math.floor(trades),
     };
 
-    if (needsMonthBase && monthBaseToSave > 0) {
+    if (canEditMonthBase && monthBaseToSave > 0) {
       setMonthBaseByMonth((prev) => ({
         ...prev,
         [monthKey]: monthBaseToSave,
@@ -2883,7 +2888,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <h3>{ui.daySettings}</h3>
             <p className={styles.modalDate}>{selectedDateKey}</p>
 
-            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 ? (
+            {Number(monthBaseByMonth[getMonthKey(selectedDateKey)]) > 0 && selectedMonthHasEntries ? (
               <div className={`${styles.field} ${styles.fieldPrimary}`}>
                 <span>{ui.monthStartDeposit}</span>
                 <div className={styles.fieldValue}>
