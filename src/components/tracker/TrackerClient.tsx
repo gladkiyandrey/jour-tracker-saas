@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import styles from "./TrackerClient.module.css";
 import type { Locale } from "@/lib/i18n";
@@ -1725,7 +1725,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return locale === "ru" ? "Тип не выбран" : locale === "uk" ? "Тип не обрано" : "No day type";
   };
 
-  const getPreviousDayDeposit = (dateKey: string) => {
+  const getPreviousDayDeposit = useCallback((dateKey: string) => {
     const current = new Date(`${dateKey}T00:00:00`);
     if (Number.isNaN(current.getTime())) return 0;
     const probe = new Date(current);
@@ -1738,7 +1738,42 @@ export default function TrackerClient({ userKey, locale }: Props) {
       }
     }
     return 0;
-  };
+  }, [dayData]);
+
+  useEffect(() => {
+    const inferredMonthBases: Record<string, number> = {};
+    const monthFirstEntries = new Map<string, { dateKey: string; deposit: number }>();
+
+    sortedEntries.forEach(([dateKey, entry]) => {
+      const monthKey = getMonthKey(dateKey);
+      const existing = monthFirstEntries.get(monthKey);
+      if (!existing || dateKey < existing.dateKey) {
+        monthFirstEntries.set(monthKey, { dateKey, deposit: Number(entry.deposit) || 0 });
+      }
+    });
+
+    monthFirstEntries.forEach((firstEntry, monthKey) => {
+      if ((Number(monthBaseByMonth[monthKey]) || 0) > 0) return;
+      const previousDeposit = getPreviousDayDeposit(firstEntry.dateKey);
+      const inferredBase = previousDeposit > 0 ? previousDeposit : firstEntry.deposit;
+      if (inferredBase > 0) {
+        inferredMonthBases[monthKey] = inferredBase;
+      }
+    });
+
+    if (!Object.keys(inferredMonthBases).length) return;
+
+    setMonthBaseByMonth((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      Object.entries(inferredMonthBases).forEach(([monthKey, value]) => {
+        if ((Number(next[monthKey]) || 0) > 0) return;
+        next[monthKey] = value;
+        changed = true;
+      });
+      return changed ? next : prev;
+    });
+  }, [getPreviousDayDeposit, monthBaseByMonth, sortedEntries]);
 
   const todayKey = useMemo(() => {
     const nowDate = new Date();
