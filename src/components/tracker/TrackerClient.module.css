@@ -1174,20 +1174,22 @@
   left: 50%;
   bottom: calc(100% + 8px);
   transform: translateX(-50%);
-  width: min(260px, 70vw);
-  border: 1px solid rgba(121, 133, 173, 0.42);
+  min-width: 168px;
+  max-width: 260px;
+  width: max-content;
+  border: 1px solid rgba(144, 164, 226, 0.42);
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
   color: #dce6ff;
   font-size: 11px;
-  line-height: 1.35;
+  line-height: 1.4;
   font-weight: 500;
   padding: 8px 10px;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  z-index: 8;
+  z-index: 6;
 }
 
 .metricHelp:hover .metricTooltip,
