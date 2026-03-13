@@ -2659,7 +2659,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 <span>{ui.disciplineScore}</span>
               </div>
               <strong>{stats.score}%</strong>
-              <span className={`${styles.scoreTooltip} ${helpOpen("score-discipline") ? styles.scoreTooltipVisible : ""}`}>{ui.disciplineScoreHint}</span>
+              <div className={`${styles.scoreTooltip} ${helpOpen("score-discipline") ? styles.scoreTooltipVisible : ""}`}>{ui.disciplineScoreHint}</div>
             </div>
             <div
               className={`${styles.score} ${styles.scoreGreen}`}
@@ -2671,7 +2671,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 <span>{ui.greenStreak}</span>
               </div>
               <strong>{stats.greenStreak}</strong>
-              <span className={`${styles.scoreTooltip} ${helpOpen("score-green-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.greenStreakHint}</span>
+              <div className={`${styles.scoreTooltip} ${helpOpen("score-green-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.greenStreakHint}</div>
             </div>
             <div
               className={`${styles.score} ${styles.scoreRed}`}
@@ -2683,7 +2683,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 <span>{ui.redStreak}</span>
               </div>
               <strong>{stats.redStreak}</strong>
-              <span className={`${styles.scoreTooltip} ${helpOpen("score-red-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.redStreakHint}</span>
+              <div className={`${styles.scoreTooltip} ${helpOpen("score-red-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.redStreakHint}</div>
             </div>
           </div>
 
