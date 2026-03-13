@@ -11,7 +11,8 @@ type ChartHover = {
   x: number;
   y: number;
   label: string;
-  deposit: number;
+  dateKey: string;
+  pnl: number;
   trades: number;
   variant: Variant | "none";
 };
@@ -1664,7 +1665,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return {
         yellow: "",
         blue: "",
-        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; label: string; deposit: number; trades: number; variant: Variant | "none" }>,
+        bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; label: string; dateKey: string; pnl: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
         yTicksLeft: [] as Array<{ y: number; label: string }>,
         bounds,
@@ -1758,9 +1759,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const cappedTrades = Math.max(0, Math.min(v.trades, TRADE_BAR_CAP));
       const h = cappedTrades === 0 ? 3 : Math.min(cappedTrades * TRADE_BAR_UNIT, tradeMaxHeight);
       const y = bounds.bottom - h;
+      const monthBase = Number(monthBaseByMonth[getMonthKey(v.dateKey)]) || 0;
+      const prevVisible = visible[index - 1];
+      const prevDeposit =
+        prevVisible && getMonthKey(prevVisible.dateKey) === getMonthKey(v.dateKey)
+          ? prevVisible.deposit
+          : monthBase;
+      const pnl = v.deposit - prevDeposit;
       const kind: "zero" | "ok" | "warn" | "hot" =
         v.trades === 0 ? "zero" : v.trades <= 2 ? "ok" : v.trades <= 4 ? "warn" : "hot";
-      return { x, y, w: barWidth, h, kind, day: v.day, label: v.label, deposit: v.deposit, trades: v.trades, variant: v.variant };
+      return { x, y, w: barWidth, h, kind, day: v.day, label: v.label, dateKey: v.dateKey, pnl, trades: v.trades, variant: v.variant };
     });
 
     const numberLocale = locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US";
@@ -1794,15 +1802,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
       bounds,
       gridY,
     };
-  }, [locale, sortedEntries, trackerView, viewMonth, viewYear]);
+  }, [locale, monthBaseByMonth, sortedEntries, trackerView, viewMonth, viewYear]);
 
   const variantLabel = (variant: Variant | "none") => {
-    if (variant === "neg") return locale === "ru" ? "Красный день (-1)" : locale === "uk" ? "Червоний день (-1)" : "Red day (-1)";
-    if (variant === "pos") return locale === "ru" ? "Зеленый день (+1)" : locale === "uk" ? "Зелений день (+1)" : "Green day (+1)";
+    if (variant === "neg") return locale === "ru" ? "Нарушение ТС" : locale === "uk" ? "Порушення ТС" : "Rule violation";
+    if (variant === "pos") return locale === "ru" ? "Следование ТС" : locale === "uk" ? "Дотримання ТС" : "Plan followed";
     if (variant === "pos-outline") {
-      return locale === "ru" ? "Зеленый контур (+1)" : locale === "uk" ? "Зелений контур (+1)" : "Green outline (+1)";
+      return locale === "ru" ? "Дисциплинированный пропуск" : locale === "uk" ? "Дисциплінований пропуск" : "Disciplined skip";
     }
-    return locale === "ru" ? "Тип не выбран" : locale === "uk" ? "Тип не обрано" : "No day type";
+    return locale === "ru" ? "Тип не выбран" : locale === "uk" ? "Тип не обрано" : "No type";
   };
 
   const getPreviousDayDeposit = useCallback((dateKey: string) => {
@@ -2459,6 +2467,15 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
     return `${rounded.toLocaleString(numberLocale)}$`;
   };
+  const formatChartDate = (dateKey: string) => {
+    const date = new Date(`${dateKey}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return dateKey;
+    return date.toLocaleDateString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
     <section className={styles.wrapper}>
@@ -2590,7 +2607,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
                         x: event.clientX - rect.left + 10,
                         y: event.clientY - rect.top - 8,
                         label: bar.label,
-                        deposit: bar.deposit,
+                        dateKey: bar.dateKey,
+                        pnl: bar.pnl,
                         trades: bar.trades,
                         variant: bar.variant,
                       });
@@ -2613,10 +2631,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
             </svg>
             {chartHover ? (
               <div className={styles.chartTooltip} style={{ left: `${chartHover.x}px`, top: `${chartHover.y}px` }}>
-                <div>{ui.day}: {chartHover.label}</div>
+                <div>{ui.day}: {formatChartDate(chartHover.dateKey)}</div>
                 <div>{ui.type}: {variantLabel(chartHover.variant)}</div>
                 <div>{ui.trades}: {chartHover.trades}</div>
-                <div>{ui.deposit}: {Math.round(chartHover.deposit)}</div>
+                <div>PnL: {formatUsdValue(chartHover.pnl, true)}</div>
               </div>
             ) : null}
           </div>
