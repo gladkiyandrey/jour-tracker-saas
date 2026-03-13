@@ -418,8 +418,9 @@
   transform: translate(-50%, -100%);
   pointer-events: none;
   z-index: 6;
-  min-width: 168px;
-  max-width: 260px;
+  display: block;
+  width: max-content;
+  max-width: min(240px, 78vw);
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid rgba(144, 164, 226, 0.42);
@@ -428,6 +429,8 @@
   font-size: 11px;
   line-height: 1.4;
   font-weight: 500;
+  white-space: normal;
+  text-align: left;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
 }
 
@@ -471,7 +474,7 @@
   bottom: 100%;
   transform: translate(-50%, -8px);
   width: max-content;
-  max-width: min(260px, 78vw);
+  max-width: min(240px, 78vw);
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid rgba(144, 164, 226, 0.42);
@@ -1216,9 +1219,8 @@
   bottom: 100%;
   transform: translate(-50%, -8px);
   display: block;
-  min-width: 168px;
-  width: min(260px, 70vw);
-  max-width: 260px;
+  width: max-content;
+  max-width: min(240px, 78vw);
   border: 1px solid rgba(144, 164, 226, 0.42);
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
@@ -1564,7 +1566,12 @@
   }
 
   .metricTooltip {
-    width: min(230px, 82vw);
+    max-width: min(220px, 82vw);
+  }
+
+  .scoreTooltip,
+  .chartTooltip {
+    max-width: min(220px, 82vw);
   }
 
   .actions {
