@@ -1125,7 +1125,8 @@
   min-height: 42px;
 }
 
-.weeklyItem span {
+.weeklyItem > span,
+.weeklyItem .metricLabel > span {
   color: #9ea9cc;
   font-size: 12px;
   line-height: 1.55;
