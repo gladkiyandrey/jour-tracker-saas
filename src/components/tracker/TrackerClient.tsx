@@ -302,6 +302,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
         disciplineScore: "DISCIPLINE SCORE",
         greenStreak: "GREEN STREAK",
         redStreak: "RED STREAK",
+        disciplineScoreHint: "Процент дисциплинированных дней за выбранный период: зеленые и осознанно пропущенные дни / все заполненные дни.",
+        greenStreakHint: "Максимальная серия дисциплинированных дней подряд за выбранный период.",
+        redStreakHint: "Максимальная серия дней с нарушением ТС подряд за выбранный период.",
         mon: "Пн",
         tue: "Вт",
         wed: "Ср",
@@ -396,6 +399,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
         disciplineScore: "DISCIPLINE SCORE",
         greenStreak: "GREEN STREAK",
         redStreak: "RED STREAK",
+        disciplineScoreHint: "Відсоток дисциплінованих днів за вибраний період: зелені та свідомо пропущені дні / усі заповнені дні.",
+        greenStreakHint: "Максимальна серія дисциплінованих днів поспіль за вибраний період.",
+        redStreakHint: "Максимальна серія днів із порушенням ТС поспіль за вибраний період.",
         mon: "Пн",
         tue: "Вт",
         wed: "Ср",
@@ -489,6 +495,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
       disciplineScore: "DISCIPLINE SCORE",
       greenStreak: "GREEN STREAK",
       redStreak: "RED STREAK",
+      disciplineScoreHint: "Share of disciplined days in the selected period: green and intentionally skipped days / all filled days.",
+      greenStreakHint: "Longest streak of disciplined days in a row for the selected period.",
+      redStreakHint: "Longest streak of rule-breaking days in a row for the selected period.",
       mon: "Mon",
       tue: "Tue",
       wed: "Wed",
@@ -2641,15 +2650,57 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
           <div className={styles.scoreRow}>
             <div className={`${styles.score} ${styles.scoreBlue}`}>
-              <span>{ui.disciplineScore}</span>
+              <div className={styles.scoreLabel}>
+                <span>{ui.disciplineScore}</span>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.disciplineScoreHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("score-discipline");
+                  }}
+                >
+                  ?
+                  <span className={`${styles.metricTooltip} ${helpOpen("score-discipline") ? styles.metricTooltipVisible : ""}`}>{ui.disciplineScoreHint}</span>
+                </button>
+              </div>
               <strong>{stats.score}%</strong>
             </div>
             <div className={`${styles.score} ${styles.scoreGreen}`}>
-              <span>{ui.greenStreak}</span>
+              <div className={styles.scoreLabel}>
+                <span>{ui.greenStreak}</span>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.greenStreakHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("score-green-streak");
+                  }}
+                >
+                  ?
+                  <span className={`${styles.metricTooltip} ${helpOpen("score-green-streak") ? styles.metricTooltipVisible : ""}`}>{ui.greenStreakHint}</span>
+                </button>
+              </div>
               <strong>{stats.greenStreak}</strong>
             </div>
             <div className={`${styles.score} ${styles.scoreRed}`}>
-              <span>{ui.redStreak}</span>
+              <div className={styles.scoreLabel}>
+                <span>{ui.redStreak}</span>
+                <button
+                  type="button"
+                  className={styles.metricHelp}
+                  aria-label={ui.redStreakHint}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHelp("score-red-streak");
+                  }}
+                >
+                  ?
+                  <span className={`${styles.metricTooltip} ${helpOpen("score-red-streak") ? styles.metricTooltipVisible : ""}`}>{ui.redStreakHint}</span>
+                </button>
+              </div>
               <strong>{stats.redStreak}</strong>
             </div>
           </div>

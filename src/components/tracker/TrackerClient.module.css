@@ -474,6 +474,13 @@
   color: #fff;
 }
 
+.scoreLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
 .score strong {
   font-size: 18px;
   line-height: 1;
