@@ -1715,10 +1715,25 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return values.map((value) => anchor + (value - anchor) / scale);
     };
 
-    const depositRange = Math.max(1, maxDeposit - minDeposit);
-    const depositPad = depositRange * 0.08;
-    const displayMinDeposit = minDeposit - depositPad;
-    const displayMaxDeposit = maxDeposit + depositPad;
+    const firstDeposit = depositValues[0] || 0;
+    const displayMinDeposit = (() => {
+      if (trackerView !== "month") {
+        const depositRange = Math.max(1, maxDeposit - minDeposit);
+        const depositPad = depositRange * 0.08;
+        return minDeposit - depositPad;
+      }
+      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - firstDeposit)));
+      return firstDeposit - maxAbsDelta * 1.08;
+    })();
+    const displayMaxDeposit = (() => {
+      if (trackerView !== "month") {
+        const depositRange = Math.max(1, maxDeposit - minDeposit);
+        const depositPad = depositRange * 0.08;
+        return maxDeposit + depositPad;
+      }
+      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - firstDeposit)));
+      return firstDeposit + maxAbsDelta * 1.08;
+    })();
     const normalizedDeposit = normalizeToAxis(depositValues, displayMinDeposit, displayMaxDeposit);
     const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
     const normalizedResultBase = limitLocalSlope(normalizedResultRaw, 14);
