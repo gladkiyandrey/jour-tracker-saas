@@ -449,6 +449,7 @@
 }
 
 .score {
+  position: relative;
   min-height: 54px;
   margin-bottom: 0;
   display: flex;
@@ -464,6 +465,40 @@
   text-align: center;
 }
 
+.scoreTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, -8px);
+  min-width: 168px;
+  width: min(260px, 70vw);
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(144, 164, 226, 0.42);
+  background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
+  color: #dce6ff;
+  font-size: 11px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+  white-space: normal;
+  text-align: left;
+  box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.score:hover .scoreTooltip,
+.score:focus-within .scoreTooltip,
+.scoreTooltipVisible {
+  opacity: 1;
+  visibility: visible;
+}
+
 .score span {
   font-size: 11px;
   font-weight: 600;
@@ -477,7 +512,6 @@
 .scoreLabel {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
   min-width: 0;
 }
 

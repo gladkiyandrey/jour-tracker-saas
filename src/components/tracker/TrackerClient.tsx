@@ -2649,59 +2649,41 @@ export default function TrackerClient({ userKey, locale }: Props) {
           </div>
 
           <div className={styles.scoreRow}>
-            <div className={`${styles.score} ${styles.scoreBlue}`}>
+            <div
+              className={`${styles.score} ${styles.scoreBlue}`}
+              onClick={() => toggleHelp("score-discipline")}
+              role={isTouchMode ? "button" : undefined}
+              tabIndex={isTouchMode ? 0 : undefined}
+            >
               <div className={styles.scoreLabel}>
                 <span>{ui.disciplineScore}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.disciplineScoreHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("score-discipline");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("score-discipline") ? styles.metricTooltipVisible : ""}`}>{ui.disciplineScoreHint}</span>
-                </button>
               </div>
               <strong>{stats.score}%</strong>
+              <span className={`${styles.scoreTooltip} ${helpOpen("score-discipline") ? styles.scoreTooltipVisible : ""}`}>{ui.disciplineScoreHint}</span>
             </div>
-            <div className={`${styles.score} ${styles.scoreGreen}`}>
+            <div
+              className={`${styles.score} ${styles.scoreGreen}`}
+              onClick={() => toggleHelp("score-green-streak")}
+              role={isTouchMode ? "button" : undefined}
+              tabIndex={isTouchMode ? 0 : undefined}
+            >
               <div className={styles.scoreLabel}>
                 <span>{ui.greenStreak}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.greenStreakHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("score-green-streak");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("score-green-streak") ? styles.metricTooltipVisible : ""}`}>{ui.greenStreakHint}</span>
-                </button>
               </div>
               <strong>{stats.greenStreak}</strong>
+              <span className={`${styles.scoreTooltip} ${helpOpen("score-green-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.greenStreakHint}</span>
             </div>
-            <div className={`${styles.score} ${styles.scoreRed}`}>
+            <div
+              className={`${styles.score} ${styles.scoreRed}`}
+              onClick={() => toggleHelp("score-red-streak")}
+              role={isTouchMode ? "button" : undefined}
+              tabIndex={isTouchMode ? 0 : undefined}
+            >
               <div className={styles.scoreLabel}>
                 <span>{ui.redStreak}</span>
-                <button
-                  type="button"
-                  className={styles.metricHelp}
-                  aria-label={ui.redStreakHint}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleHelp("score-red-streak");
-                  }}
-                >
-                  ?
-                  <span className={`${styles.metricTooltip} ${helpOpen("score-red-streak") ? styles.metricTooltipVisible : ""}`}>{ui.redStreakHint}</span>
-                </button>
               </div>
               <strong>{stats.redStreak}</strong>
+              <span className={`${styles.scoreTooltip} ${helpOpen("score-red-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.redStreakHint}</span>
             </div>
           </div>
 
