@@ -470,8 +470,8 @@
   left: 50%;
   bottom: 100%;
   transform: translate(-50%, -8px);
-  width: min(320px, 78vw);
-  max-width: 320px;
+  width: max-content;
+  max-width: min(260px, 78vw);
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid rgba(144, 164, 226, 0.42);
