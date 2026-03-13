@@ -1174,6 +1174,7 @@
   left: 50%;
   bottom: 100%;
   transform: translate(-50%, -8px);
+  display: block;
   min-width: 168px;
   max-width: 260px;
   width: auto;
@@ -1181,12 +1182,14 @@
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
   color: #dce6ff;
-  font-size: 11px;
-  line-height: 1.4;
-  font-weight: 500;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  font-weight: 500 !important;
+  letter-spacing: normal;
   padding: 8px 10px;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
   text-align: left;
+  white-space: normal;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
