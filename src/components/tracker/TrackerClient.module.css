@@ -1172,11 +1172,11 @@
 .metricTooltip {
   position: absolute;
   left: 50%;
-  bottom: calc(100% + 8px);
-  transform: translateX(-50%);
+  bottom: 100%;
+  transform: translate(-50%, -8px);
   min-width: 168px;
   max-width: 260px;
-  width: max-content;
+  width: auto;
   border: 1px solid rgba(144, 164, 226, 0.42);
   border-radius: 10px;
   background: linear-gradient(180deg, rgba(20, 28, 48, 0.96), rgba(13, 20, 36, 0.96));
@@ -1186,6 +1186,7 @@
   font-weight: 500;
   padding: 8px 10px;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
+  text-align: left;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -1516,10 +1517,6 @@
 
   .yearTrendHead {
     flex-direction: column;
-  }
-
-  .metricTooltip {
-    width: min(230px, 82vw);
   }
 
   .actions {
