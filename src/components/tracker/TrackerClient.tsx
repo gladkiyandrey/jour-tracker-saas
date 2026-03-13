@@ -1667,7 +1667,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
         bars: [] as Array<{ x: number; y: number; w: number; h: number; kind: "zero" | "ok" | "warn" | "hot"; day: number; label: string; deposit: number; trades: number; variant: Variant | "none" }>,
         ticks: [] as Array<{ x: number; label: string }>,
         yTicksLeft: [] as Array<{ y: number; label: string }>,
-        yTicksRight: [] as Array<{ y: number; label: string }>,
         bounds,
         gridY,
       };
@@ -1677,10 +1676,43 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const depositValues = visible.map((v) => v.deposit);
     const minDeposit = Math.min(...depositValues);
     const maxDeposit = Math.max(...depositValues);
+    const CENTER = 50;
+    const normalizeFromBaseline = (values: number[], padding = 0) => {
+      if (!values.length) return [];
+      const base = values[0];
+      const deltas = values.map((value) => value - base);
+      const maxAbs = Math.max(1, ...deltas.map((delta) => Math.abs(delta)));
+      const halfRange = 38;
+      const scale = maxAbs * (1 + padding);
+      return deltas.map((delta) => CENTER + (delta / scale) * halfRange);
+    };
     const normalizeToAxis = (values: number[], min: number, max: number) => {
       if (!values.length) return [];
-      if (max === min) return values.map(() => 50);
+      if (max === min) return values.map(() => CENTER);
       return values.map((value) => ((value - min) / (max - min)) * 100);
+    };
+    const limitLocalSlope = (values: number[], maxStep = 14) => {
+      if (values.length < 2) return values;
+      const out = [...values];
+      for (let i = 1; i < out.length; i += 1) {
+        const diff = out[i] - out[i - 1];
+        if (Math.abs(diff) > maxStep) {
+          out[i] = out[i - 1] + Math.sign(diff) * maxStep;
+        }
+      }
+      return out;
+    };
+    const fitWithAnchor = (values: number[], anchor: number, min = 2, max = 98) => {
+      if (!values.length) return values;
+      const low = Math.min(...values);
+      const high = Math.max(...values);
+      if (low >= min && high <= max) return values;
+      const up = Math.max(0, high - anchor);
+      const down = Math.max(0, anchor - low);
+      const upCapacity = Math.max(1e-6, max - anchor);
+      const downCapacity = Math.max(1e-6, anchor - min);
+      const scale = Math.max(1, up / upCapacity, down / downCapacity);
+      return values.map((value) => anchor + (value - anchor) / scale);
     };
 
     const firstDeposit = depositValues[0] || 0;
@@ -1703,12 +1735,17 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return firstDeposit + maxAbsDelta * 1.08;
     })();
     const normalizedDeposit = normalizeToAxis(depositValues, displayMinDeposit, displayMaxDeposit);
-    const minResult = Math.min(...resultValues);
-    const maxResult = Math.max(...resultValues);
-    const resultRange = Math.max(1, maxResult - minResult);
-    const displayMinResult = minResult - resultRange * 0.08;
-    const displayMaxResult = maxResult + resultRange * 0.08;
-    const normalizedResult = normalizeToAxis(resultValues, displayMinResult, displayMaxResult);
+    const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
+    const normalizedResultBase = limitLocalSlope(normalizedResultRaw, 14);
+    const startDelta =
+      normalizedDeposit.length && normalizedResultBase.length
+        ? normalizedDeposit[0] - normalizedResultBase[0]
+        : 0;
+    const normalizedResultShifted = normalizedResultBase.map((value) => value + startDelta);
+    const normalizedResult = fitWithAnchor(
+      normalizedResultShifted,
+      normalizedDeposit[0] ?? normalizedResultShifted[0] ?? CENTER
+    );
 
     const steps = visible.length > 1 ? visible.length - 1 : 1;
     const width = bounds.right - bounds.left;
@@ -1747,13 +1784,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       const depositAtY = displayMinDeposit + (displayMaxDeposit - displayMinDeposit) * ratio;
       return { y, label: Math.round(depositAtY).toLocaleString(numberLocale) };
     });
-    const yTicksRight = Array.from({ length: 5 }, (_, i) => {
-      const y = bounds.bottom - (height * i) / 4;
-      const ratio = i / 4;
-      const resultAtY = displayMinResult + (displayMaxResult - displayMinResult) * ratio;
-      const rounded = Math.round(resultAtY * 10) / 10;
-      return { y, label: Number.isInteger(rounded) ? `${rounded}` : rounded.toFixed(1) };
-    });
 
     return {
       yellow: buildPath(normalizedResult, 0, 100, bounds),
@@ -1761,7 +1791,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
       bars,
       ticks,
       yTicksLeft,
-      yTicksRight,
       bounds,
       gridY,
     };
@@ -2527,13 +2556,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <g>
                 {chartModel.yTicksLeft.map((tick, index) => (
                   <text key={`y-left-tick-${index}`} className={styles.yTickLabelLeft} x={chartModel.bounds.left - 10} y={tick.y + 3} textAnchor="end">
-                    {tick.label}
-                  </text>
-                ))}
-              </g>
-              <g>
-                {chartModel.yTicksRight.map((tick, index) => (
-                  <text key={`y-right-tick-${index}`} className={styles.yTickLabelRight} x={chartModel.bounds.right + 10} y={tick.y + 3} textAnchor="start">
                     {tick.label}
                   </text>
                 ))}
