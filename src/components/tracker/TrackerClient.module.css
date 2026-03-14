@@ -755,18 +755,18 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 24px;
-  height: 8px;
+  width: 42px;
+  height: 5px;
   border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.02) 18%, rgba(255, 255, 255, 0.88) 50%, rgba(255, 255, 255, 0.02) 82%, transparent 100%);
-  opacity: 0.88;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.015) 18%, rgba(255, 255, 255, 0.58) 50%, rgba(255, 255, 255, 0.02) 82%, transparent 100%);
+  opacity: 0.62;
   pointer-events: none;
   z-index: 1;
-  filter: blur(1.2px);
+  filter: blur(0.8px);
   offset-path: inset(0 round 10px);
   offset-distance: 0%;
   offset-rotate: auto;
-  animation: trackerBorderSweep 5.8s linear infinite;
+  animation: trackerBorderSweep 6.8s linear infinite;
   will-change: offset-distance;
 }
 
@@ -789,7 +789,7 @@
 
 .score:hover::before,
 .score:focus-within::before {
-  opacity: 1;
+  opacity: 0.78;
 }
 
 .scoreTooltip {
@@ -860,7 +860,7 @@
 }
 
 .scoreBlue::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(122, 176, 255, 0.04) 18%, rgba(122, 176, 255, 0.95) 50%, rgba(122, 176, 255, 0.05) 82%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(122, 176, 255, 0.015) 18%, rgba(122, 176, 255, 0.62) 50%, rgba(122, 176, 255, 0.025) 82%, transparent 100%);
 }
 
 .scoreBlue strong {
@@ -873,7 +873,7 @@
 }
 
 .scoreGreen::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(127, 242, 184, 0.04) 18%, rgba(127, 242, 184, 0.9) 50%, rgba(127, 242, 184, 0.05) 82%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(127, 242, 184, 0.015) 18%, rgba(127, 242, 184, 0.58) 50%, rgba(127, 242, 184, 0.025) 82%, transparent 100%);
 }
 
 .scoreGreen strong {
@@ -886,7 +886,7 @@
 }
 
 .scoreRed::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 154, 176, 0.04) 18%, rgba(255, 154, 176, 0.88) 50%, rgba(255, 154, 176, 0.05) 82%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 154, 176, 0.015) 18%, rgba(255, 154, 176, 0.56) 50%, rgba(255, 154, 176, 0.025) 82%, transparent 100%);
 }
 
 .scoreRed strong {
