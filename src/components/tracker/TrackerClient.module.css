@@ -586,7 +586,7 @@
   stroke-width: 3;
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
-  animation: trackerLineReveal 2.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: trackerLineReveal 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .yellowGlow,
@@ -598,7 +598,7 @@
   opacity: 0;
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
-  animation: trackerGlowReveal 2.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: trackerGlowReveal 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .yellowGlow {
