@@ -70,6 +70,17 @@
   }
 }
 
+@keyframes trackerGlowReveal {
+  from {
+    opacity: 0;
+    stroke-dashoffset: 1200;
+  }
+  to {
+    opacity: 0.35;
+    stroke-dashoffset: 0;
+  }
+}
+
 @keyframes trackerBarReveal {
   from {
     opacity: 0;
@@ -584,7 +595,10 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 5;
-  opacity: 0.35;
+  opacity: 0;
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: trackerGlowReveal 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .yellowGlow {
@@ -609,7 +623,7 @@
   cursor: pointer;
   transform-origin: bottom center;
   transform-box: fill-box;
-  animation: trackerBarReveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerBarReveal 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: opacity 0.22s ease, transform 0.22s ease, filter 0.24s ease;
   animation-fill-mode: both;
 }

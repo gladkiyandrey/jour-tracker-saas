@@ -2719,7 +2719,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     width={bar.w}
                     height={bar.h}
                     rx="2"
-                    style={{ animationDelay: `${index * 70}ms` }}
+                    style={{ animationDelay: `${index * 42}ms` }}
                     onMouseMove={(event) => {
                       const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
                       if (!rect) return;
