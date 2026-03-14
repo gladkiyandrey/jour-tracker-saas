@@ -272,6 +272,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
   const dayPulseTimeoutRef = useRef<number | null>(null);
   const animatedStatsRef = useRef(animatedStats);
+  const chartMotionInitializedRef = useRef(false);
   const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -830,6 +831,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [dayPulseKey]);
 
   useEffect(() => {
+    if (!chartMotionInitializedRef.current) {
+      chartMotionInitializedRef.current = true;
+      return;
+    }
     setChartMotionKey((prev) => prev + 1);
   }, [trackerView, viewMonth, viewYear, sortedEntries]);
 
