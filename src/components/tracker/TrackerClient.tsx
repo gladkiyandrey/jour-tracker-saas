@@ -168,7 +168,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [dayPulseKey, setDayPulseKey] = useState("");
   const [calendarMotionKey, setCalendarMotionKey] = useState(0);
   const [calendarMotionDir, setCalendarMotionDir] = useState<"next" | "prev">("next");
-  const [chartMotionKey, setChartMotionKey] = useState(0);
   const [dayData, setDayData] = useState<Record<string, Entry>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -805,10 +804,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
     frame = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(frame);
   }, [stats]);
-
-  useEffect(() => {
-    setChartMotionKey((prev) => prev + 1);
-  }, [trackerView, viewMonth, viewYear, sortedEntries]);
 
   useEffect(() => {
     if (!dayPulseKey) return;
@@ -2658,7 +2653,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
           <div className={styles.chartWrap}>
             <svg
-              key={`tracker-chart-${trackerView}-${viewYear}-${viewMonth}-${chartMotionKey}`}
               className={styles.chart}
               viewBox="0 0 520 280"
               preserveAspectRatio="none"
