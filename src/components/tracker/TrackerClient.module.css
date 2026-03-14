@@ -7,7 +7,7 @@
 @keyframes trackerRiseIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -27,7 +27,7 @@
 @keyframes trackerModalIn {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.975);
+    transform: translateY(22px) scale(0.955);
   }
   to {
     opacity: 1;
@@ -50,10 +50,10 @@
     opacity: 0;
   }
   30% {
-    opacity: 0.16;
+    opacity: 0.22;
   }
   70% {
-    opacity: 0.26;
+    opacity: 0.34;
   }
   to {
     transform: translateX(180%) skewX(-18deg);
@@ -101,7 +101,7 @@
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(31, 38, 61, 0.94), rgba(18, 23, 38, 0.96));
   padding: 16px 16px 10px;
-  animation: trackerRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerRiseIn 0.66s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .head {
@@ -163,23 +163,25 @@
   padding: 7px 12px;
   cursor: pointer;
   transition:
-    color 0.18s ease,
-    background 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.24s ease;
+    color 0.24s ease,
+    background 0.24s ease,
+    transform 0.24s ease,
+    box-shadow 0.32s ease,
+    border-color 0.24s ease;
 }
 
 .trackerScopeBtn:hover {
   color: #edf3ff;
   background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(10, 18, 36, 0.18);
 }
 
 .trackerScopeBtnActive {
   color: #ffffff;
   background: rgba(73, 122, 255, 0.42);
   box-shadow:
-    0 8px 18px rgba(49, 102, 235, 0.18),
+    0 12px 24px rgba(49, 102, 235, 0.24),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -194,7 +196,7 @@
 }
 
 .trackerScopeBtnActive::after {
-  animation: trackerSweep 1.25s ease-out 0.2s 1 both;
+  animation: trackerSweep 1.35s ease-out 0.14s 1 both;
 }
 
 .shareHead {
@@ -218,17 +220,17 @@
   cursor: pointer;
   padding: 0;
   transition:
-    opacity 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease,
-    filter 0.22s ease;
+    opacity 0.22s ease,
+    color 0.22s ease,
+    transform 0.22s ease,
+    filter 0.28s ease;
 }
 
 .shareIconBtn:hover:not(:disabled) {
   opacity: 0.88;
   color: #ffffff;
-  transform: translateY(-1px);
-  filter: drop-shadow(0 4px 10px rgba(114, 154, 255, 0.22));
+  transform: translateY(-2px) scale(1.04);
+  filter: drop-shadow(0 8px 14px rgba(114, 154, 255, 0.3));
 }
 
 .shareIconBtn:disabled {
@@ -264,7 +266,7 @@
   padding: 20px;
   background: rgba(5, 10, 22, 0.62);
   backdrop-filter: blur(8px);
-  animation: trackerBackdropIn 0.22s ease-out both;
+  animation: trackerBackdropIn 0.28s ease-out both;
 }
 
 .shareModal {
@@ -276,7 +278,7 @@
   padding: 18px;
   display: grid;
   gap: 14px;
-  animation: trackerModalIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerModalIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .shareModalHeader {
@@ -313,15 +315,17 @@
   justify-content: center;
   cursor: pointer;
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease;
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.28s ease;
 }
 
 .shareModalClose:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px) scale(1.04);
   border-color: rgba(170, 188, 242, 0.5);
   background: rgba(17, 24, 42, 0.9);
+  box-shadow: 0 10px 18px rgba(5, 10, 22, 0.2);
 }
 
 .shareModalRow {
@@ -356,19 +360,19 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.18s ease,
-    background 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.24s ease;
-  box-shadow: 0 10px 24px rgba(56, 100, 220, 0.16);
+    border-color 0.24s ease,
+    background 0.24s ease,
+    color 0.24s ease,
+    transform 0.24s ease,
+    box-shadow 0.32s ease;
+  box-shadow: 0 12px 28px rgba(56, 100, 220, 0.2);
 }
 
 .shareModalCopyBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: translateY(-3px);
   border-color: rgba(151, 173, 255, 0.52);
   background: rgba(89, 137, 255, 0.42);
-  box-shadow: 0 14px 30px rgba(56, 100, 220, 0.22);
+  box-shadow: 0 20px 38px rgba(56, 100, 220, 0.3);
 }
 
 .shareModalCopyBtn:disabled {
@@ -395,7 +399,7 @@
 
 .shareModalCopyBtn:hover:not(:disabled)::after,
 .wrapper :global(.btn.primary:hover)::after {
-  animation: trackerSweep 0.95s ease-out 1 both;
+  animation: trackerSweep 1.05s ease-out 1 both;
 }
 
 .shareModalStatus {
@@ -481,7 +485,7 @@
   height: 100%;
   min-height: 140px;
   margin-top: 8px;
-  animation: trackerFadeIn 0.55s ease-out both;
+  animation: trackerFadeIn 0.7s ease-out both;
 }
 
 .chartWrap {
@@ -501,7 +505,7 @@
   stroke-width: 3;
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
-  animation: trackerLineReveal 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: trackerLineReveal 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .yellowGlow,
@@ -535,14 +539,14 @@
   cursor: pointer;
   transform-origin: bottom center;
   transform-box: fill-box;
-  animation: trackerBarReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-  transition: opacity 0.18s ease, transform 0.18s ease, filter 0.2s ease;
+  animation: trackerBarReveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: opacity 0.22s ease, transform 0.22s ease, filter 0.24s ease;
 }
 
 .tradeBar:hover {
-  opacity: 0.28;
-  transform: scaleY(1.03);
-  filter: saturate(1.08);
+  opacity: 0.32;
+  transform: scaleY(1.06);
+  filter: saturate(1.16);
 }
 
 .tradeBarOk {
@@ -595,7 +599,7 @@
   white-space: normal;
   text-align: left;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
-  animation: trackerRiseIn 0.16s ease-out both;
+  animation: trackerRiseIn 0.22s ease-out both;
 }
 
 .scoreRow {
@@ -606,6 +610,18 @@
   width: min(640px, 100%);
   padding: 0;
   margin-bottom: 6px;
+}
+
+.scoreRow .score:nth-child(1) {
+  animation-delay: 0.08s;
+}
+
+.scoreRow .score:nth-child(2) {
+  animation-delay: 0.14s;
+}
+
+.scoreRow .score:nth-child(3) {
+  animation-delay: 0.2s;
 }
 
 .copyOk {
@@ -631,18 +647,19 @@
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   text-align: center;
   cursor: default;
+  animation: trackerRiseIn 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition:
-    transform 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.24s ease,
-    background 0.24s ease;
+    transform 0.24s ease,
+    border-color 0.24s ease,
+    box-shadow 0.32s ease,
+    background 0.32s ease;
 }
 
 .score:hover,
 .score:focus-within {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
   box-shadow:
-    0 14px 26px rgba(6, 12, 24, 0.22),
+    0 18px 32px rgba(6, 12, 24, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -671,9 +688,9 @@
   pointer-events: none;
   z-index: 6;
   transition:
-    opacity 0.16s ease,
-    visibility 0.16s ease,
-    transform 0.16s ease;
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
 }
 
 .score:hover .scoreTooltip,
@@ -681,7 +698,7 @@
 .scoreTooltipVisible {
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, -12px);
+  transform: translate(-50%, -16px);
 }
 
 .scoreLabel span {
@@ -852,17 +869,17 @@
   line-height: 1;
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.2s ease;
+    background-color 0.22s ease,
+    border-color 0.22s ease,
+    transform 0.22s ease,
+    box-shadow 0.28s ease;
 }
 
 .arrow:hover {
   border-color: rgba(229, 235, 255, 0.76);
   background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(6, 11, 24, 0.18);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 14px 22px rgba(6, 11, 24, 0.22);
 }
 
 .weekdays {
@@ -1025,17 +1042,17 @@
   font-size: 12px;
   cursor: pointer;
   transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    box-shadow 0.22s ease,
-    color 0.18s ease;
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    background-color 0.22s ease,
+    box-shadow 0.28s ease,
+    color 0.22s ease;
 }
 
 .day:hover {
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.02);
   border-color: rgba(152, 170, 229, 0.74);
-  box-shadow: 0 10px 18px rgba(5, 10, 22, 0.18);
+  box-shadow: 0 14px 22px rgba(5, 10, 22, 0.24);
 }
 
 .dayEmpty {
@@ -1083,13 +1100,15 @@
   border-color: rgba(255, 255, 255, 0.92);
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.2),
-    0 12px 20px rgba(7, 14, 30, 0.2);
+    0 18px 28px rgba(7, 14, 30, 0.26);
 }
 
 .dayToday {
   position: relative;
   border-color: rgba(122, 159, 255, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(122, 159, 255, 0.26);
+  box-shadow:
+    inset 0 0 0 1px rgba(122, 159, 255, 0.26),
+    0 0 0 1px rgba(122, 159, 255, 0.18);
 }
 
 .dayToday::after {
@@ -1426,16 +1445,17 @@
   appearance: none;
   -webkit-appearance: none;
   transition:
-    border-color 0.16s ease,
-    background-color 0.16s ease,
-    transform 0.16s ease;
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.24s ease;
 }
 
 .metricHelp:hover {
   border-color: rgba(164, 181, 235, 0.68);
   background: rgba(20, 29, 52, 0.96);
-  box-shadow: none;
-  transform: translateY(-1px);
+  box-shadow: 0 10px 16px rgba(4, 8, 18, 0.16);
+  transform: translateY(-2px);
 }
 
 .metricTooltip {
@@ -1463,9 +1483,9 @@
   pointer-events: none;
   z-index: 6;
   transition:
-    opacity 0.16s ease,
-    visibility 0.16s ease,
-    transform 0.16s ease;
+    opacity 0.2s ease,
+    visibility 0.2s ease,
+    transform 0.2s ease;
 }
 
 .metricHelp:hover .metricTooltip,
@@ -1473,7 +1493,7 @@
 .metricTooltipVisible {
   opacity: 1;
   visibility: visible;
-  transform: translate(-50%, -12px);
+  transform: translate(-50%, -16px);
 }
 
 .weeklyItem strong {
@@ -1495,7 +1515,7 @@
   padding: 20px;
   z-index: 20;
   backdrop-filter: blur(8px);
-  animation: trackerBackdropIn 0.2s ease-out both;
+  animation: trackerBackdropIn 0.28s ease-out both;
 }
 
 .modal {
@@ -1507,7 +1527,7 @@
   display: grid;
   gap: 16px;
   box-shadow: 0 30px 80px rgba(2, 7, 18, 0.42);
-  animation: trackerModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerModalIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .monthSetupModal {
@@ -1568,10 +1588,10 @@
   padding: 0 12px;
   font-size: 14px;
   transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    background-color 0.16s ease,
-    transform 0.16s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .field input:focus,
@@ -1579,7 +1599,7 @@
 .shareModalInput:focus {
   outline: none;
   border-color: rgba(118, 158, 255, 0.72);
-  box-shadow: 0 0 0 3px rgba(73, 122, 255, 0.16);
+  box-shadow: 0 0 0 4px rgba(73, 122, 255, 0.18);
   background: rgba(13, 18, 31, 0.96);
 }
 
@@ -1627,9 +1647,9 @@
   border: 1px solid rgba(121, 133, 173, 0.58);
   display: inline-block;
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    filter 0.18s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
 }
 
 .swatchRed {
@@ -1650,12 +1670,12 @@
 
 .colorOption input:checked + .colorSwatch {
   box-shadow: 0 0 0 2px rgba(122, 159, 255, 0.5);
-  transform: translateY(-1px) scale(1.04);
+  transform: translateY(-2px) scale(1.08);
 }
 
 .colorOption:hover .colorSwatch {
-  transform: translateY(-1px);
-  filter: saturate(1.06);
+  transform: translateY(-2px);
+  filter: saturate(1.14);
 }
 
 .actions {
@@ -1702,16 +1722,16 @@
 .wrapper :global(.btn),
 .syncRetryBtn {
   transition:
-    transform 0.18s ease,
-    box-shadow 0.22s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease;
+    transform 0.24s ease,
+    box-shadow 0.32s ease,
+    border-color 0.24s ease,
+    background-color 0.24s ease,
+    color 0.24s ease;
 }
 
 .wrapper :global(.btn:hover),
 .syncRetryBtn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-3px);
 }
 
 .wrapper :global(.btn:active),
@@ -1726,11 +1746,11 @@
 .wrapper :global(.btn.primary) {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 14px 28px rgba(55, 99, 226, 0.2);
+  box-shadow: 0 16px 30px rgba(55, 99, 226, 0.24);
 }
 
 .wrapper :global(.btn.primary:hover) {
-  box-shadow: 0 18px 34px rgba(55, 99, 226, 0.28);
+  box-shadow: 0 24px 42px rgba(55, 99, 226, 0.34);
 }
 
 .modalError {
