@@ -158,21 +158,12 @@
   }
 }
 
-@keyframes trackerBorderOrbit {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 @keyframes trackerBorderSweep {
-  from {
-    offset-distance: 0%;
+  0% {
+    stroke-dashoffset: 128;
   }
-  to {
-    offset-distance: 100%;
+  100% {
+    stroke-dashoffset: 0;
   }
 }
 
@@ -785,6 +776,45 @@
   opacity: 0.68;
 }
 
+.scoreLabel,
+.score strong {
+  position: relative;
+  z-index: 2;
+}
+
+.scoreBorderFx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  overflow: visible;
+}
+
+.scoreBorderFxGlow,
+.scoreBorderFxStroke {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 22 78;
+  stroke-dashoffset: 128;
+  animation: trackerBorderSweep 8.4s linear infinite;
+}
+
+.scoreBorderFxGlow {
+  stroke: rgba(122, 176, 255, 0.18);
+  stroke-width: 1.6;
+  filter: blur(2.8px);
+  opacity: 0.32;
+}
+
+.scoreBorderFxStroke {
+  stroke: rgba(150, 198, 255, 0.62);
+  stroke-width: 0.95;
+  opacity: 0.7;
+}
+
 .scoreTooltip {
   position: absolute;
   left: 50%;
@@ -853,34 +883,7 @@
 }
 
 .scoreBlue::before {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from 180deg,
-    transparent 0deg 246deg,
-    rgba(122, 176, 255, 0.015) 268deg,
-    rgba(122, 176, 255, 0.12) 292deg,
-    rgba(122, 176, 255, 0.3) 316deg,
-    rgba(122, 176, 255, 0.12) 340deg,
-    rgba(122, 176, 255, 0.02) 356deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  opacity: 0.54;
-  pointer-events: none;
-  z-index: 1;
-  filter: blur(0.45px);
-  animation: trackerBorderOrbit 9.5s linear infinite;
+  content: none;
 }
 
 .scoreBlue strong {

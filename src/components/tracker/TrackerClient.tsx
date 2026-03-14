@@ -2771,6 +2771,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
               role={isTouchMode ? "button" : undefined}
               tabIndex={isTouchMode ? 0 : undefined}
             >
+              <svg className={styles.scoreBorderFx} viewBox="0 0 100 54" preserveAspectRatio="none" aria-hidden="true">
+                <rect className={styles.scoreBorderFxGlow} x="1" y="1" width="98" height="52" rx="10" pathLength="100" />
+                <rect className={styles.scoreBorderFxStroke} x="1" y="1" width="98" height="52" rx="10" pathLength="100" />
+              </svg>
               <div className={styles.scoreLabel}>
                 <span>{ui.disciplineScore}</span>
               </div>
