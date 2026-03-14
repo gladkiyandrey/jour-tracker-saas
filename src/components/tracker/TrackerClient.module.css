@@ -158,12 +158,12 @@
   }
 }
 
-@keyframes trackerBorderOrbit {
+@keyframes trackerBorderSweep {
   from {
-    transform: rotate(0deg);
+    offset-distance: 0%;
   }
   to {
-    transform: rotate(360deg);
+    offset-distance: 100%;
   }
 }
 
@@ -753,30 +753,21 @@
 .score::before {
   content: "";
   position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  padding: 1px;
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 312deg,
-    rgba(255, 255, 255, 0.02) 324deg,
-    rgba(255, 255, 255, 0.22) 336deg,
-    rgba(255, 255, 255, 0.08) 348deg,
-    transparent 360deg
-  );
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  opacity: 0.9;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.02) 18%, rgba(255, 255, 255, 0.88) 50%, rgba(255, 255, 255, 0.02) 82%, transparent 100%);
+  opacity: 0.88;
   pointer-events: none;
-  z-index: -1;
-  filter: blur(0.3px);
-  animation: trackerBorderOrbit 7.8s linear infinite;
+  z-index: 1;
+  filter: blur(1.2px);
+  offset-path: inset(0 round 10px);
+  offset-distance: 0%;
+  offset-rotate: auto;
+  animation: trackerBorderSweep 5.8s linear infinite;
+  will-change: offset-distance;
 }
 
 .score::after {
@@ -869,14 +860,7 @@
 }
 
 .scoreBlue::before {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 312deg,
-    rgba(122, 176, 255, 0.08) 324deg,
-    rgba(122, 176, 255, 0.42) 336deg,
-    rgba(122, 176, 255, 0.12) 348deg,
-    transparent 360deg
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(122, 176, 255, 0.04) 18%, rgba(122, 176, 255, 0.95) 50%, rgba(122, 176, 255, 0.05) 82%, transparent 100%);
 }
 
 .scoreBlue strong {
@@ -889,14 +873,7 @@
 }
 
 .scoreGreen::before {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 312deg,
-    rgba(127, 242, 184, 0.08) 324deg,
-    rgba(127, 242, 184, 0.38) 336deg,
-    rgba(127, 242, 184, 0.12) 348deg,
-    transparent 360deg
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(127, 242, 184, 0.04) 18%, rgba(127, 242, 184, 0.9) 50%, rgba(127, 242, 184, 0.05) 82%, transparent 100%);
 }
 
 .scoreGreen strong {
@@ -909,14 +886,7 @@
 }
 
 .scoreRed::before {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg 312deg,
-    rgba(255, 154, 176, 0.08) 324deg,
-    rgba(255, 154, 176, 0.34) 336deg,
-    rgba(255, 154, 176, 0.12) 348deg,
-    transparent 360deg
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 154, 176, 0.04) 18%, rgba(255, 154, 176, 0.88) 50%, rgba(255, 154, 176, 0.05) 82%, transparent 100%);
 }
 
 .scoreRed strong {
