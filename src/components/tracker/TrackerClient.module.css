@@ -84,22 +84,22 @@
 @keyframes trackerCalendarSlideNext {
   from {
     opacity: 0;
-    transform: translateX(22px);
+    transform: translateX(40px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
 @keyframes trackerCalendarSlidePrev {
   from {
     opacity: 0;
-    transform: translateX(-22px);
+    transform: translateX(-40px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -941,11 +941,11 @@
 }
 
 .calendarSlideNext {
-  animation: trackerCalendarSlideNext 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerCalendarSlideNext 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .calendarSlidePrev {
-  animation: trackerCalendarSlidePrev 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: trackerCalendarSlidePrev 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .yearCalendarGrid {
