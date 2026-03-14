@@ -158,6 +158,15 @@
   }
 }
 
+@keyframes trackerBorderOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .tracker {
   margin-top: 2px;
   display: grid;
@@ -718,6 +727,7 @@
 
 .score {
   position: relative;
+  isolation: isolate;
   min-height: 54px;
   margin-bottom: 0;
   display: flex;
@@ -740,12 +750,56 @@
     background 0.32s ease;
 }
 
+.score::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 255, 255, 0.02) 55deg,
+    rgba(255, 255, 255, 0.16) 110deg,
+    rgba(255, 255, 255, 0.04) 170deg,
+    transparent 230deg,
+    rgba(255, 255, 255, 0.12) 300deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0.6;
+  pointer-events: none;
+  z-index: -1;
+  animation: trackerBorderOrbit 10s linear infinite;
+}
+
+.score::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: calc(10px - 1px);
+  background: inherit;
+  z-index: -1;
+}
+
 .score:hover,
 .score:focus-within {
   transform: translateY(-4px);
   box-shadow:
     0 18px 32px rgba(6, 12, 24, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.score:hover::before,
+.score:focus-within::before {
+  opacity: 0.85;
 }
 
 .scoreTooltip {
@@ -815,6 +869,19 @@
   background: linear-gradient(180deg, rgba(36, 55, 106, 0.42), rgba(17, 25, 43, 0.94));
 }
 
+.scoreBlue::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(122, 176, 255, 0.06) 60deg,
+    rgba(122, 176, 255, 0.34) 128deg,
+    rgba(122, 176, 255, 0.08) 190deg,
+    transparent 250deg,
+    rgba(88, 138, 255, 0.24) 320deg,
+    transparent 360deg
+  );
+}
+
 .scoreBlue strong {
   color: #7ab0ff;
 }
@@ -824,6 +891,19 @@
   background: linear-gradient(180deg, rgba(21, 82, 59, 0.45), rgba(14, 30, 25, 0.94));
 }
 
+.scoreGreen::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(127, 242, 184, 0.06) 60deg,
+    rgba(127, 242, 184, 0.3) 128deg,
+    rgba(127, 242, 184, 0.08) 190deg,
+    transparent 250deg,
+    rgba(63, 221, 153, 0.22) 320deg,
+    transparent 360deg
+  );
+}
+
 .scoreGreen strong {
   color: #7ff2b8;
 }
@@ -831,6 +911,19 @@
 .scoreRed {
   border-color: rgba(255, 116, 142, 0.6);
   background: linear-gradient(180deg, rgba(102, 30, 47, 0.45), rgba(37, 13, 20, 0.94));
+}
+
+.scoreRed::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(255, 154, 176, 0.05) 60deg,
+    rgba(255, 154, 176, 0.28) 128deg,
+    rgba(255, 154, 176, 0.08) 190deg,
+    transparent 250deg,
+    rgba(255, 116, 142, 0.2) 320deg,
+    transparent 360deg
+  );
 }
 
 .scoreRed strong {
