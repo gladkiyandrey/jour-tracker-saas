@@ -81,6 +81,43 @@
   }
 }
 
+@keyframes trackerCalendarSlideNext {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes trackerCalendarSlidePrev {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes trackerDayPulse {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-4px) scale(1.06);
+    box-shadow:
+      0 0 0 2px rgba(122, 159, 255, 0.24),
+      0 20px 28px rgba(9, 18, 38, 0.28);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
 .tracker {
   margin-top: 2px;
   display: grid;
@@ -900,6 +937,15 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+  transform-origin: center center;
+}
+
+.calendarSlideNext {
+  animation: trackerCalendarSlideNext 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.calendarSlidePrev {
+  animation: trackerCalendarSlidePrev 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .yearCalendarGrid {
@@ -1121,6 +1167,10 @@
   border-radius: 999px;
   background: #8cb5ff;
   box-shadow: 0 0 10px rgba(140, 181, 255, 0.62);
+}
+
+.dayPulse {
+  animation: trackerDayPulse 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .ai {
@@ -1532,6 +1582,40 @@
 
 .monthSetupModal {
   width: min(380px, 100%);
+}
+
+.flowModal {
+  overflow: hidden;
+}
+
+.flowStep {
+  animation: trackerRiseIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.flowModal .flowStep:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.flowModal .flowStep:nth-child(2) {
+  animation-delay: 0.11s;
+}
+
+.flowModal .flowStep:nth-child(3) {
+  animation-delay: 0.18s;
+}
+
+.flowModal .flowStep:nth-child(4) {
+  animation-delay: 0.24s;
+}
+
+.flowModal .flowStep:nth-child(5) {
+  animation-delay: 0.31s;
+}
+
+.dayFlowModal {
+  background:
+    radial-gradient(circle at top center, rgba(96, 137, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #252e49 0%, #171f35 100%);
 }
 
 .modal h3 {
@@ -2023,6 +2107,9 @@
   .chart,
   .line,
   .tradeBar,
+  .calendarSlideNext,
+  .calendarSlidePrev,
+  .dayPulse,
   .chartTooltip,
   .scoreTooltip,
   .metricTooltip,
@@ -2050,6 +2137,7 @@
   .field input,
   .field select,
   .shareModalInput,
+  .flowStep,
   .scoreTooltip,
   .metricTooltip {
     transition: none !important;

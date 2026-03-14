@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import styles from "./TrackerClient.module.css";
 import type { Locale } from "@/lib/i18n";
@@ -165,6 +165,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   });
   const [selectedDateKey, setSelectedDateKey] = useState("");
+  const [dayPulseKey, setDayPulseKey] = useState("");
+  const [calendarMotionKey, setCalendarMotionKey] = useState(0);
+  const [calendarMotionDir, setCalendarMotionDir] = useState<"next" | "prev">("next");
+  const [chartMotionKey, setChartMotionKey] = useState(0);
   const [dayData, setDayData] = useState<Record<string, Entry>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -261,8 +265,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [copyFlash, setCopyFlash] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const [animatedStats, setAnimatedStats] = useState({ score: 0, greenStreak: 0, redStreak: 0 });
   const [isTouchMode, setIsTouchMode] = useState(false);
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
+  const dayPulseTimeoutRef = useRef<number | null>(null);
+  const animatedStatsRef = useRef(animatedStats);
   const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -767,6 +774,59 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
     return { score, greenStreak, redStreak };
   }, [sortedEntries, trackerView, viewMonth, viewYear]);
+
+  useEffect(() => {
+    animatedStatsRef.current = animatedStats;
+  }, [animatedStats]);
+
+  useEffect(() => {
+    let frame = 0;
+    let startTs: number | null = null;
+    const from = animatedStatsRef.current;
+    const to = stats;
+    const duration = 720;
+
+    const tick = (ts: number) => {
+      if (startTs === null) startTs = ts;
+      const progress = Math.min(1, (ts - startTs) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const next = {
+        score: Math.round(from.score + (to.score - from.score) * eased),
+        greenStreak: Math.round(from.greenStreak + (to.greenStreak - from.greenStreak) * eased),
+        redStreak: Math.round(from.redStreak + (to.redStreak - from.redStreak) * eased),
+      };
+      animatedStatsRef.current = next;
+      setAnimatedStats(next);
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(tick);
+      }
+    };
+
+    frame = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(frame);
+  }, [stats]);
+
+  useEffect(() => {
+    setChartMotionKey((prev) => prev + 1);
+  }, [trackerView, viewMonth, viewYear, sortedEntries]);
+
+  useEffect(() => {
+    if (!dayPulseKey) return;
+    if (dayPulseTimeoutRef.current) {
+      window.clearTimeout(dayPulseTimeoutRef.current);
+    }
+    dayPulseTimeoutRef.current = window.setTimeout(() => {
+      setDayPulseKey("");
+      dayPulseTimeoutRef.current = null;
+    }, 720);
+
+    return () => {
+      if (dayPulseTimeoutRef.current) {
+        window.clearTimeout(dayPulseTimeoutRef.current);
+        dayPulseTimeoutRef.current = null;
+      }
+    };
+  }, [dayPulseKey]);
 
   const signalizer = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -1936,6 +1996,37 @@ export default function TrackerClient({ userKey, locale }: Props) {
     openDayModal(dateKey);
   };
 
+  const pulseDay = (dateKey: string) => {
+    setDayPulseKey(dateKey);
+  };
+
+  const handleDaySelect = (dateKey: string) => {
+    pulseDay(dateKey);
+    openModal(dateKey);
+  };
+
+  const changeMonth = (direction: "next" | "prev") => {
+    setCalendarMotionDir(direction);
+    setCalendarMotionKey((prev) => prev + 1);
+    if (direction === "prev") {
+      setViewMonth((prev) => {
+        if (prev === 0) {
+          setViewYear((y) => y - 1);
+          return 11;
+        }
+        return prev - 1;
+      });
+      return;
+    }
+    setViewMonth((prev) => {
+      if (prev === 11) {
+        setViewYear((y) => y + 1);
+        return 0;
+      }
+      return prev + 1;
+    });
+  };
+
   const closeModal = () => {
     setModalOpen(false);
     setSelectedDateKey("");
@@ -2567,6 +2658,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
           <div className={styles.chartWrap}>
             <svg
+              key={`tracker-chart-${trackerView}-${viewYear}-${viewMonth}-${chartMotionKey}`}
               className={styles.chart}
               viewBox="0 0 520 280"
               preserveAspectRatio="none"
@@ -2662,7 +2754,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <div className={styles.scoreLabel}>
                 <span>{ui.disciplineScore}</span>
               </div>
-              <strong>{stats.score}%</strong>
+              <strong>{animatedStats.score}%</strong>
               <div className={`${styles.scoreTooltip} ${helpOpen("score-discipline") ? styles.scoreTooltipVisible : ""}`}>{ui.disciplineScoreHint}</div>
             </div>
             <div
@@ -2674,7 +2766,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <div className={styles.scoreLabel}>
                 <span>{ui.greenStreak}</span>
               </div>
-              <strong>{stats.greenStreak}</strong>
+              <strong>{animatedStats.greenStreak}</strong>
               <div className={`${styles.scoreTooltip} ${helpOpen("score-green-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.greenStreakHint}</div>
             </div>
             <div
@@ -2686,7 +2778,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <div className={styles.scoreLabel}>
                 <span>{ui.redStreak}</span>
               </div>
-              <strong>{stats.redStreak}</strong>
+              <strong>{animatedStats.redStreak}</strong>
               <div className={`${styles.scoreTooltip} ${helpOpen("score-red-streak") ? styles.scoreTooltipVisible : ""}`}>{ui.redStreakHint}</div>
             </div>
           </div>
@@ -2701,15 +2793,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   type="button"
                   className={styles.arrow}
                   aria-label="Previous month"
-                  onClick={() => {
-                    setViewMonth((prev) => {
-                      if (prev === 0) {
-                        setViewYear((y) => y - 1);
-                        return 11;
-                      }
-                      return prev - 1;
-                    });
-                  }}
+                  onClick={() => changeMonth("prev")}
                 >
                   ‹
                 </button>
@@ -2718,15 +2802,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   type="button"
                   className={styles.arrow}
                   aria-label="Next month"
-                  onClick={() => {
-                    setViewMonth((prev) => {
-                      if (prev === 11) {
-                        setViewYear((y) => y + 1);
-                        return 0;
-                      }
-                      return prev + 1;
-                    });
-                  }}
+                  onClick={() => changeMonth("next")}
                 >
                   ›
                 </button>
@@ -2742,7 +2818,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 <span>{ui.sun}</span>
               </div>
 
-              <div className={styles.calendarGrid}>
+              <div
+                key={`calendar-${viewYear}-${viewMonth}-${calendarMotionKey}`}
+                className={`${styles.calendarGrid} ${
+                  calendarMotionDir === "next" ? styles.calendarSlideNext : styles.calendarSlidePrev
+                }`}
+              >
                 {calendarCells.map((cell, index) => {
                   if (cell.kind === "empty") {
                     return <button key={`empty-${index}`} className={`${styles.day} ${styles.dayEmpty}`} type="button" />;
@@ -2752,8 +2833,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     <button
                       key={cell.dateKey}
                       type="button"
-                      className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${cell.isFuture ? styles.dayLocked : ""}`}
-                      onClick={() => openModal(cell.dateKey)}
+                      className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${
+                        cell.dateKey === dayPulseKey ? styles.dayPulse : ""
+                      } ${cell.isFuture ? styles.dayLocked : ""}`}
+                      onClick={() => handleDaySelect(cell.dateKey)}
                       disabled={cell.isFuture}
                       aria-disabled={cell.isFuture}
                     >
@@ -3012,8 +3095,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                             <button
                               key={cell.dateKey}
                               type="button"
-                              className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
-                              onClick={() => openModal(cell.dateKey)}
+                              className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${
+                                cell.dateKey === dayPulseKey ? styles.dayPulse : ""
+                              } ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
+                              onClick={() => handleDaySelect(cell.dateKey)}
                               disabled={cell.isFuture}
                               aria-disabled={cell.isFuture}
                             >
@@ -3191,11 +3276,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
       {monthSetupOpen ? (
         <div className={styles.modalBackdrop} onClick={closeMonthSetup} role="presentation">
-          <div className={`${styles.modal} ${styles.monthSetupModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <h3>{ui.monthSetupTitle}</h3>
-            <p className={styles.modalDate}>{ui.monthSetupDescription}</p>
+          <div className={`${styles.modal} ${styles.monthSetupModal} ${styles.flowModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.flowStep}>{ui.monthSetupTitle}</h3>
+            <p className={`${styles.modalDate} ${styles.flowStep}`}>{ui.monthSetupDescription}</p>
 
-            <label className={`${styles.field} ${styles.fieldPrimary}`}>
+            <label className={`${styles.field} ${styles.fieldPrimary} ${styles.flowStep}`}>
               <span>{ui.monthStartDeposit}</span>
               <input
                 type="text"
@@ -3212,9 +3297,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
             </label>
 
-            {monthSetupError ? <p className={styles.modalError}>{monthSetupError}</p> : null}
+            {monthSetupError ? <p className={`${styles.modalError} ${styles.flowStep}`}>{monthSetupError}</p> : null}
 
-            <div className={styles.monthSetupActions}>
+            <div className={`${styles.monthSetupActions} ${styles.flowStep}`}>
               <button className="btn" type="button" onClick={closeMonthSetup}>
                 {ui.cancel}
               </button>
@@ -3228,11 +3313,11 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
       {modalOpen ? (
         <div className={styles.modalBackdrop} onClick={closeModal} role="presentation">
-          <div className={styles.modal} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <h3>{ui.daySettings}</h3>
-            <p className={styles.modalDate}>{selectedDateKey}</p>
+          <div className={`${styles.modal} ${styles.dayFlowModal} ${styles.flowModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.flowStep}>{ui.daySettings}</h3>
+            <p className={`${styles.modalDate} ${styles.flowStep}`}>{selectedDateKey}</p>
             {selectedDateKey ? (
-              <div className={`${styles.field} ${styles.fieldPrimary}`}>
+              <div className={`${styles.field} ${styles.fieldPrimary} ${styles.flowStep}`}>
                 <span>{ui.monthStartDeposit}</span>
                 <div className={styles.fieldValue}>
                   {getMonthBase(getMonthKey(selectedDateKey)).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
@@ -3244,7 +3329,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               </div>
             ) : null}
 
-            <label className={styles.field}>
+            <label className={`${styles.field} ${styles.flowStep}`}>
               <div className={styles.fieldHeader}>
                 <span>{ui.result}</span>
                 <button
@@ -3314,7 +3399,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               </div>
             </label>
 
-            <label className={styles.field}>
+            <label className={`${styles.field} ${styles.flowStep}`}>
               <div className={styles.fieldHeader}>
                 <span>{ui.depositSize}</span>
                 <button
@@ -3357,7 +3442,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               />
             </label>
 
-            <label className={styles.field}>
+            <label className={`${styles.field} ${styles.flowStep}`}>
               <span>{ui.openedTrades}</span>
               <input
                 type="text"
@@ -3374,9 +3459,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
               />
             </label>
 
-            {modalError ? <p className={styles.modalError}>{modalError}</p> : null}
+            {modalError ? <p className={`${styles.modalError} ${styles.flowStep}`}>{modalError}</p> : null}
 
-            <div className={styles.actions}>
+            <div className={`${styles.actions} ${styles.flowStep}`}>
               <button className={`btn ${styles.clearBtn}`} type="button" onClick={clearDay}>
                 {ui.clearDay}
               </button>
