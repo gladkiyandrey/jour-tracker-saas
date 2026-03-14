@@ -204,6 +204,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalTrades, setModalTrades] = useState("");
   const [modalError, setModalError] = useState("");
+  const [saveSuccessVisible, setSaveSuccessVisible] = useState(false);
+  const [saveFeedbackTick, setSaveFeedbackTick] = useState(0);
   const [monthSetupOpen, setMonthSetupOpen] = useState(false);
   const [monthSetupDateKey, setMonthSetupDateKey] = useState("");
   const [monthSetupValue, setMonthSetupValue] = useState("");
@@ -386,6 +388,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         futureDayLocked: "Будущие даты нельзя заполнять.",
         cancel: "Отмена",
         save: "Сохранить",
+        saved: "Сохранено",
         sessionExpiredShare: "Сессия истекла. Перенаправляем на вход…",
       };
     }
@@ -483,6 +486,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         futureDayLocked: "Майбутні дати не можна заповнювати.",
         cancel: "Скасувати",
         save: "Зберегти",
+        saved: "Збережено",
         sessionExpiredShare: "Сесія завершилась. Перенаправляємо на вхід…",
       };
     }
@@ -579,6 +583,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       futureDayLocked: "Future dates cannot be filled.",
       cancel: "Cancel",
       save: "Save",
+      saved: "Saved",
       sessionExpiredShare: "Session expired. Redirecting to login…",
     };
   }, [locale]);
@@ -1964,9 +1969,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
     if (current?.variant === "pos-outline") {
       setModalTrades("0");
     } else {
-      setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
+    setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
     }
     setModalError("");
+    setSaveSuccessVisible(false);
     setModalOpen(true);
   };
 
@@ -2026,6 +2032,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     setModalOpen(false);
     setSelectedDateKey("");
     setModalError("");
+    setSaveSuccessVisible(false);
   };
 
   const closeMonthSetup = () => {
@@ -2169,7 +2176,9 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
 
     setModalError("");
+    setSaveSuccessVisible(true);
     const variant = modalVariant as Variant;
+    const currentDateKey = selectedDateKey;
     const nextEntry: Entry = {
       result: variant === "neg" ? -1 : 1,
       variant,
@@ -2179,20 +2188,24 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
     setDayData((prev) => ({
       ...prev,
-      [selectedDateKey]: nextEntry,
+      [currentDateKey]: nextEntry,
     }));
     setPendingSyncs((prev) => ({
       ...prev,
-      [selectedDateKey]: { type: "upsert", entry: nextEntry },
+      [currentDateKey]: { type: "upsert", entry: nextEntry },
     }));
+    setDayPulseKey(currentDateKey);
+    setSaveFeedbackTick((prev) => prev + 1);
+    await new Promise((resolve) => window.setTimeout(resolve, 260));
     setModalOpen(false);
     setSelectedDateKey("");
+    setSaveSuccessVisible(false);
 
     try {
-      await syncPendingOperation(selectedDateKey, { type: "upsert", entry: nextEntry });
+      await syncPendingOperation(currentDateKey, { type: "upsert", entry: nextEntry });
       setPendingSyncs((prev) => {
         const next = { ...prev };
-        delete next[selectedDateKey];
+        delete next[currentDateKey];
         return next;
       });
       setSyncError("");
@@ -2576,6 +2589,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
     });
   };
 
+  const selectedYearMonth = selectedDateKey ? Number(selectedDateKey.slice(5, 7)) - 1 : -1;
+
   return (
     <section className={styles.wrapper}>
       <div className={styles.tracker}>
@@ -2885,7 +2900,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             </div>
           )}
 
-          <div className={`${styles.panel} ${styles.ai}`}>
+          <div key={`ai-${saveFeedbackTick}`} className={`${styles.panel} ${styles.ai} ${saveFeedbackTick > 0 ? styles.panelRefresh : ""}`}>
             <h4>
               <Image className={styles.aiIcon} src="/Group.svg" alt="" aria-hidden width={28} height={28} /> {ui.aiAdvice}
             </h4>
@@ -2898,13 +2913,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
         <>
           <div className={styles.monthlyRow}>
             <div
+              key={`signalizer-month-${saveFeedbackTick}`}
               className={`${styles.panel} ${styles.signalizer} ${
                 signalizer.summaryLevel === "critical"
                   ? styles.signalCritical
                   : signalizer.summaryLevel === "warn"
                     ? styles.signalWarn
                     : styles.signalOk
-              }`}
+              } ${saveFeedbackTick > 0 ? styles.panelRefresh : ""}`}
             >
               <h4>{ui.signalizer}</h4>
               <p className={styles.signalSummary}>
@@ -2932,7 +2948,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 ))}
               </div>
             </div>
-            <div className={`${styles.panel} ${styles.weekly}`}>
+            <div key={`review-month-${saveFeedbackTick}`} className={`${styles.panel} ${styles.weekly} ${saveFeedbackTick > 0 ? styles.panelRefresh : ""}`}>
               <div className={styles.reviewHeader}>
                 <h4>{reviewTitle}</h4>
               </div>
@@ -3053,7 +3069,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
         <div className={styles.yearRow}>
           <div className={styles.yearQuarterGrid}>
             {yearQuarterGroups.map((quarter) => (
-              <section key={quarter.key} className={`${styles.panel} ${styles.yearQuarterPanel}`}>
+              <section
+                key={quarter.key}
+                className={`${styles.panel} ${styles.yearQuarterPanel} ${
+                  quarter.months.some((month) => month.month === selectedYearMonth) ? styles.yearQuarterPanelActive : ""
+                }`}
+              >
                 <div className={styles.yearQuarterHead}>
                   <div>
                     <span className={styles.yearQuarterEyebrow}>{quarter.label}</span>
@@ -3067,7 +3088,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </div>
                 <div className={styles.yearQuarterMonths}>
                   {quarter.months.map((month) => (
-                    <div key={month.month} className={styles.yearMonthCard}>
+                    <div key={month.month} className={`${styles.yearMonthCard} ${month.month === selectedYearMonth ? styles.yearMonthCardActive : ""}`}>
                       <div className={styles.yearMonthHead}>
                         <h5>{month.label}</h5>
                         <span>{month.aggregate.disciplineScore}%</span>
@@ -3147,13 +3168,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
               </div>
               <div className={styles.yearMetaColumn}>
                 <div
+                  key={`signalizer-year-${saveFeedbackTick}`}
                   className={`${styles.panel} ${styles.signalizer} ${
                     signalizer.summaryLevel === "critical"
                       ? styles.signalCritical
                       : signalizer.summaryLevel === "warn"
                         ? styles.signalWarn
                         : styles.signalOk
-                  }`}
+                  } ${saveFeedbackTick > 0 ? styles.panelRefresh : ""}`}
                 >
                   <h4>{ui.signalizer}</h4>
                   <p className={styles.signalSummary}>
@@ -3181,7 +3203,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     ))}
                   </div>
                 </div>
-                <div className={`${styles.panel} ${styles.weekly}`}>
+                <div key={`review-year-${saveFeedbackTick}`} className={`${styles.panel} ${styles.weekly} ${saveFeedbackTick > 0 ? styles.panelRefresh : ""}`}>
                   <div className={styles.reviewHeader}>
                     <h4>{reviewTitle}</h4>
                   </div>
@@ -3348,7 +3370,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 </button>
               </div>
               <div className={styles.colorOptions}>
-                <label className={styles.colorOption}>
+                <label className={`${styles.colorOption} ${modalVariant === "neg" ? styles.colorOptionActive : ""} ${modalVariant === "neg" ? styles.colorOptionDanger : ""}`}>
                   <input
                     type="radio"
                     name="resultVariant"
@@ -3361,7 +3383,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   />
                   <span className={`${styles.colorSwatch} ${styles.swatchRed}`} />
                 </label>
-                <label className={styles.colorOption}>
+                <label className={`${styles.colorOption} ${modalVariant === "pos" ? styles.colorOptionActive : ""} ${modalVariant === "pos" ? styles.colorOptionSuccess : ""}`}>
                   <input
                     type="radio"
                     name="resultVariant"
@@ -3374,7 +3396,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   />
                   <span className={`${styles.colorSwatch} ${styles.swatchGreen}`} />
                 </label>
-                <label className={styles.colorOption}>
+                <label className={`${styles.colorOption} ${modalVariant === "pos-outline" ? styles.colorOptionActive : ""} ${modalVariant === "pos-outline" ? styles.colorOptionOutline : ""}`}>
                   <input
                     type="radio"
                     name="resultVariant"
@@ -3463,8 +3485,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 <button className="btn" type="button" onClick={closeModal}>
                   {ui.cancel}
                 </button>
-                <button className="btn primary" type="button" onClick={saveDay}>
-                  {ui.save}
+                <button className="btn primary" type="button" onClick={saveDay} disabled={saveSuccessVisible}>
+                  {saveSuccessVisible ? ui.saved : ui.save}
                 </button>
               </div>
             </div>
