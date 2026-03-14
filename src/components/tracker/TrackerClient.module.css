@@ -158,6 +158,15 @@
   }
 }
 
+@keyframes trackerBorderOrbit {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes trackerBorderSweep {
   from {
     offset-distance: 0%;
@@ -751,23 +760,7 @@
 }
 
 .score::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 42px;
-  height: 5px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.015) 18%, rgba(255, 255, 255, 0.58) 50%, rgba(255, 255, 255, 0.02) 82%, transparent 100%);
-  opacity: 0.62;
-  pointer-events: none;
-  z-index: 1;
-  filter: blur(0.8px);
-  offset-path: inset(0 round 10px);
-  offset-distance: 0%;
-  offset-rotate: auto;
-  animation: trackerBorderSweep 6.8s linear infinite;
-  will-change: offset-distance;
+  content: none;
 }
 
 .score::after {
@@ -789,7 +782,7 @@
 
 .score:hover::before,
 .score:focus-within::before {
-  opacity: 0.78;
+  opacity: 0.68;
 }
 
 .scoreTooltip {
@@ -860,7 +853,34 @@
 }
 
 .scoreBlue::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(122, 176, 255, 0.015) 18%, rgba(122, 176, 255, 0.62) 50%, rgba(122, 176, 255, 0.025) 82%, transparent 100%);
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from 180deg,
+    transparent 0deg 246deg,
+    rgba(122, 176, 255, 0.015) 268deg,
+    rgba(122, 176, 255, 0.12) 292deg,
+    rgba(122, 176, 255, 0.3) 316deg,
+    rgba(122, 176, 255, 0.12) 340deg,
+    rgba(122, 176, 255, 0.02) 356deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0.54;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(0.45px);
+  animation: trackerBorderOrbit 9.5s linear infinite;
 }
 
 .scoreBlue strong {
@@ -873,7 +893,7 @@
 }
 
 .scoreGreen::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(127, 242, 184, 0.015) 18%, rgba(127, 242, 184, 0.58) 50%, rgba(127, 242, 184, 0.025) 82%, transparent 100%);
+  content: none;
 }
 
 .scoreGreen strong {
@@ -886,7 +906,7 @@
 }
 
 .scoreRed::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 154, 176, 0.015) 18%, rgba(255, 154, 176, 0.56) 50%, rgba(255, 154, 176, 0.025) 82%, transparent 100%);
+  content: none;
 }
 
 .scoreRed strong {
