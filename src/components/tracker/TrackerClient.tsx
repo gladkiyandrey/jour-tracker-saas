@@ -50,7 +50,7 @@ type QuarterGroup = {
     label: string;
     cells: Array<
       | { kind: "empty" }
-      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean }
+      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean; isToday: boolean }
     >;
     aggregate: MonthAggregate;
   }>;
