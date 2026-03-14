@@ -611,6 +611,7 @@
   transform-box: fill-box;
   animation: trackerBarReveal 0.72s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: opacity 0.22s ease, transform 0.22s ease, filter 0.24s ease;
+  animation-fill-mode: both;
 }
 
 .tradeBar:hover {

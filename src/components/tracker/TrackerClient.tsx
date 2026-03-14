@@ -168,6 +168,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [dayPulseKey, setDayPulseKey] = useState("");
   const [calendarMotionKey, setCalendarMotionKey] = useState(0);
   const [calendarMotionDir, setCalendarMotionDir] = useState<"next" | "prev">("next");
+  const [chartMotionKey, setChartMotionKey] = useState(0);
   const [dayData, setDayData] = useState<Record<string, Entry>>(() => {
     if (typeof window === "undefined") return {};
     try {
@@ -827,6 +828,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
       }
     };
   }, [dayPulseKey]);
+
+  useEffect(() => {
+    setChartMotionKey((prev) => prev + 1);
+  }, [trackerView, viewMonth, viewYear, sortedEntries]);
 
   const signalizer = useMemo(() => {
     const monthPrefix = `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-`;
@@ -2699,7 +2704,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
               <g clipPath={`url(#${chartClipId})`}>
                 {chartModel.bars.map((bar, index) => (
                   <rect
-                    key={`bar-${index}`}
+                    key={`bar-${chartMotionKey}-${index}`}
                     className={`${styles.tradeBar} ${
                       bar.kind === "zero"
                         ? styles.tradeBarZero
@@ -2714,6 +2719,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     width={bar.w}
                     height={bar.h}
                     rx="2"
+                    style={{ animationDelay: `${index * 70}ms` }}
                     onMouseMove={(event) => {
                       const rect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
                       if (!rect) return;
@@ -2732,10 +2738,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 ))}
               </g>
               <g clipPath={`url(#${chartClipId})`}>
-                <path className={styles.yellowGlow} d={chartModel.yellow} />
-                <path className={styles.blueGlow} d={chartModel.blue} />
-                <path className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
-                <path className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+                <path key={`yellow-glow-${chartMotionKey}`} className={styles.yellowGlow} d={chartModel.yellow} />
+                <path key={`blue-glow-${chartMotionKey}`} className={styles.blueGlow} d={chartModel.blue} />
+                <path key={`yellow-line-${chartMotionKey}`} className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
+                <path key={`blue-line-${chartMotionKey}`} className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
               </g>
               {chartModel.ticks.map((tick, index) => (
                 <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
