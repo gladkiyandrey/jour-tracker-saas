@@ -57,6 +57,37 @@ body {
   min-height: 100%;
 }
 
+@keyframes modalBackdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSheetIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.965);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalSectionRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -1093,6 +1124,7 @@ a {
     radial-gradient(circle at top, rgba(47, 93, 255, 0.18), transparent 34%),
     rgba(5, 8, 15, 0.76);
   backdrop-filter: blur(8px);
+  animation: modalBackdropFadeIn 0.24s ease-out both;
 }
 
 .trade-share-modal {
@@ -1103,6 +1135,8 @@ a {
   border-radius: 24px;
   background: linear-gradient(180deg, rgba(14, 19, 34, 0.98), rgba(9, 12, 22, 0.98));
   box-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
+  animation: modalSheetIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center top;
 }
 
 .trade-share-modal-head {
@@ -1116,6 +1150,7 @@ a {
   padding: 15px 16px 11px;
   border-bottom: 1px solid rgba(120, 136, 190, 0.22);
   background: linear-gradient(180deg, rgba(15, 19, 34, 0.97), rgba(12, 16, 29, 0.92));
+  animation: modalSectionRise 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .trade-share-modal-head h3 {
@@ -1141,6 +1176,18 @@ a {
   background: rgba(18, 24, 42, 0.84);
   color: #e7edff;
   cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.22s ease;
+}
+
+.trade-share-modal-close:hover {
+  transform: translateY(-2px) scale(1.03);
+  border-color: rgba(156, 176, 235, 0.46);
+  background: rgba(24, 31, 54, 0.96);
+  box-shadow: 0 14px 22px rgba(5, 10, 22, 0.2);
 }
 
 .trade-share-modal-close svg {
@@ -1150,6 +1197,7 @@ a {
 
 .trade-share-modal-body {
   padding: 14px 16px 16px;
+  animation: modalSectionRise 0.48s cubic-bezier(0.22, 1, 0.36, 1) 0.13s both;
 }
 
 .footer-note {
@@ -1254,6 +1302,19 @@ a {
   .user-sub-chip {
     font-size: 9px;
     padding: 0 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trade-share-modal-backdrop,
+  .trade-share-modal,
+  .trade-share-modal-head,
+  .trade-share-modal-body {
+    animation: none !important;
+  }
+
+  .trade-share-modal-close {
+    transition: none !important;
   }
 }
 
