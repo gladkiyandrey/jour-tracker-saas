@@ -758,12 +758,10 @@
   padding: 1px;
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    rgba(255, 255, 255, 0.02) 55deg,
-    rgba(255, 255, 255, 0.16) 110deg,
-    rgba(255, 255, 255, 0.04) 170deg,
-    transparent 230deg,
-    rgba(255, 255, 255, 0.12) 300deg,
+    transparent 0deg 312deg,
+    rgba(255, 255, 255, 0.02) 324deg,
+    rgba(255, 255, 255, 0.22) 336deg,
+    rgba(255, 255, 255, 0.08) 348deg,
     transparent 360deg
   );
   -webkit-mask:
@@ -774,10 +772,11 @@
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  opacity: 0.6;
+  opacity: 0.9;
   pointer-events: none;
   z-index: -1;
-  animation: trackerBorderOrbit 10s linear infinite;
+  filter: blur(0.3px);
+  animation: trackerBorderOrbit 7.8s linear infinite;
 }
 
 .score::after {
@@ -799,7 +798,7 @@
 
 .score:hover::before,
 .score:focus-within::before {
-  opacity: 0.85;
+  opacity: 1;
 }
 
 .scoreTooltip {
@@ -872,12 +871,10 @@
 .scoreBlue::before {
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    rgba(122, 176, 255, 0.06) 60deg,
-    rgba(122, 176, 255, 0.34) 128deg,
-    rgba(122, 176, 255, 0.08) 190deg,
-    transparent 250deg,
-    rgba(88, 138, 255, 0.24) 320deg,
+    transparent 0deg 312deg,
+    rgba(122, 176, 255, 0.08) 324deg,
+    rgba(122, 176, 255, 0.42) 336deg,
+    rgba(122, 176, 255, 0.12) 348deg,
     transparent 360deg
   );
 }
@@ -894,12 +891,10 @@
 .scoreGreen::before {
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    rgba(127, 242, 184, 0.06) 60deg,
-    rgba(127, 242, 184, 0.3) 128deg,
-    rgba(127, 242, 184, 0.08) 190deg,
-    transparent 250deg,
-    rgba(63, 221, 153, 0.22) 320deg,
+    transparent 0deg 312deg,
+    rgba(127, 242, 184, 0.08) 324deg,
+    rgba(127, 242, 184, 0.38) 336deg,
+    rgba(127, 242, 184, 0.12) 348deg,
     transparent 360deg
   );
 }
@@ -916,12 +911,10 @@
 .scoreRed::before {
   background: conic-gradient(
     from 0deg,
-    transparent 0deg,
-    rgba(255, 154, 176, 0.05) 60deg,
-    rgba(255, 154, 176, 0.28) 128deg,
-    rgba(255, 154, 176, 0.08) 190deg,
-    transparent 250deg,
-    rgba(255, 116, 142, 0.2) 320deg,
+    transparent 0deg 312deg,
+    rgba(255, 154, 176, 0.08) 324deg,
+    rgba(255, 154, 176, 0.34) 336deg,
+    rgba(255, 154, 176, 0.12) 348deg,
     transparent 360deg
   );
 }
