@@ -4,6 +4,83 @@
   padding-right: env(safe-area-inset-right);
 }
 
+@keyframes trackerRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes trackerFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes trackerModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.975);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes trackerBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes trackerSweep {
+  from {
+    transform: translateX(-140%) skewX(-18deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.16;
+  }
+  70% {
+    opacity: 0.26;
+  }
+  to {
+    transform: translateX(180%) skewX(-18deg);
+    opacity: 0;
+  }
+}
+
+@keyframes trackerLineReveal {
+  from {
+    stroke-dashoffset: 1200;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes trackerBarReveal {
+  from {
+    opacity: 0;
+    transform: scaleY(0.15);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
 .tracker {
   margin-top: 2px;
   display: grid;
@@ -24,6 +101,7 @@
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(31, 38, 61, 0.94), rgba(18, 23, 38, 0.96));
   padding: 16px 16px 10px;
+  animation: trackerRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .head {
@@ -60,6 +138,7 @@
 }
 
 .trackerScopeToggle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -67,9 +146,12 @@
   border-radius: 999px;
   border: 1px solid rgba(121, 133, 173, 0.36);
   background: rgba(10, 16, 31, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .trackerScopeBtn {
+  position: relative;
+  overflow: hidden;
   min-height: auto;
   border: 0;
   background: transparent;
@@ -80,17 +162,39 @@
   border-radius: 999px;
   padding: 7px 12px;
   cursor: pointer;
-  transition: color 0.16s ease, background 0.16s ease;
+  transition:
+    color 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.24s ease;
 }
 
 .trackerScopeBtn:hover {
   color: #edf3ff;
   background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
 }
 
 .trackerScopeBtnActive {
   color: #ffffff;
   background: rgba(73, 122, 255, 0.42);
+  box-shadow:
+    0 8px 18px rgba(49, 102, 235, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.trackerScopeBtn::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -40%;
+  width: 42%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.trackerScopeBtnActive::after {
+  animation: trackerSweep 1.25s ease-out 0.2s 1 both;
 }
 
 .shareHead {
@@ -101,6 +205,8 @@
 }
 
 .shareIconBtn {
+  position: relative;
+  overflow: hidden;
   width: 20px;
   height: 20px;
   border: 0;
@@ -111,13 +217,18 @@
   justify-content: center;
   cursor: pointer;
   padding: 0;
-  transition: opacity 0.16s ease, color 0.16s ease, transform 0.16s ease;
+  transition:
+    opacity 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    filter 0.22s ease;
 }
 
 .shareIconBtn:hover:not(:disabled) {
   opacity: 0.88;
   color: #ffffff;
   transform: translateY(-1px);
+  filter: drop-shadow(0 4px 10px rgba(114, 154, 255, 0.22));
 }
 
 .shareIconBtn:disabled {
@@ -153,6 +264,7 @@
   padding: 20px;
   background: rgba(5, 10, 22, 0.62);
   backdrop-filter: blur(8px);
+  animation: trackerBackdropIn 0.22s ease-out both;
 }
 
 .shareModal {
@@ -164,6 +276,7 @@
   padding: 18px;
   display: grid;
   gap: 14px;
+  animation: trackerModalIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .shareModalHeader {
@@ -199,6 +312,16 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.shareModalClose:hover {
+  transform: translateY(-1px);
+  border-color: rgba(170, 188, 242, 0.5);
+  background: rgba(17, 24, 42, 0.9);
 }
 
 .shareModalRow {
@@ -221,6 +344,8 @@
 }
 
 .shareModalCopyBtn {
+  position: relative;
+  overflow: hidden;
   min-height: 44px;
   padding: 0 16px;
   border-radius: 12px;
@@ -230,13 +355,20 @@
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.24s ease;
+  box-shadow: 0 10px 24px rgba(56, 100, 220, 0.16);
 }
 
 .shareModalCopyBtn:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: rgba(151, 173, 255, 0.52);
   background: rgba(89, 137, 255, 0.42);
+  box-shadow: 0 14px 30px rgba(56, 100, 220, 0.22);
 }
 
 .shareModalCopyBtn:disabled {
@@ -248,6 +380,22 @@
   border-color: rgba(63, 214, 133, 0.42);
   background: rgba(21, 111, 63, 0.45);
   color: #dcffee;
+}
+
+.shareModalCopyBtn::after,
+.wrapper :global(.btn.primary)::after {
+  content: "";
+  position: absolute;
+  inset: -35% auto -35% -18%;
+  width: 32%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.shareModalCopyBtn:hover:not(:disabled)::after,
+.wrapper :global(.btn.primary:hover)::after {
+  animation: trackerSweep 0.95s ease-out 1 both;
 }
 
 .shareModalStatus {
@@ -333,6 +481,7 @@
   height: 100%;
   min-height: 140px;
   margin-top: 8px;
+  animation: trackerFadeIn 0.55s ease-out both;
 }
 
 .chartWrap {
@@ -350,6 +499,9 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 3;
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  animation: trackerLineReveal 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .yellowGlow,
@@ -375,11 +527,22 @@
 
 .blue {
   stroke: #2f83ff;
+  animation-delay: 0.14s;
 }
 
 .tradeBar {
   opacity: 0.22;
   cursor: pointer;
+  transform-origin: bottom center;
+  transform-box: fill-box;
+  animation: trackerBarReveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: opacity 0.18s ease, transform 0.18s ease, filter 0.2s ease;
+}
+
+.tradeBar:hover {
+  opacity: 0.36;
+  transform: scaleY(1.03);
+  filter: saturate(1.08);
 }
 
 .tradeBarOk {
@@ -432,6 +595,7 @@
   white-space: normal;
   text-align: left;
   box-shadow: 0 10px 26px rgba(4, 8, 18, 0.52);
+  animation: trackerRiseIn 0.16s ease-out both;
 }
 
 .scoreRow {
@@ -466,6 +630,20 @@
   background: linear-gradient(180deg, rgba(30, 38, 62, 0.88), rgba(15, 21, 36, 0.92));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
   text-align: center;
+  cursor: default;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.24s ease,
+    background 0.24s ease;
+}
+
+.score:hover,
+.score:focus-within {
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 26px rgba(6, 12, 24, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .scoreTooltip {
@@ -492,6 +670,10 @@
   visibility: hidden;
   pointer-events: none;
   z-index: 6;
+  transition:
+    opacity 0.16s ease,
+    visibility 0.16s ease,
+    transform 0.16s ease;
 }
 
 .score:hover .scoreTooltip,
@@ -499,6 +681,7 @@
 .scoreTooltipVisible {
   opacity: 1;
   visibility: visible;
+  transform: translate(-50%, -12px);
 }
 
 .scoreLabel span {
@@ -668,12 +851,18 @@
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.2s ease;
 }
 
 .arrow:hover {
   border-color: rgba(229, 235, 255, 0.76);
   background: rgba(255, 255, 255, 0.06);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(6, 11, 24, 0.18);
 }
 
 .weekdays {
@@ -835,12 +1024,18 @@
   min-height: 38px;
   font-size: 12px;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.22s ease,
+    color 0.18s ease;
 }
 
 .day:hover {
   transform: translateY(-2px);
   border-color: rgba(152, 170, 229, 0.74);
+  box-shadow: 0 10px 18px rgba(5, 10, 22, 0.18);
 }
 
 .dayEmpty {
@@ -857,6 +1052,7 @@
   transform: none;
   border-color: rgba(121, 133, 173, 0.34);
   background: rgba(16, 22, 38, 0.86);
+  box-shadow: none;
 }
 
 .dayNeg {
@@ -875,12 +1071,37 @@
   box-shadow: inset 0 0 0 1px #fff;
 }
 
+.dayFilled {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
 .dayPosSelected {
   box-shadow: inset 0 0 0 1px #fff;
 }
 
 .daySelected {
   border-color: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.2),
+    0 12px 20px rgba(7, 14, 30, 0.2);
+}
+
+.dayToday {
+  position: relative;
+  border-color: rgba(122, 159, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(122, 159, 255, 0.26);
+}
+
+.dayToday::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #8cb5ff;
+  box-shadow: 0 0 10px rgba(140, 181, 255, 0.62);
 }
 
 .ai {
@@ -1204,13 +1425,17 @@
   cursor: help;
   appearance: none;
   -webkit-appearance: none;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .metricHelp:hover {
-  border-color: rgba(121, 133, 173, 0.52);
-  background: rgba(15, 22, 40, 0.86);
+  border-color: rgba(164, 181, 235, 0.68);
+  background: rgba(20, 29, 52, 0.96);
   box-shadow: none;
-  transform: none;
+  transform: translateY(-1px);
 }
 
 .metricTooltip {
@@ -1237,6 +1462,10 @@
   visibility: hidden;
   pointer-events: none;
   z-index: 6;
+  transition:
+    opacity 0.16s ease,
+    visibility 0.16s ease,
+    transform 0.16s ease;
 }
 
 .metricHelp:hover .metricTooltip,
@@ -1244,6 +1473,7 @@
 .metricTooltipVisible {
   opacity: 1;
   visibility: visible;
+  transform: translate(-50%, -12px);
 }
 
 .weeklyItem strong {
@@ -1264,6 +1494,8 @@
   place-items: center;
   padding: 20px;
   z-index: 20;
+  backdrop-filter: blur(8px);
+  animation: trackerBackdropIn 0.2s ease-out both;
 }
 
 .modal {
@@ -1274,6 +1506,8 @@
   background: linear-gradient(180deg, #252e49 0%, #171f35 100%);
   display: grid;
   gap: 16px;
+  box-shadow: 0 30px 80px rgba(2, 7, 18, 0.42);
+  animation: trackerModalIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .monthSetupModal {
@@ -1333,6 +1567,20 @@
   color: #f5f7ff;
   padding: 0 12px;
   font-size: 14px;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease;
+}
+
+.field input:focus,
+.field select:focus,
+.shareModalInput:focus {
+  outline: none;
+  border-color: rgba(118, 158, 255, 0.72);
+  box-shadow: 0 0 0 3px rgba(73, 122, 255, 0.16);
+  background: rgba(13, 18, 31, 0.96);
 }
 
 .fieldValue {
@@ -1378,6 +1626,10 @@
   border-radius: 999px;
   border: 1px solid rgba(121, 133, 173, 0.58);
   display: inline-block;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
 }
 
 .swatchRed {
@@ -1398,6 +1650,12 @@
 
 .colorOption input:checked + .colorSwatch {
   box-shadow: 0 0 0 2px rgba(122, 159, 255, 0.5);
+  transform: translateY(-1px) scale(1.04);
+}
+
+.colorOption:hover .colorSwatch {
+  transform: translateY(-1px);
+  filter: saturate(1.06);
 }
 
 .actions {
@@ -1439,6 +1697,40 @@
   box-shadow: none;
   color: rgba(255, 201, 211, 1);
   opacity: 1;
+}
+
+.wrapper :global(.btn),
+.syncRetryBtn {
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.22s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.wrapper :global(.btn:hover),
+.syncRetryBtn:hover {
+  transform: translateY(-1px);
+}
+
+.wrapper :global(.btn:active),
+.syncRetryBtn:active,
+.trackerScopeBtn:active,
+.shareModalCopyBtn:active,
+.arrow:active,
+.day:active {
+  transform: translateY(0) scale(0.985);
+}
+
+.wrapper :global(.btn.primary) {
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 14px 28px rgba(55, 99, 226, 0.2);
+}
+
+.wrapper :global(.btn.primary:hover) {
+  box-shadow: 0 18px 34px rgba(55, 99, 226, 0.28);
 }
 
 .modalError {
@@ -1703,5 +1995,43 @@
 
   .tradeBar {
     opacity: 0.18;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .chart,
+  .line,
+  .tradeBar,
+  .chartTooltip,
+  .scoreTooltip,
+  .metricTooltip,
+  .modalBackdrop,
+  .modal,
+  .shareModalBackdrop,
+  .shareModal,
+  .trackerScopeBtnActive::after,
+  .shareModalCopyBtn:hover:not(:disabled)::after,
+  .wrapper :global(.btn.primary:hover)::after {
+    animation: none !important;
+  }
+
+  .wrapper :global(.btn),
+  .syncRetryBtn,
+  .trackerScopeBtn,
+  .shareIconBtn,
+  .shareModalCopyBtn,
+  .shareModalClose,
+  .arrow,
+  .day,
+  .score,
+  .metricHelp,
+  .colorSwatch,
+  .field input,
+  .field select,
+  .shareModalInput,
+  .scoreTooltip,
+  .metricTooltip {
+    transition: none !important;
   }
 }

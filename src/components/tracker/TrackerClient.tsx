@@ -2148,18 +2148,21 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   };
 
-  const renderDayClass = (entry: Entry | undefined, isSelected: boolean) => {
+  const renderDayClass = (entry: Entry | undefined, isSelected: boolean, isToday: boolean) => {
     const classes = [styles.day];
     if (!entry) {
       if (isSelected) classes.push(styles.daySelected);
+      if (isToday) classes.push(styles.dayToday);
       return classes.join(" ");
     }
 
     if (entry.result === -1) classes.push(styles.dayNeg);
     if (entry.variant === "pos") classes.push(styles.dayPos);
     if (entry.variant === "pos-outline") classes.push(styles.dayPosOutline);
+    classes.push(styles.dayFilled);
     if (entry.variant === "pos" && isSelected) classes.push(styles.dayPosSelected);
     if (isSelected) classes.push(styles.daySelected);
+    if (isToday) classes.push(styles.dayToday);
 
     return classes.join(" ");
   };
@@ -2170,7 +2173,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const lastDate = new Date(year, month + 1, 0).getDate();
     const cells = [] as Array<
       | { kind: "empty" }
-      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean }
+      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean; isToday: boolean }
     >;
 
     for (let i = 0; i < 42; i += 1) {
@@ -2186,6 +2189,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
           entry: dayData[dateKey],
           isSelected: dateKey === selectedDateKey,
           isFuture: dateKey > todayKey,
+          isToday: dateKey === todayKey,
         });
       }
     }
@@ -2748,7 +2752,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     <button
                       key={cell.dateKey}
                       type="button"
-                      className={`${renderDayClass(cell.entry, cell.isSelected)} ${cell.isFuture ? styles.dayLocked : ""}`}
+                      className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${cell.isFuture ? styles.dayLocked : ""}`}
                       onClick={() => openModal(cell.dateKey)}
                       disabled={cell.isFuture}
                       aria-disabled={cell.isFuture}
@@ -3008,7 +3012,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                             <button
                               key={cell.dateKey}
                               type="button"
-                              className={`${renderDayClass(cell.entry, cell.isSelected)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
+                              className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
                               onClick={() => openModal(cell.dateKey)}
                               disabled={cell.isFuture}
                               aria-disabled={cell.isFuture}
