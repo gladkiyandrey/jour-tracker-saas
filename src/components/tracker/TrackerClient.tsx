@@ -289,6 +289,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const animatedStatsRef = useRef(animatedStats);
   const chartMotionInitializedRef = useRef(false);
   const chartInitialLoadDoneRef = useRef(false);
+  const syncRetryTimeoutRef = useRef<number | null>(null);
+  const syncRetryInFlightRef = useRef(false);
   const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -627,24 +629,59 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const syncFailureMessage = (action: "save" | "delete") =>
     locale === "ru"
       ? action === "save"
-        ? "Сохранено локально, но cloud sync не удался. Повторите попытку."
-        : "Удалено локально, но cloud sync не удался. Повторите попытку."
+        ? "Сохранено локально. Мы продолжим cloud sync автоматически."
+        : "Удалено локально. Мы продолжим cloud sync автоматически."
       : locale === "uk"
         ? action === "save"
-          ? "Збережено локально, але cloud sync не вдався. Спробуйте ще раз."
-          : "Видалено локально, але cloud sync не вдався. Спробуйте ще раз."
+          ? "Збережено локально. Ми продовжимо cloud sync автоматично."
+          : "Видалено локально. Ми продовжимо cloud sync автоматично."
         : action === "save"
-          ? "Saved locally, but cloud sync failed. Try again."
-          : "Cleared locally, but cloud sync failed. Try again.";
+          ? "Saved locally. We will continue cloud sync automatically."
+          : "Cleared locally. We will continue cloud sync automatically.";
+
+  const refreshSession = useCallback(async () => {
+    const res = await fetch("/api/auth/refresh-session", {
+      method: "POST",
+      cache: "no-store",
+    });
+    return res.ok;
+  }, []);
+
+  const fetchWithSessionRefresh = useCallback(
+    async (input: RequestInfo | URL, init?: RequestInit) => {
+      let response = await fetch(input, init);
+      if (response.status !== 401) {
+        return response;
+      }
+
+      const refreshed = await refreshSession();
+      if (!refreshed) {
+        return response;
+      }
+
+      response = await fetch(input, init);
+      return response;
+    },
+    [refreshSession]
+  );
 
   useEffect(() => {
     let cancelled = false;
 
     const loadFromServer = async () => {
       try {
-        const res = await fetch("/api/tracker/entries", { cache: "no-store" });
+        const res = await fetchWithSessionRefresh("/api/tracker/entries", { cache: "no-store" });
         if (!res.ok) {
-          if (res.status === 401) return;
+          if (res.status === 401) {
+            setSyncError(
+              locale === "ru"
+                ? "Сессия требует повторного входа. Локальные изменения сохранены."
+                : locale === "uk"
+                  ? "Сесія потребує повторного входу. Локальні зміни збережено."
+                  : "Session needs sign-in again. Local changes are preserved.",
+            );
+            return;
+          }
           const errPayload = (await res.json().catch(() => null)) as { error?: string } | null;
           throw new Error(errPayload?.error || `Failed to load (${res.status})`);
         }
@@ -701,7 +738,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [locale, pendingSyncs, storageKey, userKey]);
+  }, [fetchWithSessionRefresh, locale, pendingSyncs, storageKey, userKey]);
 
   useEffect(() => {
     try {
@@ -2111,8 +2148,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
     setMonthSetupError("");
   };
 
-  const syncPendingOperation = async (dateKey: string, pending: PendingSync) => {
-    const res = await fetch("/api/tracker/entries", {
+  const syncPendingOperation = useCallback(async (dateKey: string, pending: PendingSync) => {
+    const res = await fetchWithSessionRefresh("/api/tracker/entries", {
       method: pending.type === "delete" ? "DELETE" : "POST",
       headers: { "Content-Type": "application/json" },
       body:
@@ -2129,32 +2166,83 @@ export default function TrackerClient({ userKey, locale }: Props) {
     if (!res.ok) {
       throw new Error(`Failed to sync (${res.status})`);
     }
-  };
+  }, [fetchWithSessionRefresh]);
 
-  const retryPendingSyncs = async () => {
+  const retryPendingSyncs = useCallback(async (options?: { silent?: boolean }) => {
     const entries = Object.entries(pendingSyncs);
-    if (!entries.length) return;
+    if (!entries.length || syncRetryInFlightRef.current) return;
+    syncRetryInFlightRef.current = true;
 
     const failed: Record<string, PendingSync> = {};
-    for (const [dateKey, pending] of entries) {
-      try {
-        await syncPendingOperation(dateKey, pending);
-      } catch {
-        failed[dateKey] = pending;
+    try {
+      for (const [dateKey, pending] of entries) {
+        try {
+          await syncPendingOperation(dateKey, pending);
+        } catch {
+          failed[dateKey] = pending;
+        }
       }
+    } finally {
+      syncRetryInFlightRef.current = false;
     }
 
     setPendingSyncs(failed);
-    setSyncError(
-      Object.keys(failed).length === 0
-        ? ""
-        : locale === "ru"
-          ? "Часть изменений всё ещё не синхронизирована. Повторите попытку."
+    if (Object.keys(failed).length === 0) {
+      setSyncError("");
+      return;
+    }
+
+    if (!options?.silent) {
+      setSyncError(
+        locale === "ru"
+          ? "Часть изменений еще ожидает cloud sync. Мы попробуем снова автоматически."
           : locale === "uk"
-            ? "Частину змін усе ще не синхронізовано. Спробуйте ще раз."
-            : "Some changes are still not synced. Try again.",
-    );
-  };
+            ? "Частина змін ще очікує cloud sync. Ми спробуємо знову автоматично."
+            : "Some changes are still waiting for cloud sync. We will retry automatically.",
+      );
+    }
+  }, [locale, pendingSyncs, syncPendingOperation]);
+
+  useEffect(() => {
+    if (pendingSyncCount === 0) {
+      if (syncRetryTimeoutRef.current) {
+        window.clearTimeout(syncRetryTimeoutRef.current);
+        syncRetryTimeoutRef.current = null;
+      }
+      return;
+    }
+
+    if (syncRetryTimeoutRef.current) {
+      window.clearTimeout(syncRetryTimeoutRef.current);
+    }
+    syncRetryTimeoutRef.current = window.setTimeout(() => {
+      retryPendingSyncs({ silent: true });
+      syncRetryTimeoutRef.current = null;
+    }, 3500);
+
+    return () => {
+      if (syncRetryTimeoutRef.current) {
+        window.clearTimeout(syncRetryTimeoutRef.current);
+        syncRetryTimeoutRef.current = null;
+      }
+    };
+  }, [pendingSyncCount, retryPendingSyncs]);
+
+  useEffect(() => {
+    const trySyncAgain = () => {
+      if (Object.keys(pendingSyncs).length === 0) return;
+      retryPendingSyncs({ silent: true });
+    };
+
+    window.addEventListener("online", trySyncAgain);
+    window.addEventListener("focus", trySyncAgain);
+    document.addEventListener("visibilitychange", trySyncAgain);
+    return () => {
+      window.removeEventListener("online", trySyncAgain);
+      window.removeEventListener("focus", trySyncAgain);
+      document.removeEventListener("visibilitychange", trySyncAgain);
+    };
+  }, [pendingSyncs, retryPendingSyncs]);
 
   const saveMonthSetup = () => {
     if (!monthSetupDateKey) return;
@@ -2548,7 +2636,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     return fallbackCopyText(text);
   };
 
-  const createShare = async () => {
+  const createShare = useCallback(async () => {
     setShareStatus("");
     setShareLink("");
     setCopyFlash(false);
@@ -2561,7 +2649,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
         variant: entry.variant,
       }));
 
-      const res = await fetch("/api/share/create", {
+      const res = await fetchWithSessionRefresh("/api/share/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -2609,7 +2697,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     } finally {
       setShareLoading(false);
     }
-  };
+  }, [chartModel.blue, chartModel.yellow, fetchWithSessionRefresh, locale, sortedEntries, stats.greenStreak, stats.redStreak, stats.score, ui.sessionExpiredShare, viewMonth, viewYear]);
 
   const openShareModal = async () => {
     setShareModalOpen(true);
@@ -2738,7 +2826,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 {pendingSyncCount > 0 ? (
                   <div className={styles.syncPendingRow}>
                     <span className={styles.syncPendingText}>{trackerSyncStatusText}</span>
-                    <button className={`btn ${styles.syncRetryBtn}`} type="button" onClick={retryPendingSyncs}>
+                    <button className={`btn ${styles.syncRetryBtn}`} type="button" onClick={() => retryPendingSyncs()}>
                       {locale === "ru" ? "Повторить sync" : locale === "uk" ? "Повторити sync" : "Retry sync"}
                     </button>
                   </div>

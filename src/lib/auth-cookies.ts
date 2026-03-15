@@ -13,7 +13,7 @@ export function setAuthCookies(
     maxAge?: number;
   },
 ) {
-  const maxAge = params.maxAge ?? 60 * 60 * 24 * 30;
+  const maxAge = params.maxAge ?? 60 * 60 * 24 * 90;
   const options = {
     httpOnly: true as const,
     sameSite: "lax" as const,
