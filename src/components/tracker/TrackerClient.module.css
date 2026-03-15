@@ -589,6 +589,13 @@
   animation: trackerLineReveal 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+.lineStatic {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  animation: none;
+  opacity: 1;
+}
+
 .yellowGlow,
 .blueGlow {
   fill: none;
@@ -599,6 +606,13 @@
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
   animation: trackerGlowReveal 3.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.glowStatic {
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+  animation: none;
+  opacity: 0.58;
 }
 
 .yellowGlow {
@@ -626,6 +640,12 @@
   animation: trackerBarReveal 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: opacity 0.22s ease, transform 0.22s ease, filter 0.24s ease;
   animation-fill-mode: both;
+}
+
+.tradeBarStatic {
+  animation: none;
+  opacity: 0.22;
+  transform: scaleY(1);
 }
 
 .tradeBar:hover {

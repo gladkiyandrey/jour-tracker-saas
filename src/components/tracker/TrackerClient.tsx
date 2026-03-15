@@ -267,12 +267,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [copyFlash, setCopyFlash] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [chartHover, setChartHover] = useState<ChartHover | null>(null);
+  const [chartAnimationsEnabled, setChartAnimationsEnabled] = useState(false);
   const [animatedStats, setAnimatedStats] = useState({ score: 0, greenStreak: 0, redStreak: 0 });
   const [isTouchMode, setIsTouchMode] = useState(false);
   const [activeHelpKey, setActiveHelpKey] = useState<string | null>(null);
   const dayPulseTimeoutRef = useRef<number | null>(null);
   const animatedStatsRef = useRef(animatedStats);
   const chartMotionInitializedRef = useRef(false);
+  const chartInitialLoadDoneRef = useRef(false);
   const [adviceSnapshot, setAdviceSnapshot] = useState<AdviceSnapshot | null>(() => {
     if (typeof window === "undefined") return null;
     try {
@@ -671,6 +673,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
             );
           }
         }
+      } finally {
+        if (!cancelled && !chartInitialLoadDoneRef.current) {
+          chartInitialLoadDoneRef.current = true;
+          chartMotionInitializedRef.current = true;
+          setChartAnimationsEnabled(true);
+          setChartMotionKey((prev) => prev + 1);
+        }
       }
     };
 
@@ -831,6 +840,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   }, [dayPulseKey]);
 
   useEffect(() => {
+    if (!chartAnimationsEnabled) return;
     if (!chartMotionInitializedRef.current) {
       chartMotionInitializedRef.current = true;
       return;
@@ -2710,7 +2720,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 {chartModel.bars.map((bar, index) => (
                   <rect
                     key={`bar-${chartMotionKey}-${index}`}
-                    className={`${styles.tradeBar} ${
+                    className={`${styles.tradeBar} ${chartAnimationsEnabled ? "" : styles.tradeBarStatic} ${
                       bar.kind === "zero"
                         ? styles.tradeBarZero
                         : bar.kind === "ok"
@@ -2743,10 +2753,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
                 ))}
               </g>
               <g clipPath={`url(#${chartClipId})`}>
-                <path key={`yellow-glow-${chartMotionKey}`} className={styles.yellowGlow} d={chartModel.yellow} />
-                <path key={`blue-glow-${chartMotionKey}`} className={styles.blueGlow} d={chartModel.blue} />
-                <path key={`yellow-line-${chartMotionKey}`} className={`${styles.line} ${styles.yellow}`} d={chartModel.yellow} />
-                <path key={`blue-line-${chartMotionKey}`} className={`${styles.line} ${styles.blue}`} d={chartModel.blue} />
+                <path key={`yellow-glow-${chartMotionKey}`} className={`${styles.yellowGlow} ${chartAnimationsEnabled ? "" : styles.glowStatic}`} d={chartModel.yellow} />
+                <path key={`blue-glow-${chartMotionKey}`} className={`${styles.blueGlow} ${chartAnimationsEnabled ? "" : styles.glowStatic}`} d={chartModel.blue} />
+                <path key={`yellow-line-${chartMotionKey}`} className={`${styles.line} ${styles.yellow} ${chartAnimationsEnabled ? "" : styles.lineStatic}`} d={chartModel.yellow} />
+                <path key={`blue-line-${chartMotionKey}`} className={`${styles.line} ${styles.blue} ${chartAnimationsEnabled ? "" : styles.lineStatic}`} d={chartModel.blue} />
               </g>
               {chartModel.ticks.map((tick, index) => (
                 <text key={`tick-${index}`} className={styles.tickLabel} x={tick.x} y={244} textAnchor="middle">
