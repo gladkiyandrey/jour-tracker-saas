@@ -29,6 +29,9 @@ type AdviceSnapshot = {
   advice: string;
 };
 type MonthBaseSource = "manual" | "inferred";
+type CalendarCell =
+  | { kind: "empty" }
+  | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean; isToday: boolean; isMonthBaseDay: boolean };
 
 type MonthAggregate = {
   month: number;
@@ -48,10 +51,7 @@ type QuarterGroup = {
   months: Array<{
     month: number;
     label: string;
-    cells: Array<
-      | { kind: "empty" }
-      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean; isToday: boolean }
-    >;
+    cells: CalendarCell[];
     aggregate: MonthAggregate;
   }>;
   trades: number;
@@ -140,6 +140,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const reviewDisplayKey = `jour-tracker-review-display-${userKey}`;
   const monthBaseKey = `jour-tracker-month-base-${userKey}`;
   const monthBaseSourceKey = `jour-tracker-month-base-source-${userKey}`;
+  const monthBaseDayKey = `jour-tracker-month-base-day-${userKey}`;
   const [viewYear, setViewYear] = useState<number>(() => {
     if (typeof window === "undefined") return now.getFullYear();
     try {
@@ -204,6 +205,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const [modalVariant, setModalVariant] = useState<Variant | "">("");
   const [modalDeposit, setModalDeposit] = useState("");
   const [modalTrades, setModalTrades] = useState("");
+  const [modalMonthBase, setModalMonthBase] = useState("");
   const [modalError, setModalError] = useState("");
   const [saveSuccessVisible, setSaveSuccessVisible] = useState(false);
   const [saveFeedbackTick, setSaveFeedbackTick] = useState(0);
@@ -246,6 +248,18 @@ export default function TrackerClient({ userKey, locale }: Props) {
       return Object.fromEntries(
         Object.entries(parsed).filter(([, value]) => value === "manual" || value === "inferred")
       );
+    } catch {
+      return {};
+    }
+  });
+  const [monthBaseDayByMonth, setMonthBaseDayByMonth] = useState<Record<string, string>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const raw = localStorage.getItem(monthBaseDayKey);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw) as Record<string, string>;
+      if (!parsed || typeof parsed !== "object") return {};
+      return Object.fromEntries(Object.entries(parsed).filter(([, value]) => typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)));
     } catch {
       return {};
     }
@@ -736,6 +750,14 @@ export default function TrackerClient({ userKey, locale }: Props) {
       // ignore storage errors
     }
   }, [monthBaseSourceByMonth, monthBaseSourceKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(monthBaseDayKey, JSON.stringify(monthBaseDayByMonth));
+    } catch {
+      // ignore storage errors
+    }
+  }, [monthBaseDayByMonth, monthBaseDayKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1964,6 +1986,31 @@ export default function TrackerClient({ userKey, locale }: Props) {
     });
   }, [getPreviousDayDeposit, monthBaseByMonth, sortedEntries]);
 
+  useEffect(() => {
+    setMonthBaseDayByMonth((prev) => {
+      const next = { ...prev };
+      let changed = false;
+
+      Object.keys(monthBaseByMonth).forEach((monthKey) => {
+        if (next[monthKey]) return;
+        if (monthBaseSourceByMonth[monthKey] !== "manual") return;
+        const firstMonthEntry = sortedEntries.find(([dateKey]) => getMonthKey(dateKey) === monthKey)?.[0];
+        if (!firstMonthEntry) return;
+        next[monthKey] = firstMonthEntry;
+        changed = true;
+      });
+
+      Object.keys(next).forEach((monthKey) => {
+        if (!monthBaseByMonth[monthKey] || monthBaseSourceByMonth[monthKey] !== "manual") {
+          delete next[monthKey];
+          changed = true;
+        }
+      });
+
+      return changed ? next : prev;
+    });
+  }, [monthBaseByMonth, monthBaseSourceByMonth, sortedEntries]);
+
   const todayKey = useMemo(() => {
     const nowDate = new Date();
     return formatDateKey(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
@@ -1972,6 +2019,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
   const isFutureDateKey = (dateKey: string) => dateKey > todayKey;
   const getMonthBase = (monthKey: string) => Number(monthBaseByMonth[monthKey]) || 0;
   const getMonthBaseSource = (monthKey: string): MonthBaseSource | null => monthBaseSourceByMonth[monthKey] || null;
+  const getMonthBaseDay = (monthKey: string) => monthBaseDayByMonth[monthKey] || "";
   const hasEntriesInMonth = useCallback(
     (monthKey: string) => sortedEntries.some(([dateKey]) => getMonthKey(dateKey) === monthKey),
     [sortedEntries]
@@ -1982,14 +2030,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
       setSyncError(ui.futureDayLocked);
       return;
     }
+    const monthKey = getMonthKey(dateKey);
     setSelectedDateKey(dateKey);
     const current = dayData[dateKey];
     setModalVariant(current?.variant ?? "");
     setModalDeposit(current?.deposit && current.deposit > 0 ? String(current.deposit) : "");
+    setModalMonthBase(getMonthBaseDay(monthKey) === dateKey ? String(Math.round(getMonthBase(monthKey))) : "");
     if (current?.variant === "pos-outline") {
       setModalTrades("0");
     } else {
-    setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
+      setModalTrades(current?.trades && current.trades > 0 ? String(current.trades) : "");
     }
     setModalError("");
     setSaveSuccessVisible(false);
@@ -2130,6 +2180,10 @@ export default function TrackerClient({ userKey, locale }: Props) {
       ...prev,
       [monthKey]: "manual",
     }));
+    setMonthBaseDayByMonth((prev) => ({
+      ...prev,
+      [monthKey]: monthSetupDateKey,
+    }));
     setMonthSetupOpen(false);
     setMonthSetupError("");
     const nextDateKey = monthSetupDateKey;
@@ -2151,14 +2205,17 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const outlineDeposit = isOutline ? (previousDeposit > 0 ? previousDeposit : enteredDeposit) : enteredDeposit;
     const deposit = outlineDeposit;
     const trades = isOutline ? 0 : Number(modalTrades.trim());
+    const isMonthBaseEditDay = getMonthBaseDay(monthKey) === selectedDateKey;
+    const enteredMonthBase = Number(modalMonthBase.trim());
+    const resolvedMonthBase = isMonthBaseEditDay ? enteredMonthBase : existingMonthBase;
     const hasVariant = modalVariant === "neg" || modalVariant === "pos" || modalVariant === "pos-outline";
     const hasDeposit = Number.isFinite(deposit) && deposit > 0;
     const hasTrades = Number.isFinite(trades) && (isOutline ? trades >= 0 : trades > 0);
-    const hasMonthBase = existingMonthBase > 0;
+    const hasMonthBase = Number.isFinite(resolvedMonthBase) && resolvedMonthBase > 0;
 
     if (!hasVariant || !hasDeposit || !hasTrades || !hasMonthBase) {
       if (!hasMonthBase) {
-        setModalError(ui.monthSetupRequired);
+        setModalError(isMonthBaseEditDay ? ui.monthStartDepositPositive : ui.monthSetupRequired);
       } else if (!hasVariant && !hasDeposit && !hasTrades) {
         setModalError(
           locale === "ru"
@@ -2205,6 +2262,21 @@ export default function TrackerClient({ userKey, locale }: Props) {
       deposit,
       trades: Math.floor(trades),
     };
+
+    if (isMonthBaseEditDay) {
+      setMonthBaseByMonth((prev) => ({
+        ...prev,
+        [monthKey]: resolvedMonthBase,
+      }));
+      setMonthBaseSourceByMonth((prev) => ({
+        ...prev,
+        [monthKey]: "manual",
+      }));
+      setMonthBaseDayByMonth((prev) => ({
+        ...prev,
+        [monthKey]: selectedDateKey,
+      }));
+    }
 
     setDayData((prev) => ({
       ...prev,
@@ -2267,11 +2339,12 @@ export default function TrackerClient({ userKey, locale }: Props) {
     }
   };
 
-  const renderDayClass = (entry: Entry | undefined, isSelected: boolean, isToday: boolean) => {
+  const renderDayClass = (entry: Entry | undefined, isSelected: boolean, isToday: boolean, isMonthBaseDay: boolean) => {
     const classes = [styles.day];
     if (!entry) {
       if (isSelected) classes.push(styles.daySelected);
       if (isToday) classes.push(styles.dayToday);
+      if (isMonthBaseDay) classes.push(styles.dayMonthBase);
       return classes.join(" ");
     }
 
@@ -2282,6 +2355,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     if (entry.variant === "pos" && isSelected) classes.push(styles.dayPosSelected);
     if (isSelected) classes.push(styles.daySelected);
     if (isToday) classes.push(styles.dayToday);
+    if (isMonthBaseDay) classes.push(styles.dayMonthBase);
 
     return classes.join(" ");
   };
@@ -2290,10 +2364,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
     const first = new Date(year, month, 1);
     const firstDay = (first.getDay() + 6) % 7;
     const lastDate = new Date(year, month + 1, 0).getDate();
-    const cells = [] as Array<
-      | { kind: "empty" }
-      | { kind: "day"; day: number; dateKey: string; entry?: Entry; isSelected: boolean; isFuture: boolean; isToday: boolean }
-    >;
+    const cells = [] as CalendarCell[];
 
     for (let i = 0; i < 42; i += 1) {
       if (i < firstDay || i >= firstDay + lastDate) {
@@ -2309,12 +2380,13 @@ export default function TrackerClient({ userKey, locale }: Props) {
           isSelected: dateKey === selectedDateKey,
           isFuture: dateKey > todayKey,
           isToday: dateKey === todayKey,
+          isMonthBaseDay: getMonthBaseDay(getMonthKey(dateKey)) === dateKey,
         });
       }
     }
 
     return cells;
-  }, [dayData, selectedDateKey, todayKey]);
+  }, [dayData, getMonthBaseDay, selectedDateKey, todayKey]);
 
   const calendarCells = useMemo(() => {
     return buildMonthCells(viewYear, viewMonth);
@@ -2610,6 +2682,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
   };
 
   const selectedYearMonth = selectedDateKey ? Number(selectedDateKey.slice(5, 7)) - 1 : -1;
+  const selectedMonthBaseDateKey = selectedDateKey ? getMonthBaseDay(getMonthKey(selectedDateKey)) : "";
+  const isSelectedMonthBaseDay = selectedDateKey !== "" && selectedMonthBaseDateKey === selectedDateKey;
 
   return (
     <section className={styles.wrapper}>
@@ -2863,7 +2937,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                     <button
                       key={cell.dateKey}
                       type="button"
-                      className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${
+                      className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday, cell.isMonthBaseDay)} ${
                         cell.dateKey === dayPulseKey ? styles.dayPulse : ""
                       } ${cell.isFuture ? styles.dayLocked : ""}`}
                       onClick={() => handleDaySelect(cell.dateKey)}
@@ -3131,7 +3205,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                             <button
                               key={cell.dateKey}
                               type="button"
-                              className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday)} ${
+                              className={`${renderDayClass(cell.entry, cell.isSelected, cell.isToday, cell.isMonthBaseDay)} ${
                                 cell.dateKey === dayPulseKey ? styles.dayPulse : ""
                               } ${styles.yearDay} ${cell.isFuture ? styles.dayLocked : ""}`}
                               onClick={() => handleDaySelect(cell.dateKey)}
@@ -3353,15 +3427,22 @@ export default function TrackerClient({ userKey, locale }: Props) {
           <div className={`${styles.modal} ${styles.dayFlowModal} ${styles.flowModal}`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h3 className={styles.flowStep}>{ui.daySettings}</h3>
             <p className={`${styles.modalDate} ${styles.flowStep}`}>{selectedDateKey}</p>
-            {selectedDateKey ? (
+            {selectedDateKey && isSelectedMonthBaseDay ? (
               <div className={`${styles.field} ${styles.fieldPrimary} ${styles.flowStep}`}>
                 <span>{ui.monthStartDeposit}</span>
-                <div className={styles.fieldValue}>
-                  {getMonthBase(getMonthKey(selectedDateKey)).toLocaleString(locale === "ru" ? "ru-RU" : locale === "uk" ? "uk-UA" : "en-US")}
-                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  placeholder={ui.enterMonthStartDeposit}
+                  value={modalMonthBase}
+                  onChange={(e) => {
+                    setModalMonthBase(e.target.value.replace(/\D/g, ""));
+                    setModalError("");
+                  }}
+                />
                 <small className={styles.fieldHint}>
-                  {ui.monthStartDepositHint}{" "}
-                  {getMonthBaseSource(getMonthKey(selectedDateKey)) === "inferred" ? ui.monthBaseInferredHint : ui.monthBaseManualHint}
+                  {ui.monthStartDepositHelper}
                 </small>
               </div>
             ) : null}
