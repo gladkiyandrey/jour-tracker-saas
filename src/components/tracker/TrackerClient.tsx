@@ -366,8 +366,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         monthSetupDescription: "Введите стартовый депозит месяца",
         continueCta: "Продолжить",
         monthStartDeposit: "Стартовый депозит месяца",
-        monthStartDepositHint: "От этой суммы считаются %-метрики месяца. Max Drawdown считается отдельно от локального пика внутри месяца.",
-        monthStartDepositHelper: "Указывается один раз для текущего месяца.",
+        monthStartDepositHint: "Это стартовый депозит, с которым работаем в этом месяце.",
+        monthStartDepositHelper: "Это стартовый депозит, с которым работаем в этом месяце.",
         enterMonthStartDeposit: "Введите стартовый депозит",
         monthStartDepositRequired: "Введите стартовый депозит месяца.",
         monthStartDepositPositive: "Стартовый депозит месяца должен быть больше 0.",
@@ -464,8 +464,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         monthSetupDescription: "Введіть стартовий депозит місяця",
         continueCta: "Продовжити",
         monthStartDeposit: "Стартовий депозит місяця",
-        monthStartDepositHint: "Від цієї суми рахуються %-метрики місяця. Max Drawdown рахується окремо від локального піка всередині місяця.",
-        monthStartDepositHelper: "Вказується один раз для поточного місяця.",
+        monthStartDepositHint: "Це стартовий депозит, з яким працюємо в цьому місяці.",
+        monthStartDepositHelper: "Це стартовий депозит, з яким працюємо в цьому місяці.",
         enterMonthStartDeposit: "Введіть стартовий депозит",
         monthStartDepositRequired: "Введіть стартовий депозит місяця.",
         monthStartDepositPositive: "Стартовий депозит місяця має бути більше 0.",
@@ -561,8 +561,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
       monthSetupDescription: "Enter the month starting deposit",
       continueCta: "Continue",
       monthStartDeposit: "Month starting deposit",
-      monthStartDepositHint: "Monthly % metrics are calculated from this amount. Max drawdown is still measured from the local peak within the month.",
-      monthStartDepositHelper: "Set once for the current month.",
+      monthStartDepositHint: "This is the starting deposit we work with for this month.",
+      monthStartDepositHelper: "This is the starting deposit we work with for this month.",
       enterMonthStartDeposit: "Enter month starting deposit",
       monthStartDepositRequired: "Enter the month starting deposit.",
       monthStartDepositPositive: "Month starting deposit must be greater than 0.",
@@ -3478,7 +3478,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <h3 className={styles.flowStep}>{ui.monthSetupTitle}</h3>
             <p className={`${styles.modalDate} ${styles.flowStep}`}>{ui.monthSetupDescription}</p>
 
-            <label className={`${styles.field} ${styles.fieldPrimary} ${styles.flowStep}`}>
+            <label className={`${styles.field} ${styles.flowStep}`}>
               <span>{ui.monthStartDeposit}</span>
               <input
                 type="text"
@@ -3492,7 +3492,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
                   setMonthSetupError("");
                 }}
               />
-              <small className={styles.fieldHint}>{ui.monthStartDepositHint}</small>
+              <small className={styles.fieldHint}>{ui.monthStartDepositHelper}</small>
             </label>
 
             {monthSetupError ? <p className={`${styles.modalError} ${styles.flowStep}`}>{monthSetupError}</p> : null}
@@ -3515,7 +3515,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
             <h3 className={styles.flowStep}>{ui.daySettings}</h3>
             <p className={`${styles.modalDate} ${styles.flowStep}`}>{selectedDateKey}</p>
             {selectedDateKey && isSelectedMonthBaseDay ? (
-              <div className={`${styles.field} ${styles.fieldPrimary} ${styles.flowStep}`}>
+              <div className={`${styles.field} ${styles.flowStep}`}>
                 <span>{ui.monthStartDeposit}</span>
                 <input
                   type="text"
