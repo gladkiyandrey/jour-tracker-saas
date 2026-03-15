@@ -1290,9 +1290,6 @@
 
 .dayMonthBase {
   position: relative;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 214, 102, 0.38),
-    0 0 0 1px rgba(255, 214, 102, 0.12);
 }
 
 .dayMonthBase::before {
