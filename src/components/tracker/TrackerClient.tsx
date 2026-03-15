@@ -1993,7 +1993,6 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
       Object.keys(monthBaseByMonth).forEach((monthKey) => {
         if (next[monthKey]) return;
-        if (monthBaseSourceByMonth[monthKey] !== "manual") return;
         const firstMonthEntry = sortedEntries.find(([dateKey]) => getMonthKey(dateKey) === monthKey)?.[0];
         if (!firstMonthEntry) return;
         next[monthKey] = firstMonthEntry;
@@ -2001,7 +2000,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
       });
 
       Object.keys(next).forEach((monthKey) => {
-        if (!monthBaseByMonth[monthKey] || monthBaseSourceByMonth[monthKey] !== "manual") {
+        if (!monthBaseByMonth[monthKey]) {
           delete next[monthKey];
           changed = true;
         }
@@ -2009,7 +2008,7 @@ export default function TrackerClient({ userKey, locale }: Props) {
 
       return changed ? next : prev;
     });
-  }, [monthBaseByMonth, monthBaseSourceByMonth, sortedEntries]);
+  }, [monthBaseByMonth, sortedEntries]);
 
   const todayKey = useMemo(() => {
     const nowDate = new Date();
