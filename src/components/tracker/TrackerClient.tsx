@@ -1865,14 +1865,16 @@ export default function TrackerClient({ userKey, locale }: Props) {
     };
 
     const firstDeposit = depositValues[0] || 0;
+    const firstMonthKey = visible[0] ? getMonthKey(visible[0].dateKey) : "";
+    const monthBaseAnchor = (firstMonthKey ? Number(monthBaseByMonth[firstMonthKey]) || 0 : 0) || firstDeposit;
     const displayMinDeposit = (() => {
       if (trackerView !== "month") {
         const depositRange = Math.max(1, maxDeposit - minDeposit);
         const depositPad = depositRange * 0.08;
         return minDeposit - depositPad;
       }
-      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - firstDeposit)));
-      return firstDeposit - maxAbsDelta * 1.08;
+      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - monthBaseAnchor)));
+      return monthBaseAnchor - maxAbsDelta * 1.08;
     })();
     const displayMaxDeposit = (() => {
       if (trackerView !== "month") {
@@ -1880,8 +1882,8 @@ export default function TrackerClient({ userKey, locale }: Props) {
         const depositPad = depositRange * 0.08;
         return maxDeposit + depositPad;
       }
-      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - firstDeposit)));
-      return firstDeposit + maxAbsDelta * 1.08;
+      const maxAbsDelta = Math.max(1, ...depositValues.map((value) => Math.abs(value - monthBaseAnchor)));
+      return monthBaseAnchor + maxAbsDelta * 1.08;
     })();
     const normalizedDeposit = normalizeToAxis(depositValues, displayMinDeposit, displayMaxDeposit);
     const normalizedResultRaw = normalizeFromBaseline(resultValues, 0.1);
