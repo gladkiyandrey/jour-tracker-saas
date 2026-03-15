@@ -1239,12 +1239,12 @@
 
 .dayNeg {
   background: rgba(172, 30, 49, 0.58);
-  border-color: rgba(255, 106, 131, 0.7);
+  border-color: transparent;
 }
 
 .dayPos {
   background: rgba(23, 144, 93, 0.56);
-  border-color: rgba(63, 221, 153, 0.78);
+  border-color: transparent;
 }
 
 .dayPosOutline {
