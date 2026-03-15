@@ -167,6 +167,8 @@
 }
 
 .mainPanel {
+  position: relative;
+  z-index: 2;
   height: 100%;
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
@@ -174,6 +176,8 @@
 }
 
 .panel {
+  position: relative;
+  overflow: visible;
   border: 1px solid rgba(120, 136, 190, 0.28);
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(31, 38, 61, 0.94), rgba(18, 23, 38, 0.96));
@@ -1736,7 +1740,7 @@
 }
 
 .flowModal {
-  overflow: hidden;
+  overflow: visible;
 }
 
 .flowStep {
