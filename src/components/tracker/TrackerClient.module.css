@@ -1300,8 +1300,8 @@
   position: absolute;
   top: 6px;
   left: 6px;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 999px;
   background: #ffd666;
   box-shadow: 0 0 10px rgba(255, 214, 102, 0.52);
